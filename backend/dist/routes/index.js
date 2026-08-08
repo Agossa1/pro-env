@@ -1,0 +1,30 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.configureRoutes = void 0;
+const express_1 = require("express");
+const auth_module_1 = require("../modules/auth/auth.module");
+const territory_module_1 = require("../modules/territory/territory.module");
+const permission_module_1 = require("../modules/permissions/permission.module");
+const role_module_1 = require("../modules/roles/role.module");
+const societe_module_1 = require("../modules/societes/societe.module");
+const report_module_1 = require("../modules/reports/report.module");
+const mission_module_1 = require("../modules/missions/mission.module");
+const intervention_module_1 = require("../modules/interventions/intervention.module");
+const media_module_1 = require("../modules/media/media.module");
+const team_module_1 = require("../modules/teams/team.module");
+const configureRoutes = (db) => {
+    const router = (0, express_1.Router)();
+    router.use('/auth', (0, auth_module_1.initAuthModule)(db));
+    router.use('/territories', (0, territory_module_1.initTerritoryModule)(db));
+    router.use('/permissions', (0, permission_module_1.initPermissionModule)(db));
+    router.use('/roles', (0, role_module_1.initRoleModule)(db));
+    router.use('/societes', (0, societe_module_1.initSocieteModule)(db));
+    router.use('/reports', (0, report_module_1.initReportModule)(db));
+    router.use('/missions', (0, mission_module_1.initMissionModule)(db));
+    router.use('/interventions', (0, intervention_module_1.initInterventionModule)(db));
+    router.use('/media', (0, media_module_1.initMediaModule)(db));
+    router.use('/teams', (0, team_module_1.initTeamModule)(db));
+    return router;
+};
+exports.configureRoutes = configureRoutes;
+//# sourceMappingURL=index.js.map

@@ -1,0 +1,119 @@
+import { Logger } from 'winston';
+import { BadRequestError, NotFoundError } from '../../../shared/errors/appErrors';
+import { TeamRepository } from '../repositories/team.repositories';
+import { TeamMemberRole } from '../types/team.enums';
+
+// Mocks
+const mockLogger = { info: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() } as unknown as Logger;
+jest.mock('../repositories/team.repositories');
+
+// Services
+import { GetTeamsService } from '../services/getTeams.service';
+import { GetTeamByIdService } from '../services/getTeamById.service';
+import { CreateTeamService } from '../services/createTeam.service';
+import { UpdateTeamService } from '../services/updateTeam.service';
+import { DeleteTeamService } from '../services/deleteTeam.service';
+import { GetTeamMembersService } from '../services/getTeamMembers.service';
+import { AddMemberToTeamService } from '../services/addMemberToTeam.service';
+import { RemoveMemberFromTeamService } from '../services/removeMemberFromTeam.service';
+
+describe('Team Services', () => {
+  let teamRepository: jest.Mocked<TeamRepository>;
+
+  beforeEach(() => {
+    teamRepository = new TeamRepository({} as any, mockLogger) as jest.Mocked<TeamRepository>;
+    jest.clearAllMocks();
+  });
+
+  describe('GetTeamsService', () => {
+    let service: GetTeamsService;
+    beforeEach(() => { service = new GetTeamsService(teamRepository, mockLogger); });
+
+    it('doit retourner une liste paginée', async () => {
+      const mockResult = { data: [{ id: '1', name: 'Équipe', teamType: 'institution' }], total: 1, page: 1, limit: 50, totalPages: 1 };
+      teamRepository.getAllTeams.mockResolvedValueOnce(mockResult as any);
+      expect(await service.getTeams({})).toEqual(mockResult);
+    });
+  });
+
+  describe('GetTeamByIdService', () => {
+    let service: GetTeamByIdService;
+    beforeEach(() => { service = new GetTeamByIdService(teamRepository, mockLogger); });
+
+    it('doit retourner l\'équipe si trouvée', async () => {
+      teamRepository.getTeamById.mockResolvedValueOnce({ id: '1', name: 'Équipe' } as any);
+      expect(await service.getTeamById('1')).toMatchObject({ name: 'Équipe' });
+    });
+
+    it('doit lever NotFoundError si inexistante', async () => {
+      teamRepository.getTeamById.mockResolvedValueOnce(null);
+      await expect(service.getTeamById('1')).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe('CreateTeamService', () => {
+    let service: CreateTeamService;
+    beforeEach(() => { service = new CreateTeamService(teamRepository, mockLogger); });
+
+    it('doit lever BadRequestError si provider sans organizationId (règle 2 types)', async () => {
+      await expect(service.createTeam({ name: 'Équipe', teamType: 'provider' as any }))
+        .rejects.toThrow(BadRequestError);
+    });
+
+    it('doit lever BadRequestError si institution avec organizationId (règle 2 types)', async () => {
+      await expect(service.createTeam({ name: 'Équipe', teamType: 'institution' as any, organizationId: 'org-1' }))
+        .rejects.toThrow(BadRequestError);
+    });
+
+    it('doit créer une équipe institution', async () => {
+      teamRepository.createTeam.mockResolvedValueOnce({ id: '1', name: 'Équipe', teamType: 'institution' } as any);
+      const result = await service.createTeam({ name: 'Équipe', teamType: 'institution' as any });
+      expect(result).toMatchObject({ teamType: 'institution' });
+      expect(teamRepository.createTeam).toHaveBeenCalledWith(expect.objectContaining({ organizationId: null }));
+    });
+  });
+
+  describe('UpdateTeamService / DeleteTeamService', () => {
+    it('doit mettre à jour et lever NotFoundError', async () => {
+      let service = new UpdateTeamService(teamRepository, mockLogger);
+      teamRepository.updateTeam.mockResolvedValueOnce({ id: '1' } as any);
+      expect(await service.updateTeam('1', { name: 'X' })).toMatchObject({ id: '1' });
+      teamRepository.updateTeam.mockResolvedValueOnce(null);
+      await expect(service.updateTeam('2', { name: 'X' })).rejects.toThrow(NotFoundError);
+    });
+
+    it('doit supprimer et propager NotFoundError', async () => {
+      let service = new DeleteTeamService(teamRepository, mockLogger);
+      await service.deleteTeam('1');
+      expect(teamRepository.deleteTeam).toHaveBeenCalledWith('1');
+      teamRepository.deleteTeam.mockRejectedValueOnce(new NotFoundError('Équipe introuvable'));
+      await expect(service.deleteTeam('2')).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe('MembersServices', () => {
+    it('getTeamMembers doit retourner les membres', async () => {
+      let service = new GetTeamMembersService(teamRepository, mockLogger);
+      teamRepository.getTeamMembers.mockResolvedValueOnce([{ id: 'm1' }] as any);
+      expect(await service.getTeamMembers('1')).toHaveLength(1);
+    });
+
+    it('addMemberToTeam doit lever BadRequestError si ids absents', async () => {
+      let service = new AddMemberToTeamService(teamRepository, mockLogger);
+      await expect(service.addMemberToTeam('', '')).rejects.toThrow(BadRequestError);
+    });
+
+    it('addMemberToTeam doit ajouter un membre', async () => {
+      let service = new AddMemberToTeamService(teamRepository, mockLogger);
+      teamRepository.addMemberToTeam.mockResolvedValueOnce({ id: 'm1', roleInTeam: TeamMemberRole.LEADER } as any);
+      const result = await service.addMemberToTeam('1', 'u1', TeamMemberRole.LEADER);
+      expect(result).toMatchObject({ roleInTeam: TeamMemberRole.LEADER });
+    });
+
+    it('removeMemberFromTeam doit retirer un membre', async () => {
+      let service = new RemoveMemberFromTeamService(teamRepository, mockLogger);
+      await service.removeMemberFromTeam('1', 'm1');
+      expect(teamRepository.removeMemberFromTeam).toHaveBeenCalledWith('1', 'm1');
+    });
+  });
+});
