@@ -293,11 +293,11 @@ export class TerritoryRepository {
    * (parentTerritoryId). Géométries retournées en GeoJSON.
    */
   public async getAllTerritories(
-    query: PaginationQuery & { territoryTypeId?: string; parentTerritoryId?: string } = {}
+    query: PaginationQuery & { territoryTypeId?: string; parentTerritoryId?: string; territoryTypeCode?: string } = {}
   ): Promise<PaginatedResult<Territory>> {
     try {
       const page = Math.max(1, query.page ?? 1);
-      const limit = Math.min(100, Math.max(1, query.limit ?? 50));
+      const limit = Math.min(5000, Math.max(1, query.limit ?? 50));
       const offset = (page - 1) * limit;
 
       const conditions: string[] = [`t.deleted_at IS NULL`];
@@ -307,6 +307,10 @@ export class TerritoryRepository {
         params.push(query.territoryTypeId);
         conditions.push(`t.territory_type_id = $${params.length}`);
       }
+      if (query.territoryTypeCode) {
+        params.push(query.territoryTypeCode);
+        conditions.push(`tt.code = $${params.length}`);
+      }
       if (query.parentTerritoryId) {
         params.push(query.parentTerritoryId);
         conditions.push(`t.parent_territory_id = $${params.length}`);
@@ -314,11 +318,12 @@ export class TerritoryRepository {
 
       const where = conditions.join(' AND ');
 
-      const key = `territory:all:${page}:${limit}:${query.territoryTypeId ?? ''}:${query.parentTerritoryId ?? ''}`;
+      const key = `territory:all:${page}:${limit}:${query.territoryTypeId ?? ''}:${query.territoryTypeCode ?? ''}:${query.parentTerritoryId ?? ''}`;
       return await redisCache.getOrSet(key, async () => {
         const countRes = await this.db.query(
           `SELECT COUNT(*)::int AS total
            FROM territories t
+           LEFT JOIN territory_types tt ON t.territory_type_id = tt.id
            WHERE ${where}`,
           params
         );
@@ -329,6 +334,8 @@ export class TerritoryRepository {
           `SELECT
              t.id,
              t.territory_type_id    AS "territoryTypeId",
+             tt.code                AS "territoryTypeCode",
+             tt.name                AS "territoryTypeName",
              t.parent_territory_id  AS "parentTerritoryId",
              t.organization_id      AS "organizationId",
              t.code, t.name, t.status, t.metadata,
@@ -340,6 +347,7 @@ export class TerritoryRepository {
              ST_AsGeoJSON(t.centroid) AS centroid,
              ST_AsGeoJSON(t.bbox)      AS bbox
            FROM territories t
+           LEFT JOIN territory_types tt ON tt.id = t.territory_type_id
            WHERE ${where}
            ORDER BY t.name ASC
            LIMIT $${params.length - 1} OFFSET $${params.length}`,

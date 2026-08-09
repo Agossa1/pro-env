@@ -30,13 +30,17 @@ class LoginService {
             throw new appErrors_1.ForbiddenError('Votre compte a été désactivé. Veuillez contacter un administrateur.');
         }
         // 4. Préparer le payload du token
+        // Le payload suit le format TokenPayload attendu par le authMiddleware :
+        // roleTier (et non tier) + roles (liste) pour les vérifications RBAC.
         const tokenPayload = {
+            id: '',
             userId: user.id,
             email: user.email,
             roleCode: user.roleCode,
-            tier: user.roleTier,
+            roleTier: user.roleTier,
             territoryId: user.territoryId,
-            organizationId: user.organizationId
+            organizationId: user.organizationId,
+            roles: [user.roleCode]
         };
         // 5. Générer les tokens
         const accessToken = this.tokenManager.generateAccessToken(tokenPayload);

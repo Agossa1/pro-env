@@ -10,6 +10,7 @@ class GetAllTerritoriesController {
                     page: req.query.page ? parseInt(req.query.page, 10) : undefined,
                     limit: req.query.limit ? parseInt(req.query.limit, 10) : undefined,
                     territoryTypeId: req.query.territoryTypeId,
+                    territoryTypeCode: req.query.territoryTypeCode,
                     parentTerritoryId: req.query.parentTerritoryId,
                 };
                 const result = await this.getAllTerritoriesService.getAllTerritories(query);

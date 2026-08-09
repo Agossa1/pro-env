@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import {configureRoutes} from "./routes";
+import { configureRoutes } from './routes';
 import PostgresDatabase from './config/database/postgres';
 import { errorMiddleware } from './shared/middlewares/error.middlewares';
 
@@ -89,3 +89,5 @@ export const createServer = async (db: PostgresDatabase) => {
 
     return app;
 };
+
+

@@ -16,6 +16,7 @@ export class GetAllTerritoriesController {
         page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
         territoryTypeId: req.query.territoryTypeId as string | undefined,
+        territoryTypeCode: req.query.territoryTypeCode as string | undefined,
         parentTerritoryId: req.query.parentTerritoryId as string | undefined,
       };
 

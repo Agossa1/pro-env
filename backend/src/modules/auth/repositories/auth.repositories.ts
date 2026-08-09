@@ -7,6 +7,7 @@
 |--------------------------------------------------------------------------
 */
 
+import { randomInt } from 'crypto';
 import type { Logger } from 'winston';
 import PostgresDatabase from '../../../config/database/postgres';
 import { BadRequestError } from '../../../shared/errors/appErrors';
@@ -83,10 +84,13 @@ export class AuthRepository {
         [auth.id, payload.passwordHash]
       );
 
-      // 3. Initialisation du Statut (Inactif par défaut en attente de vérification)
+      // 3. Statut du compte — la ligne est auto-créée par le trigger
+      //    trg_init_account_status (AFTER INSERT ON auth) avec
+      //    is_active=TRUE, is_verified=FALSE. On force is_active=false
+      //    en attente de vérification OTP.
       const statusRes = await client.query(
-        `INSERT INTO account_status (auth_id, is_active, is_verified)
-         VALUES ($1, false, false)
+        `UPDATE account_status SET is_active = false, updated_at = NOW()
+         WHERE auth_id = $1
          RETURNING is_active, is_verified`,
         [auth.id]
       );
@@ -94,8 +98,11 @@ export class AuthRepository {
 
       await client.query('COMMIT');
 
-      // 4. On retourne juste les identifiants et le statut
-      // (Le service métier complètera si nécessaire)
+      // 4. Invalider le cache de la liste des utilisateurs
+      await redisCache.invalidatePattern('auth:users:all:*').catch(() => { /* non bloquant */ });
+
+      // 5. Retourner les identifiants et le statut
+      // (Le service métier hydrate le champ role)
       return {
         id: auth.id,
         fullName: payload.fullName,
@@ -105,7 +112,7 @@ export class AuthRepository {
         organizationId: payload.organizationId || null,
         isActive: status.is_active,
         isVerified: status.is_verified,
-        role: {} as any, // À hydrater par le service si besoin
+        role: null as any,
         createdAt: auth.created_at,
         updatedAt: auth.updated_at,
       };
@@ -182,24 +189,32 @@ export class AuthRepository {
   }
 
   /**
-   * Marque un compte comme vérifié et supprime le code OTP utilisé.
+   * Active un compte, enregistre son mot de passe (choisi à l'activation)
+   * et supprime le code OTP utilisé. Transaction atomique.
    */
-  public async verifyAccountAndDeleteOtp(authId: string): Promise<void> {
+  public async activateAccountWithPassword(authId: string, passwordHash: string): Promise<void> {
     const client = await this.db.getClient();
     try {
       await client.query('BEGIN');
+      // 1. Mettre à jour le mot de passe de l'utilisateur
+      await client.query(
+        `UPDATE credentials SET password_hash = $1 WHERE auth_id = $2`,
+        [passwordHash, authId]
+      );
+      // 2. Activer le compte
       await client.query(
         `UPDATE account_status SET is_verified = true, is_active = true, updated_at = NOW() WHERE auth_id = $1`,
         [authId]
       );
+      // 3. Supprimer le code OTP utilisé
       await client.query(`DELETE FROM otp_codes WHERE auth_id = $1`, [authId]);
       await client.query('COMMIT');
-      
-      // Invalidation du cache du statut pour s'assurer que le système voit le compte comme vérifié
+
+      // Invalidation du cache du statut
       await redisCache.invalidate(`auth:status:${authId}`);
     } catch (error: any) {
       await client.query('ROLLBACK');
-      this.logger.error(`Erreur verifyAccountAndDeleteOtp: ${error.message}`);
+      this.logger.error(`Erreur activateAccountWithPassword: ${error.message}`);
       throw error;
     } finally {
       client.release();
@@ -236,7 +251,7 @@ export class AuthRepository {
            a.id, a.full_name AS "fullName", a.email, a.territory_id AS "territoryId", a.organization_id AS "organizationId",
            c.password_hash AS "passwordHash",
            s.is_active AS "isActive", s.is_verified AS "isVerified",
-           r.code AS "roleCode", r.tier AS "roleTier"
+           r.code AS "roleCode", r.name AS "roleName", r.tier AS "roleTier"
          FROM auth a
          INNER JOIN credentials c ON a.id = c.auth_id
          INNER JOIN account_status s ON a.id = s.auth_id
@@ -258,9 +273,10 @@ export class AuthRepository {
     try {
       const res = await this.db.query(
         `SELECT 
-           a.id, a.email, a.territory_id AS "territoryId", a.organization_id AS "organizationId",
+           a.id, a.full_name AS "fullName", a.email, a.territory_id AS "territoryId", a.organization_id AS "organizationId",
            s.is_active AS "isActive", s.is_verified AS "isVerified",
-           r.code AS "roleCode", r.tier AS "roleTier"
+           r.code AS "roleCode", r.name AS "roleName", r.tier AS "roleTier",
+           a.created_at AS "createdAt", a.updated_at AS "updatedAt"
          FROM auth a
          INNER JOIN account_status s ON a.id = s.auth_id
          INNER JOIN roles r ON a.role_id = r.id
@@ -322,6 +338,72 @@ export class AuthRepository {
       return { exists: false };
     } catch (error: any) {
       this.logger.error(`Erreur checkUserExistence: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // USERS — LISTE ADMIN (lecture seule)
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Récupère la liste paginée des utilisateurs avec leurs rôles, statuts
+   * et territoires (pour l'administration des utilisateurs).
+   */
+  public async getAllUsers(query: { page?: number; limit?: number } = {}): Promise<{
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    try {
+      const page = Math.max(1, query.page ?? 1);
+      const limit = Math.min(100, Math.max(1, query.limit ?? 50));
+      const offset = (page - 1) * limit;
+
+      const key = `auth:users:all:${page}:${limit}`;
+      return await redisCache.getOrSet(key, async () => {
+        const countRes = await this.db.query(
+          `SELECT COUNT(*)::int AS total FROM auth`
+        );
+        const total = countRes.rows[0].total as number;
+
+        const res = await this.db.query(
+          `SELECT
+             a.id,
+             a.full_name AS "fullName",
+             a.email,
+             a.phone,
+             a.role_id AS "roleId",
+             r.name AS "roleName",
+             r.code AS "roleCode",
+             a.territory_id AS "territoryId",
+             t.name AS "territoryName",
+             a.organization_id AS "organizationId",
+             s.is_active AS "isActive",
+             s.is_verified AS "isVerified",
+             a.created_at AS "createdAt",
+             a.updated_at AS "updatedAt"
+           FROM auth a
+           INNER JOIN roles r ON a.role_id = r.id
+           LEFT JOIN account_status s ON a.id = s.auth_id
+           LEFT JOIN territories t ON a.territory_id = t.id
+           ORDER BY a.created_at DESC
+           LIMIT $1 OFFSET $2`,
+          [limit, offset]
+        );
+
+        return {
+          data: res.rows as any[],
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        };
+      }, 3600); // TTL 1 heure
+    } catch (error: any) {
+      this.logger.error(`Erreur getAllUsers: ${error.message}`);
       throw error;
     }
   }

@@ -13,6 +13,7 @@ import type { Territory, PaginationQuery, PaginatedResult } from '../types/terri
 
 export interface GetAllTerritoriesQuery extends PaginationQuery {
   territoryTypeId?: string;
+  territoryTypeCode?: string;
   parentTerritoryId?: string;
 }
 

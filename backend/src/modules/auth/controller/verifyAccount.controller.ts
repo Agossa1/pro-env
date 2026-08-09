@@ -9,15 +9,15 @@ export class VerifyAccountController {
   public verify = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // 1. Validation des données d'entrée
-      const { email, code } = VerifySchema.parse(req.body);
-      
-      // 2. Appel au service métier
-      await this.verifyAccountService.verify(email, code);
-      
+      const { email, code, password } = VerifySchema.parse(req.body);
+
+      // 2. Appel au service métier — l'email est résolu vers l'identifiant du compte
+      await this.verifyAccountService.verify(email, code, password);
+
       // 3. Réponse standardisée
       res.status(200).json({
         success: true,
-        message: 'Compte vérifié avec succès. Vous pouvez maintenant vous connecter.',
+        message: 'Compte activé avec succès. Vous pouvez maintenant vous connecter.',
       });
     } catch (error) {
       if (error instanceof z.ZodError) {

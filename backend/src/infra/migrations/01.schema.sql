@@ -1287,7 +1287,7 @@ BEGIN
     END IF;
 
     INSERT INTO audit_log (actor_id, action, table_name, record_id, old_data, new_data)
-    VALUES (v_actor_id, TG_OP, TG_TABLE_NAME, v_record_id, v_old_data, v_new_data);
+    VALUES (v_actor_id, TG_OP::audit_action_enum, TG_TABLE_NAME, v_record_id, v_old_data, v_new_data);
 
     IF TG_OP = 'DELETE' THEN
         RETURN OLD;

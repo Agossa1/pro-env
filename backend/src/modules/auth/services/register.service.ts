@@ -83,11 +83,25 @@ export class RegisterService {
       type: OtpType.EMAIL_VERIFICATION,
       expiresAt,
     });
-    await authMailer.sendSigieOtp(dto.email, dto.fullName, rawOtp);
+
+    // Lien d'activation : l'utilisateur active son compte et crée son mot de passe
+    const frontendBase = process.env.APP_FRONTEND_URL || 'http://localhost:5173';
+    const activateLink = `${frontendBase}/activate?email=${encodeURIComponent(dto.email)}`;
+    try {
+      await authMailer.sendSigieOtp(dto.email, dto.fullName, rawOtp, activateLink);
+    } catch (mailError: any) {
+      // L'échec d'envoi d'email ne doit pas bloquer la création du compte :
+      // l'OTP est déjà en base (saveOtp) et l'admin peut renvoyer le code.
+      this.logger.error(`Erreur envoi OTP pour ${dto.email}: ${mailError.message}`);
+    }
 
     return createdUser;
    } catch (error) {
-    this.logger.error(`Erreur lors de la création de l'utilisateur`);
+    // Préserver les erreurs métier connues (BadRequestError → 400, ForbiddenError → 403)
+    if (error instanceof BadRequestError || error instanceof ForbiddenError) {
+      throw error;
+    }
+    this.logger.error(`Erreur lors de la création de l'utilisateur: ${(error as any)?.message ?? error}`);
     throw new BadRequestError('Erreur lors de la création de l\'utilisateur');
    }
   }
@@ -166,6 +180,8 @@ export class RegisterService {
   }
 
   private generateOtp(): string {
-    return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
+    // crypto.randomInt est cryptographiquement sûr (contrairement à Math.random)
+    const { randomInt } = require('crypto');
+    return Array.from({ length: 6 }, () => randomInt(0, 10)).join('');
   }
 }

@@ -14,6 +14,7 @@ const verifyAccount_service_1 = require("./services/verifyAccount.service");
 const logout_service_1 = require("./services/logout.service");
 const refreshtoken_service_1 = require("./services/refreshtoken.service");
 const resend_code_service_1 = require("./services/resend-code.service");
+const getUsers_service_1 = require("./services/getUsers.service");
 // Controllers
 const register_controller_1 = require("./controller/register.controller");
 const login_controller_1 = require("./controller/login.controller");
@@ -21,6 +22,8 @@ const verifyAccount_controller_1 = require("./controller/verifyAccount.controlle
 const logout_controller_1 = require("./controller/logout.controller");
 const refreshtoken_controller_1 = require("./controller/refreshtoken.controller");
 const resend_code_controller_1 = require("./controller/resend-code.controller");
+const me_controller_1 = require("./controller/me.controller");
+const getUsers_controller_1 = require("./controller/getUsers.controller");
 // Routes
 const auth_route_1 = require("./routes/auth.route");
 const initAuthModule = (db) => {
@@ -30,11 +33,12 @@ const initAuthModule = (db) => {
     const authRepository = new auth_repositories_1.AuthRepository(db, logger_1.logger);
     // 3. Initialiser les Services Métiers
     const registerService = new register_service_1.RegisterService(authRepository, logger_1.logger, passwordServices_1.passwordServiceInstance);
-    const verifyAccountService = new verifyAccount_service_1.VerifyAccountService(authRepository, logger_1.logger);
+    const verifyAccountService = new verifyAccount_service_1.VerifyAccountService(authRepository, logger_1.logger, passwordServices_1.passwordServiceInstance);
     const loginService = new login_service_1.LoginService(authRepository, logger_1.logger, passwordServices_1.passwordServiceInstance, tokenManager);
     const logoutService = new logout_service_1.LogoutService(authRepository, logger_1.logger);
     const refreshTokenService = new refreshtoken_service_1.RefreshTokenService(authRepository, logger_1.logger, tokenManager);
     const resendCodeService = new resend_code_service_1.ResendCodeService(authRepository, logger_1.logger, passwordServices_1.passwordServiceInstance);
+    const getUsersService = new getUsers_service_1.GetUsersService(authRepository, logger_1.logger);
     // 4. Initialiser les Contrôleurs
     const registerController = new register_controller_1.RegisterController(registerService);
     const verifyAccountController = new verifyAccount_controller_1.VerifyAccountController(verifyAccountService);
@@ -42,8 +46,10 @@ const initAuthModule = (db) => {
     const logoutController = new logout_controller_1.LogoutController(logoutService);
     const refreshTokenController = new refreshtoken_controller_1.RefreshTokenController(refreshTokenService);
     const resendCodeController = new resend_code_controller_1.ResendCodeController(resendCodeService);
+    const meController = new me_controller_1.MeController(authRepository);
+    const getUsersController = new getUsers_controller_1.GetUsersController(getUsersService);
     // 5. Lier les Contrôleurs aux Routes
-    const authRoutes = new auth_route_1.AuthRoutes(registerController, loginController, verifyAccountController, logoutController, refreshTokenController, resendCodeController);
+    const authRoutes = new auth_route_1.AuthRoutes(registerController, loginController, verifyAccountController, logoutController, refreshTokenController, resendCodeController, meController, getUsersController);
     return authRoutes.router;
 };
 exports.initAuthModule = initAuthModule;

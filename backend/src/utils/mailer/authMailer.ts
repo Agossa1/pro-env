@@ -115,12 +115,12 @@ export class AuthMailer {
     /**
      * SIGIE — Envoie le code OTP de vérification lors de la création d'un compte.
      */
-    public async sendSigieOtp(email: string, fullName: string, otpCode: string): Promise<void> {
+    public async sendSigieOtp(email: string, fullName: string, otpCode: string, activateLink?: string): Promise<void> {
         try {
             await this.mailerInstance.sendMail({
                 to: email,
-                subject: `SIGIE — Votre code de vérification : ${otpCode}`,
-                html: sigieOtpTemplate(fullName, otpCode),
+                subject: `SIGIE — Activez votre compte : code ${otpCode}`,
+                html: sigieOtpTemplate(fullName, otpCode, activateLink),
             });
             logger.info(`SIGIE OTP envoyé à ${email}`);
         } catch (error) {

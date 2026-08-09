@@ -11,7 +11,6 @@ import { initInterventionModule } from '../modules/interventions/intervention.mo
 import { initMediaModule } from '../modules/media/media.module';
 import { initTeamModule } from '../modules/teams/team.module';
 
-
 export const configureRoutes = (db: PostgresDatabase) => {
     const router = Router();
 
@@ -25,8 +24,6 @@ export const configureRoutes = (db: PostgresDatabase) => {
     router.use('/interventions', initInterventionModule(db));
     router.use('/media', initMediaModule(db));
     router.use('/teams', initTeamModule(db));
-
-
 
     return router;
 };

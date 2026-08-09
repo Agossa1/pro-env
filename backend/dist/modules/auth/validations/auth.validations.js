@@ -18,6 +18,11 @@ exports.LoginSchema = zod_1.z.object({
 exports.VerifySchema = zod_1.z.object({
     email: zod_1.z.string().email("L'adresse email est invalide"),
     code: zod_1.z.string().length(6, "Le code OTP doit contenir exactement 6 chiffres").regex(/^\d+$/, "Le code doit être composé uniquement de chiffres"),
+    password: zod_1.z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+    confirmPassword: zod_1.z.string().min(8, "La confirmation du mot de passe est requise"),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas.",
+    path: ["confirmPassword"],
 });
 exports.ResendCodeSchema = zod_1.z.object({
     email: zod_1.z.string().email("L'adresse email est invalide"),

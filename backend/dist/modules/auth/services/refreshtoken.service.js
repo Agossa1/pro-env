@@ -42,12 +42,14 @@ class RefreshTokenService {
         }
         // 5. Génération des nouveaux tokens
         const tokenPayload = {
+            id: '',
             userId: user.id,
             email: user.email,
             roleCode: user.roleCode,
-            tier: user.roleTier,
+            roleTier: user.roleTier,
             territoryId: user.territoryId,
-            organizationId: user.organizationId
+            organizationId: user.organizationId,
+            roles: [user.roleCode]
         };
         const newAccessToken = this.tokenManager.generateAccessToken(tokenPayload);
         const newRefreshToken = this.tokenManager.generateRefreshToken({ userId: user.id });

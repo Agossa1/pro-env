@@ -10,14 +10,15 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CloudinaryService = void 0;
+require("dotenv/config");
 const cloudinary_1 = require("cloudinary");
 const appErrors_1 = require("../errors/appErrors");
 const logger_1 = require("../../config/loggers/logger");
 // Configuration Cloudinary depuis le .env
 cloudinary_1.v2.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ?? process.env.CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY ?? process.env.API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET ?? process.env.API_SECRET,
     secure: true,
 });
 class CloudinaryService {
