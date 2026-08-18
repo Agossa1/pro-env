@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAdminUsers } from '../hooks/useAdminUsers';
 import { useRoles } from '../../roles/hooks/useRoles';
 import { apiClient } from '../../../libs/api-client';
@@ -16,9 +18,10 @@ interface TerritoryOption {
 interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
+export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalProps) {
   const { createUser, isMutating, error: apiError, clearError } = useAdminUsers();
   const { roles, reload: reloadRoles, status: rolesStatus } = useRoles();
 
@@ -32,10 +35,6 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
   const [communeId, setCommuneId]           = useState('');
   const [deptTypeId, setDeptTypeId]         = useState('');
   const [isLoadingTerritories, setIsLoadingTerritories] = useState(false);
-  const [localError, setLocalError]         = useState<string | null>(null);
-  const [success, setSuccess]               = useState<string | null>(null);
-
-  const displayError = localError || apiError;
 
   // Charge les rôles à l'ouverture si pas encore fait
   useEffect(() => {
@@ -51,9 +50,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
       setRoleCode('');
       setDepartmentId('');
       setCommuneId('');
-      setLocalError(null);
       clearError();
-      setSuccess(null);
     }
   }, [isOpen, clearError]);
 
@@ -141,17 +138,15 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLocalError(null);
     clearError();
-    setSuccess(null);
 
     // Validation territoire obligatoire
     if (isPrefecture && !departmentId) {
-      setLocalError('Veuillez sélectionner le département de rattachement.');
+      toast.error('Veuillez sélectionner le département de rattachement.');
       return;
     }
     if (isMairie && !communeId) {
-      setLocalError('Veuillez sélectionner la commune de rattachement.');
+      toast.error('Veuillez sélectionner la commune de rattachement.');
       return;
     }
 
@@ -171,15 +166,17 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
 
     try {
       await createUser(dto);
-      setSuccess(`Compte créé avec succès. Un code d'activation a été envoyé à ${email}.`);
+      toast.success(`Compte créé avec succès. Un code d'activation a été envoyé à ${email}.`);
       setFullName('');
       setEmail('');
       setPhone('');
       setRoleCode('');
       setDepartmentId('');
       setCommuneId('');
-    } catch {
-      // L'erreur est gérée via apiError
+      onSuccess?.();
+      onClose();
+    } catch (err: any) {
+      toast.error(err.message || 'Erreur lors de la création');
     }
   };
 
@@ -217,32 +214,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
 
         {/* Body scrollable */}
         <div className="flex-1 overflow-y-auto">
-          {/* Bandeau succès */}
-          {success && (
-            <div className="bg-emerald-50 border-b border-emerald-100 px-6 py-4 flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-emerald-800">Compte créé avec succès</p>
-                <p className="text-sm text-emerald-700 mt-0.5">{success}</p>
-              </div>
-            </div>
-          )}
 
-          {/* Bandeau erreur */}
-          {displayError && !success && (
-            <div className="bg-red-50 border-b border-red-100 px-6 py-4 flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg className="w-3 h-3 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <p className="text-sm text-red-700">{displayError}</p>
-            </div>
-          )}
 
           <form id="create-user-modal-form" onSubmit={handleSubmit} className="p-6 space-y-6">
             

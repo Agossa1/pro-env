@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Input, Textarea, FormField } from '../../../components/forms';
 import { Button } from '../../../components/boutons';
 import { Modal } from '../../../components/modals';
+import toast from 'react-hot-toast';
 import { useRoles } from '../hooks/useRoles';
 import type { CreateRoleDto } from '../services/roles.types';
 
@@ -25,10 +26,11 @@ export function CreateRoleModal({ isOpen, onClose, onSuccess }: CreateRoleModalP
     try {
       await create(formData);
       setFormData({ code: '', name: '', description: '' });
+      toast.success('Rôle créé avec succès');
       onSuccess?.();
       onClose();
     } catch (error: any) {
-      alert(error.message || 'Erreur lors de la création du rôle');
+      toast.error(error.message || 'Erreur lors de la création du rôle');
     }
   };
 

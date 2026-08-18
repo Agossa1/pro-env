@@ -24,7 +24,7 @@ export const appConfig = {
   },
 
   mailer: {
-    // SendGrid lit SENDGRID_API_KEY directement depuis process.env
+    // Resend lit RESEND_API_KEY directement depuis process.env
     from:     env.MAIL_FROM,
     fromName: env.MAIL_FROM_NAME,
   }

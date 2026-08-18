@@ -1,15 +1,13 @@
 /*
- * Mailer Utility — SendGrid API HTTP
- * ─────────────────────────────────────────────────────────────
- * Remplace nodemailer SMTP (bloqué sur Render Free/Starter sur
- * les ports 587/465) par l'API HTTP SendGrid, qui ne nécessite
- * aucune connexion TCP sortante sur un port SMTP.
+ * Mailer Utility — Resend API
+ * ─────────────────────────────────────────────────────
+ * Utilise le service Resend (API HTTP) — aucun port SMTP requis.
  *
- * Variable d'env requise : SENDGRID_API_KEY
- * ─────────────────────────────────────────────────────────────
+ * Variable d'env requise : RESEND_API_KEY
+ * ─────────────────────────────────────────────────────
  */
 
-import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 import { appConfig } from '../../config/app/appConfig';
 import { logger } from '../../config/loggers/logger';
 
@@ -18,62 +16,47 @@ interface SendMailOptions {
     subject: string;
     html: string;
     text?: string;
-    attachments?: Array<{
-        content: string;   // base64
-        filename: string;
-        type?: string;
-        disposition?: string;
-    }>;
 }
 
 export class Mailer {
+    private resend: Resend | null = null;
+
     constructor() {
-        const apiKey = process.env.SENDGRID_API_KEY;
+        const apiKey = process.env.RESEND_API_KEY;
         if (!apiKey) {
-            logger.error('🚨 SENDGRID_API_KEY est absent — les emails ne seront pas envoyés.');
+            logger.error('🚨 RESEND_API_KEY est absent — les emails ne seront pas envoyés.');
         } else {
-            sgMail.setApiKey(apiKey);
-            logger.info('✅ SendGrid configuré et prêt.');
+            this.resend = new Resend(apiKey);
+            logger.info('✅ Resend configuré et prêt.');
         }
     }
 
     /**
-     * Envoie un email via l'API HTTP SendGrid.
+     * Envoie un email via l'API Resend.
      */
     public async sendMail(options: SendMailOptions): Promise<void> {
-        const apiKey = process.env.SENDGRID_API_KEY;
-        if (!apiKey) {
-            logger.warn(`📧 Email non envoyé (SENDGRID_API_KEY absent) : ${options.to} — ${options.subject}`);
+        if (!this.resend) {
+            logger.warn(`📧 Email non envoyé (RESEND_API_KEY absent) : ${options.to} — ${options.subject}`);
             return;
         }
 
-        const msg = {
-            to:      options.to,
-            from: {
-                email: appConfig.mailer.from,
-                name:  appConfig.mailer.fromName,
-            },
-            subject: options.subject,
-            html:    options.html,
-            text:    options.text || '',
-            // Pièces jointes (format SendGrid base64)
-            ...(options.attachments?.length ? {
-                attachments: options.attachments.map((a) => ({
-                    content:     a.content,
-                    filename:    a.filename,
-                    type:        a.type ?? 'application/octet-stream',
-                    disposition: a.disposition ?? 'attachment',
-                })),
-            } : {}),
-        };
-
-
         try {
-            await sgMail.send(msg);
-            logger.info(`📧 Email envoyé via SendGrid à ${options.to}`);
+            const { error } = await this.resend.emails.send({
+                from: `${appConfig.mailer.fromName} <${appConfig.mailer.from}>`,
+                to:      options.to,
+                subject: options.subject,
+                html:    options.html,
+                text:    options.text,
+            });
+
+            if (error) {
+                logger.error('❌ Erreur Resend :', error);
+                throw new Error(error.message || 'Failed to send email');
+            }
+
+            logger.info(`📧 Email envoyé via Resend à ${options.to}`);
         } catch (error: any) {
-            const detail = error?.response?.body ?? error?.message ?? error;
-            logger.error('❌ Erreur SendGrid :', detail);
+            logger.error('❌ Erreur Resend :', error?.message ?? error);
             throw new Error('Failed to send email');
         }
     }

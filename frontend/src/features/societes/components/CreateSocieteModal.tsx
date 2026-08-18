@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useSocietes } from '../hooks/useSocietes';
 import { useTerritory } from '../../territory/hooks/useTerritory';
 import { SocieteType, type CreateSocietePayload } from '../services/societes.types';
@@ -24,8 +25,6 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
   const [communeId, setCommuneId] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadForForm();
@@ -43,11 +42,10 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !contactEmail || !communeId) {
-      setError("Le nom, l'email et la commune sont requis.");
+      toast.error("Le nom, l'email et la commune sont requis.");
       return;
     }
     setIsSubmitting(true);
-    setError(null);
     try {
       const payload: CreateSocietePayload = {
         name,
@@ -58,9 +56,10 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
         territoryId: communeId,
       };
       await create(payload).unwrap();
-      setSuccess(`Société créée. Un lien d'activation a été envoyé à ${contactEmail}.`);
+      toast.success(`Société créée. Un lien d'activation a été envoyé à ${contactEmail}.`);
+      onClose();
     } catch (err: any) {
-      setError(err?.message || "Une erreur est survenue lors de la création.");
+      toast.error(err?.message || "Une erreur est survenue lors de la création.");
     } finally {
       setIsSubmitting(false);
     }
@@ -82,26 +81,6 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
           </button>
         </div>
 
-        {/* Body */}
-        <div className="overflow-y-auto flex-1">
-          {success && (
-            <div className="bg-emerald-50 border-b border-emerald-100 px-6 py-4">
-              <p className="text-sm font-semibold text-emerald-800">Compte société créé avec succès</p>
-              <p className="text-sm text-emerald-700 mt-0.5">{success}</p>
-            </div>
-          )}
-
-          {error && !success && (
-            <div className="bg-red-50 border-b border-red-100 px-6 py-4">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          )}
-
-          {!success && (
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-3">Identification</p>
-                <div className="space-y-4">
                   <div>
                     <label className={labelClass}>Nom de la société *</label>
                     <input
@@ -136,19 +115,6 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
                         placeholder="Ex: RCCM-2024-001"
                       />
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-3">Contact (compte & invitation)</p>
-                <div className="space-y-4">
-                  <div>
-                    <label className={labelClass}>Email de contact *</label>
-                    <input
-                      type="email"
-                      required
-                      value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       className={inputClass}
                       placeholder="contact@societe.bj"

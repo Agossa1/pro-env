@@ -30,10 +30,10 @@ const envSchema = z.object({
   META_TOKEN:z.string().min(10, 'Meta token must be at least 10 chars '),
   META_PHONE_NUMBER_ID:z.string().min(8, 'Phone number Id be at least 8 chars'),
 
-  // Email — SendGrid API HTTP (remplace SMTP bloqué sur Render)
-  SENDGRID_API_KEY: z.string().optional(),  // requis en prod, optionnel en dev
-  MAIL_FROM:        z.string().email(),
-  MAIL_FROM_NAME:   z.string().default('HSE-TERRA'),
+  // Email — Resend API (remplace SMTP bloqué sur Render)
+  RESEND_API_KEY: z.string().optional(),  // requis en prod, optionnel en dev
+  MAIL_FROM:      z.string().email(),
+  MAIL_FROM_NAME: z.string().default('SIGIE'),
 
   // SMTP (conservé uniquement pour compatibilité locale — non utilisé en prod)
   SMTP_HOST: z.string().optional(),

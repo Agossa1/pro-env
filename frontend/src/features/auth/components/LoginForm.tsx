@@ -68,7 +68,7 @@ function Login() {
                             </svg>
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900">Connexion</h1>
-                        <p className="text-sm text-gray-500 mt-1">Plateforme Pro-Env — Bénin</p>
+                        <p className="text-sm text-gray-500 mt-1">Plateforme  SIGIE — Bénin</p>
                     </div>
 
                     {/* Erreur globale */}
@@ -139,8 +139,8 @@ function Login() {
                     </form>
 
                     <p className="mt-6 text-center text-sm text-gray-500">
-                        Accès réservé aux agents autorisés.{' '}
-                        <span className="font-medium text-gray-600">Contactez votre administrateur.</span>
+                        Accès réservé aux membres autorisés.{' '}
+                        <span className="font-medium text-gray-600">Contactez l'administrateur.</span>
                     </p>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Input, Textarea, FormField } from '../../../components/forms';
 import { Button } from '../../../components/boutons';
 import { Modal } from '../../../components/modals';
+import toast from 'react-hot-toast';
 import { usePermissions } from '../hooks/usePermissions';
 import type { CreatePermissionDto } from '../services/permissions.types';
 
@@ -25,10 +26,11 @@ export function CreatePermissionModal({ isOpen, onClose, onSuccess }: CreatePerm
     try {
       await create(formData);
       setFormData({ module: '', action: '', description: '' });
+      toast.success('Permission créée avec succès');
       onSuccess?.();
       onClose();
     } catch (error: any) {
-      alert(error.message || 'Erreur lors de la création de la permission');
+      toast.error(error.message || 'Erreur lors de la création de la permission');
     }
   };
 

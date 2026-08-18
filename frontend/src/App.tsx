@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import Login from './pages/auth/Login'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import Login from './pages/auth/Login';
 
 import Activate from './pages/auth/Activate'
 import Dashboard from './pages/Dashboard'
@@ -23,6 +24,26 @@ import { SocietesPage } from './features/societes/components/SocietesPage'
 function App() {
   return (
     <BrowserRouter>
+      {/* Configuration du Toaster pour les alertes globales */}
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            borderRadius: '8px',
+            padding: '16px',
+            fontSize: '14px',
+          },
+          success: {
+            style: { background: '#008751', color: '#fff' }, // Vert Bénin
+          },
+          error: {
+            style: { background: '#E8112D', color: '#fff' }, // Rouge Bénin
+          },
+        }} 
+      />
       <Routes>
         {/* Routes publiques */}
         <Route path="/login" element={<Login />} />
