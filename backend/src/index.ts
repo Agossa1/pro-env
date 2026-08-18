@@ -1,6 +1,3 @@
-
-// Polyfill 'self' for shpjs library which references browser globals in its CJS bundl(globalThis as any).self = globalThis;
-
 import { createServer } from "./server"
 import { appConfig } from "./config/app/appConfig"
 import { logger } from "./config/loggers/logger"
@@ -10,6 +7,14 @@ import client from "./infra/redis/redis.config";
 import { wsService } from "./infra/sockets/webSocket";
 
 let database: PostgresDatabase | null = null;
+
+interface HealthStatus {
+    status: 'ok' | 'degraded';
+    timestamp: string;
+    uptime: number;
+    database?: string;
+    redis?: string;
+}
 
 const start = async () => {
     try {
@@ -29,7 +34,7 @@ const start = async () => {
 
         // Health check avancé : DB + Redis
         app.get('/api/health', async (_req, res) => {
-            const health: any = {
+            const health: HealthStatus = {
                 status: 'ok',
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
@@ -66,6 +71,29 @@ const start = async () => {
             logger.info(`🚀 Server running on port ${appConfig.app.port}`)
         })
 
+        // Gestion d'erreur sur listen (ex: port déjà occupé)
+        server.on('error', async (error: NodeJS.ErrnoException) => {
+            logger.error(`❌ Erreur lors de l'écoute sur le port ${appConfig.app.port}:`, error.message);
+
+            // Nettoyage des ressources déjà ouvertes
+            if (database) {
+                try {
+                    await database.close();
+                } catch (e) {
+                    logger.error('❌ Erreur fermeture PostgreSQL:', e);
+                }
+            }
+            try {
+                if (client.isOpen) {
+                    await client.disconnect();
+                }
+            } catch (e) {
+                logger.error('❌ Erreur fermeture Redis:', e);
+            }
+
+            process.exit(1);
+        });
+
         // Initialiser WebSockets avec le server HTTP (reloaded)
         wsService.init(server);
 
@@ -73,11 +101,26 @@ const start = async () => {
         const shutdown = async (signal: string) => {
             logger.info(`\n🛑 ${signal} reçu. Arrêt gracieux...`);
 
-            // 1. Arrêter le serveur HTTP (ne plus accepter de nouvelles connexions)
+            // Timeout de sécurité : force la sortie après 10s
+            const forceExit = setTimeout(() => {
+                logger.error('⏰ Arrêt forcé après 10 secondes (timeout)');
+                process.exit(1);
+            }, 10000);
+            forceExit.unref();
+
+            // 1. Fermer les connexions WebSocket avant le serveur HTTP
+            try {
+                wsService.close();
+                logger.info('✅ WebSockets fermés');
+            } catch (e) {
+                logger.error('❌ Erreur fermeture WebSockets:', e);
+            }
+
+            // 2. Arrêter le serveur HTTP (ne plus accepter de nouvelles connexions)
             await new Promise<void>((resolve) => server.close(() => resolve()));
             logger.info('✅ Serveur HTTP arrêté');
 
-            // 2. Fermer le pool PostgreSQL
+            // 3. Fermer le pool PostgreSQL
             if (database) {
                 try {
                     await database.close();
@@ -87,7 +130,7 @@ const start = async () => {
                 }
             }
 
-            // 3. Fermer Redis
+            // 4. Fermer Redis
             try {
                 if (client.isOpen) {
                     await client.disconnect();
@@ -107,8 +150,28 @@ const start = async () => {
         return server
     } catch (error) {
         logger.error('❌ Error starting server', error)
+
+        // Nettoyage des ressources déjà ouvertes en cas d'échec
+        if (database) {
+            try {
+                await database.close();
+            } catch (e) {
+                logger.error('❌ Erreur fermeture PostgreSQL:', e);
+            }
+        }
+        try {
+            if (client.isOpen) {
+                await client.disconnect();
+            }
+        } catch (e) {
+            logger.error('❌ Erreur fermeture Redis:', e);
+        }
+
         process.exit(1)
     }
 }
 
-start()
+start().catch((error) => {
+    logger.error('💥 Erreur fatale non gérée au démarrage:', error);
+    process.exit(1);
+});

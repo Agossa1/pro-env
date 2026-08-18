@@ -9,6 +9,7 @@ import { configureRoutes } from './routes';
 import PostgresDatabase from './config/database/postgres';
 import { errorMiddleware } from './shared/middlewares/error.middlewares';
 
+const frontendUrl = process.env.FRONTEND_URL ?? 'https://frontend-w9nw.onrender.com';
 
 export const createServer = async (db: PostgresDatabase) => {
     const app = express();
@@ -49,14 +50,16 @@ export const createServer = async (db: PostgresDatabase) => {
                 scriptSrc: ["'self'", "'unsafe-inline'"],
                 styleSrc: ["'self'", "'unsafe-inline'"],
                 imgSrc: ["'self'", "data:", "blob:", "https://*.cloudinary.com", "https://*.basemaps.cartocdn.com"],
-                connectSrc: ["'self'", "wss:", "https://*.basemaps.cartocdn.com"],
+                // ✅ Correction : on ajoute frontendUrl à connectSrc
+                connectSrc: ["'self'", "wss:", "https://*.basemaps.cartocdn.com", frontendUrl],
                 fontSrc: ["'self'", "https://fonts.openmaptiles.org"],
             },
         },
     }));
     app.use(cookieParser());
+
     const allowedOrigins = [
-        process.env.FRONTEND_URL,
+        frontendUrl,
         'http://localhost:5173',
         'http://localhost:5174',
         'http://localhost:4000',
@@ -89,5 +92,3 @@ export const createServer = async (db: PostgresDatabase) => {
 
     return app;
 };
-
-
