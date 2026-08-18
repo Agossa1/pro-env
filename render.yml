@@ -13,5 +13,8 @@ services:
     staticPublishPath: dist
     routes:
       - type: rewrite
+        source: /api/*
+        destination: https://pro-env-api.onrender.com/api/*
+      - type: rewrite
         source: /*
         destination: /index.html

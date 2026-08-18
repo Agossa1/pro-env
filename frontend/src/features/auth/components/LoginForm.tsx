@@ -34,9 +34,19 @@ function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div 
+            className="min-h-screen flex items-center justify-center p-4 relative"
+            style={{
+                backgroundImage: `url('/images/login-bg.jpg')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            }}
+        >
+            {/* Overlay très léger pour garder l'image bien visible et lumineuse */}
+            <div className="absolute inset-0 bg-black/20"></div>
+
             {/* Card */}
-            <div className="w-full max-w-md bg-white rounded-xl border-1 border-gray-200 overflow-hidden">
+            <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden relative z-10 border border-gray-100">
                 {/* Bande drapeau Bénin */}
                 <div className="h-1.5 flex">
                     <div className="flex-1 bg-benin-green" />
@@ -47,9 +57,14 @@ function Login() {
                 <div className="p-8">
                     {/* En-tête */}
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-benin-green/10 mb-4">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-benin-green">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.15"/>
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-benin-green/10 mb-4 border border-benin-green/20 shadow-sm">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-benin-green">
+                                <path d="M2 22h20"/>
+                                <path d="M12 2l10 8H2L12 2z"/>
+                                <path d="M6 10v8"/>
+                                <path d="M10 10v8"/>
+                                <path d="M14 10v8"/>
+                                <path d="M18 10v8"/>
                             </svg>
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900">Connexion</h1>

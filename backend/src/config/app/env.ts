@@ -30,13 +30,16 @@ const envSchema = z.object({
   META_TOKEN:z.string().min(10, 'Meta token must be at least 10 chars '),
   META_PHONE_NUMBER_ID:z.string().min(8, 'Phone number Id be at least 8 chars'),
 
-  // SMTP Configuration
-  SMTP_HOST: z.string(),
-  SMTP_PORT: z.string().transform(Number).default(() => 587),
-  SMTP_USER: z.string().email(),
-  SMTP_PASS: z.string(),
-  MAIL_FROM: z.string().email(),
-  MAIL_FROM_NAME: z.string().default('Doto App')
+  // Email — SendGrid API HTTP (remplace SMTP bloqué sur Render)
+  SENDGRID_API_KEY: z.string().optional(),  // requis en prod, optionnel en dev
+  MAIL_FROM:        z.string().email(),
+  MAIL_FROM_NAME:   z.string().default('HSE-TERRA'),
+
+  // SMTP (conservé uniquement pour compatibilité locale — non utilisé en prod)
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().transform(Number).optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);

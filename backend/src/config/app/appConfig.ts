@@ -24,11 +24,8 @@ export const appConfig = {
   },
 
   mailer: {
-    host: env.SMTP_HOST,
-    port: env.SMTP_PORT,
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-    from: env.MAIL_FROM,
+    // SendGrid lit SENDGRID_API_KEY directement depuis process.env
+    from:     env.MAIL_FROM,
     fromName: env.MAIL_FROM_NAME,
   }
 }

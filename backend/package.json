@@ -15,11 +15,10 @@
     "db:reset": "tsx src/scripts/reset-db.ts --force",
     "migrate": "tsx src/config/database/migrate.ts",
     "seed:territory": "tsx src/infra/seed/seed.territory.ts",
-    "super-admin":"tsx src/scripts/fix-superadmin-password.ts",
+    "super-admin": "tsx src/scripts/fix-superadmin-password.ts",
     "fix-admin": "tsx src/scripts/fix-superadmin-password.ts",
-    "create-first-user":"tsx src/scripts/create-first-user.ts"
+    "create-first-user": "tsx src/scripts/create-first-user.ts"
   },
-
   "devDependencies": {
     "@swc/core": "^1.15.47",
     "@swc/jest": "^0.2.39",
@@ -51,6 +50,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "dotenv": "^17.4.2",
