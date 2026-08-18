@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAdminUsers } from '../hooks/useAdminUsers';
 import { useRoles } from '../../roles/hooks/useRoles';
@@ -22,7 +21,7 @@ interface CreateUserModalProps {
 }
 
 export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalProps) {
-  const { createUser, isMutating, error: apiError, clearError } = useAdminUsers();
+  const { createUser, isMutating, clearError } = useAdminUsers();
   const { roles, reload: reloadRoles, status: rolesStatus } = useRoles();
 
   const [fullName, setFullName]             = useState('');
@@ -378,16 +377,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
 
         {/* Footer Actions */}
         <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-gray-50 rounded-b-2xl">
-          {success ? (
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition-all shadow-sm"
-            >
-              Fermer
-            </button>
-          ) : (
-            <>
+          <>
               <button
                 type="button"
                 onClick={onClose}
@@ -414,7 +404,6 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
                 )}
               </button>
             </>
-          )}
         </div>
 
       </div>
