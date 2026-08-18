@@ -13,6 +13,11 @@ import { errorMiddleware } from './shared/middlewares/error.middlewares';
 // URL du frontend (Render)
 const frontendUrl = process.env.FRONTEND_URL?.trim();
 
+// Alerte critique si FRONTEND_URL manque en prod (les cookies cross-origin seront bloqués)
+if (process.env.NODE_ENV === 'production' && !frontendUrl) {
+    console.error('🚨 FRONTEND_URL est absent en production ! Les requêtes CORS cross-origin seront refusées.');
+}
+
 export const createServer = async (db: PostgresDatabase) => {
     const app = express();
 

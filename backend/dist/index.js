@@ -1,5 +1,4 @@
 "use strict";
-// Polyfill 'self' for shpjs library which references browser globals in its CJS bundl(globalThis as any).self = globalThis;
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -61,15 +60,51 @@ const start = async () => {
         const server = app.listen(appConfig_1.appConfig.app.port, () => {
             logger_1.logger.info(`🚀 Server running on port ${appConfig_1.appConfig.app.port}`);
         });
+        // Gestion d'erreur sur listen (ex: port déjà occupé)
+        server.on('error', async (error) => {
+            logger_1.logger.error(`❌ Erreur lors de l'écoute sur le port ${appConfig_1.appConfig.app.port}:`, error.message);
+            // Nettoyage des ressources déjà ouvertes
+            if (database) {
+                try {
+                    await database.close();
+                }
+                catch (e) {
+                    logger_1.logger.error('❌ Erreur fermeture PostgreSQL:', e);
+                }
+            }
+            try {
+                if (redis_config_1.default.isOpen) {
+                    await redis_config_1.default.disconnect();
+                }
+            }
+            catch (e) {
+                logger_1.logger.error('❌ Erreur fermeture Redis:', e);
+            }
+            process.exit(1);
+        });
         // Initialiser WebSockets avec le server HTTP (reloaded)
         webSocket_1.wsService.init(server);
         // ── Graceful shutdown ───────────────────────────────────────────────
         const shutdown = async (signal) => {
             logger_1.logger.info(`\n🛑 ${signal} reçu. Arrêt gracieux...`);
-            // 1. Arrêter le serveur HTTP (ne plus accepter de nouvelles connexions)
+            // Timeout de sécurité : force la sortie après 10s
+            const forceExit = setTimeout(() => {
+                logger_1.logger.error('⏰ Arrêt forcé après 10 secondes (timeout)');
+                process.exit(1);
+            }, 10000);
+            forceExit.unref();
+            // 1. Fermer les connexions WebSocket avant le serveur HTTP
+            try {
+                webSocket_1.wsService.close();
+                logger_1.logger.info('✅ WebSockets fermés');
+            }
+            catch (e) {
+                logger_1.logger.error('❌ Erreur fermeture WebSockets:', e);
+            }
+            // 2. Arrêter le serveur HTTP (ne plus accepter de nouvelles connexions)
             await new Promise((resolve) => server.close(() => resolve()));
             logger_1.logger.info('✅ Serveur HTTP arrêté');
-            // 2. Fermer le pool PostgreSQL
+            // 3. Fermer le pool PostgreSQL
             if (database) {
                 try {
                     await database.close();
@@ -79,7 +114,7 @@ const start = async () => {
                     logger_1.logger.error('❌ Erreur fermeture PostgreSQL:', e);
                 }
             }
-            // 3. Fermer Redis
+            // 4. Fermer Redis
             try {
                 if (redis_config_1.default.isOpen) {
                     await redis_config_1.default.disconnect();
@@ -98,8 +133,28 @@ const start = async () => {
     }
     catch (error) {
         logger_1.logger.error('❌ Error starting server', error);
+        // Nettoyage des ressources déjà ouvertes en cas d'échec
+        if (database) {
+            try {
+                await database.close();
+            }
+            catch (e) {
+                logger_1.logger.error('❌ Erreur fermeture PostgreSQL:', e);
+            }
+        }
+        try {
+            if (redis_config_1.default.isOpen) {
+                await redis_config_1.default.disconnect();
+            }
+        }
+        catch (e) {
+            logger_1.logger.error('❌ Erreur fermeture Redis:', e);
+        }
         process.exit(1);
     }
 };
-start();
+start().catch((error) => {
+    logger_1.logger.error('💥 Erreur fatale non gérée au démarrage:', error);
+    process.exit(1);
+});
 //# sourceMappingURL=index.js.map

@@ -12,11 +12,13 @@ class LogoutController {
                     // Révocation de la session en base de données
                     await this.logoutService.logout(token);
                 }
-                // Nettoyage du cookie HttpOnly
+                // Nettoyage du cookie HttpOnly — les options doivent correspondre exactement au cookie créé
+                const isProduction = process.env.NODE_ENV === 'production';
                 res.clearCookie('refreshToken', {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
+                    secure: isProduction,
+                    sameSite: isProduction ? 'none' : 'lax',
+                    path: '/',
                 });
                 // Réponse standardisée (même si le token était absent, on renvoie 200 par idempotence)
                 res.status(200).json({

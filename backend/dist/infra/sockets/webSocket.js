@@ -164,6 +164,35 @@ class WsService {
             }
         });
     }
+    /**
+     * Close all WebSocket connections and shut down the WebSocket server.
+     * Called during graceful shutdown.
+     */
+    close() {
+        if (!this.wss) {
+            logger_1.logger.info("[WS] WebSocket server already closed or never initialised");
+            return;
+        }
+        // Fermer toutes les connexions clientes
+        for (const client of this.wss.clients) {
+            try {
+                client.close(1001, "Server shutting down");
+            }
+            catch (e) {
+                logger_1.logger.error("[WS] Erreur fermeture client:", e);
+            }
+        }
+        // Fermer le serveur WebSocket
+        try {
+            this.wss.close();
+            logger_1.logger.info("[WS] WebSocket server closed");
+        }
+        catch (e) {
+            logger_1.logger.error("[WS] Erreur fermeture serveur WebSocket:", e);
+        }
+        this.wss = null;
+        this.clients.clear();
+    }
 }
 exports.wsService = new WsService();
 //# sourceMappingURL=webSocket.js.map

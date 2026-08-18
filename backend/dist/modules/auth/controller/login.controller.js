@@ -14,13 +14,14 @@ class LoginController {
                 const result = await this.loginService.login(email, password);
                 // 3. Sécurité : Placer le Refresh Token dans un cookie HttpOnly sécurisé
                 // 7 jours en millisecondes
-                const cookieOptions = {
+                const isProduction = process.env.NODE_ENV === 'production';
+                res.cookie('refreshToken', result.refreshToken, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
+                    secure: isProduction,
+                    sameSite: isProduction ? 'none' : 'lax',
+                    path: '/',
                     maxAge: 7 * 24 * 60 * 60 * 1000,
-                };
-                res.cookie('refreshToken', result.refreshToken, cookieOptions);
+                });
                 // 4. Réponse standardisée (on ne retourne que l'Access Token dans le JSON)
                 res.status(200).json({
                     success: true,

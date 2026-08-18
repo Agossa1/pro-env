@@ -134,7 +134,7 @@ describe('Societe Controllers', () => {
             expect(service.createSociete).not.toHaveBeenCalled();
         });
         it('doit retourner 201 en cas de succès', async () => {
-            mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
+            mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', contactEmail: 'test@example.com' };
             mockReq.user = { userId: 'user-1', territoryId: 'mairie-uuid' };
             const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
             service.createSociete.mockResolvedValueOnce(mockCreated);
@@ -144,7 +144,7 @@ describe('Societe Controllers', () => {
             expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({ success: true, data: mockCreated }));
         });
         it('doit passer le territoryId fourni par l\'admin dans le payload', async () => {
-            mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', territoryId: VALID_UUID };
+            mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', territoryId: VALID_UUID, contactEmail: 'test@example.com' };
             mockReq.user = { userId: 'admin-1', territoryId: null };
             const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
             service.createSociete.mockResolvedValueOnce(mockCreated);

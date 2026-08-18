@@ -268,7 +268,7 @@ async function request<T>(url: string, options: InternalRequestOptions): Promise
     // Erreur réseau : backend down, BDD inaccessible, CORS, DNS...
     if (error instanceof TypeError) {
       throw new ApiError(
-        'Impossible de contacter le serveur. Vérifiez que le backend est démarré.',
+        'Impossible de contacter le serveur. Vérifiez patienter et ressayer quelques minutes.',
         0,
         undefined,
         error

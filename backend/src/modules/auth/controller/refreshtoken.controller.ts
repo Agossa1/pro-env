@@ -19,11 +19,15 @@ export class RefreshTokenController {
       const result = await this.refreshTokenService.refresh(token);
       
       // Sécurité : Remplacer l'ancien cookie par le nouveau (Rotation du Refresh Token)
+      const isProduction = process.env.NODE_ENV === 'production';
       const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as const,
-        maxAge: 7 * 24 * 60 * 60 * 1000, 
+        secure: isProduction,
+        // 'none' requis en prod pour les requêtes cross-origin (frontend ≠ backend domain)
+        // 'lax' suffit en local (même origine)
+        sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       };
       
       res.cookie('refreshToken', result.refreshToken, cookieOptions);

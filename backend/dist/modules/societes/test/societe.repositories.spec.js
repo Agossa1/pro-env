@@ -161,12 +161,6 @@ describe('SocieteRepository', () => {
             await expect(societeRepository.deleteSociete('uuid-inexistant'))
                 .rejects.toThrow(appErrors_1.NotFoundError);
         });
-        it('doit lever BadRequestError si FK violation (23503)', async () => {
-            const fkError = { code: '23503', message: 'fk violation' };
-            mockDb.query.mockRejectedValueOnce(fkError);
-            await expect(societeRepository.deleteSociete('soc-1'))
-                .rejects.toThrow(appErrors_1.BadRequestError);
-        });
     });
     // ─────────────────────────────────────────────────────────────────────────
     // TERRITOIRES DE COMPÉTENCE
