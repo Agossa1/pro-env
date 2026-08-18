@@ -3,6 +3,7 @@ import { appConfig } from "./config/app/appConfig"
 import { logger } from "./config/loggers/logger"
 import PostgresDatabase from './config/database/postgres';
 import { runMigrations } from './config/database/migrate';
+import { seedTerritories } from './infra/seed/seed.territory';
 import client from "./infra/redis/redis.config";
 import { wsService } from "./infra/sockets/webSocket";
 
@@ -23,6 +24,14 @@ const start = async () => {
 
         // Exécuter les migrations au démarrage
         await runMigrations();
+
+        // Seed automatique des territoires (idempotent — ignoré si déjà en base)
+        try {
+            await seedTerritories();
+        } catch (seedError) {
+            // Non bloquant : le serveur démarre même si le seed échoue
+            logger.error('⚠️  Seed territoires échoué (non bloquant) :', seedError);
+        }
 
         // Check if client is already open before connecting
         if (!client.isOpen) {

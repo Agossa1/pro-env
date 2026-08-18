@@ -8,6 +8,7 @@ const appConfig_1 = require("./config/app/appConfig");
 const logger_1 = require("./config/loggers/logger");
 const postgres_1 = __importDefault(require("./config/database/postgres"));
 const migrate_1 = require("./config/database/migrate");
+const seed_territory_1 = require("./infra/seed/seed.territory");
 const redis_config_1 = __importDefault(require("./infra/redis/redis.config"));
 const webSocket_1 = require("./infra/sockets/webSocket");
 let database = null;
@@ -17,6 +18,14 @@ const start = async () => {
         await database.connect();
         // Exécuter les migrations au démarrage
         await (0, migrate_1.runMigrations)();
+        // Seed automatique des territoires (idempotent — ignoré si déjà en base)
+        try {
+            await (0, seed_territory_1.seedTerritories)();
+        }
+        catch (seedError) {
+            // Non bloquant : le serveur démarre même si le seed échoue
+            logger_1.logger.error('⚠️  Seed territoires échoué (non bloquant) :', seedError);
+        }
         // Check if client is already open before connecting
         if (!redis_config_1.default.isOpen) {
             await redis_config_1.default.connect();

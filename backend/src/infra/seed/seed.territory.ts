@@ -13,7 +13,6 @@
  * Codes préfixés : BJ-DEP-, BJ-TWN-, BJ-DIS-, BJ-NGH-
  * Idempotent (ON CONFLICT DO UPDATE). Usage : npm run seed:territory
  */
-import 'dotenv/config';
 import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
@@ -267,8 +266,16 @@ const GEOM_EXPR_TERR = `
   ST_Envelope(ST_SetSRID(ST_Multi(ST_GeomFromGeoJSON($6)), 4326))
 `;
 
-async function main() {
-  const pool = new Pool({
+/**
+ * Seed des territoires du Bénin (4 niveaux).
+ * Idempotent : les INSERT utilisent ON CONFLICT DO UPDATE.
+ * Appelable au boot depuis index.ts avec vérification préalable.
+ *
+ * @param pool - Pool PG existant (optionnel). Si absent, un pool dédié est créé.
+ */
+export async function seedTerritories(pool?: Pool): Promise<void> {
+  const ownPool = !pool;
+  const localPool = pool ?? new Pool({
     host: process.env.DB_HOST || 'localhost',
     port: Number(process.env.DB_PORT) || 5432,
     user: process.env.DB_USER,
@@ -276,9 +283,21 @@ async function main() {
     database: process.env.DB_NAME,
   });
 
-  const client = await pool.connect();
+  const client = await localPool.connect();
 
   try {
+    // ── Garde idempotente ─────────────────────────────────────────────────
+    // Si au moins un département existe déjà on saute le seed (coûteux).
+    const check = await client.query<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM territories
+       WHERE code LIKE 'BJ-DEP-%'`
+    );
+    const existing = parseInt(check.rows[0]?.count ?? '0', 10);
+    if (existing > 0) {
+      console.log(`⏩ Seed territoires ignoré — ${existing} département(s) déjà en base.`);
+      return;
+    }
+
     await client.query('BEGIN');
 
     // ── 1. Types de territoires (idempotent) ──────────────────────────────
@@ -486,11 +505,19 @@ async function main() {
   } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('❌ Erreur lors du seed des territoires :', error.message);
-    process.exit(1);
+    throw error;
   } finally {
     client.release();
-    await pool.end();
+    if (ownPool) await localPool.end();
   }
 }
 
-main();
+// ── Entrée CLI directe (npm run seed:territory) ───────────────────────────────
+if (require.main === module) {
+  import('dotenv/config').then(() =>
+    seedTerritories().catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+  );
+}

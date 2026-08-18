@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.seedTerritories = seedTerritories;
 /*
  * SEED TERRITOIRES — Bénin (4 niveaux administratifs)
  * ─────────────────────────────────────────────────────────────────────
@@ -18,7 +19,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * Codes préfixés : BJ-DEP-, BJ-TWN-, BJ-DIS-, BJ-NGH-
  * Idempotent (ON CONFLICT DO UPDATE). Usage : npm run seed:territory
  */
-require("dotenv/config");
 const pg_1 = require("pg");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
@@ -233,16 +233,33 @@ const GEOM_EXPR_TERR = `
   ST_PointOnSurface(ST_SetSRID(ST_Multi(ST_GeomFromGeoJSON($6)), 4326)),
   ST_Envelope(ST_SetSRID(ST_Multi(ST_GeomFromGeoJSON($6)), 4326))
 `;
-async function main() {
-    const pool = new pg_1.Pool({
+/**
+ * Seed des territoires du Bénin (4 niveaux).
+ * Idempotent : les INSERT utilisent ON CONFLICT DO UPDATE.
+ * Appelable au boot depuis index.ts avec vérification préalable.
+ *
+ * @param pool - Pool PG existant (optionnel). Si absent, un pool dédié est créé.
+ */
+async function seedTerritories(pool) {
+    const ownPool = !pool;
+    const localPool = pool ?? new pg_1.Pool({
         host: process.env.DB_HOST || 'localhost',
         port: Number(process.env.DB_PORT) || 5432,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
     });
-    const client = await pool.connect();
+    const client = await localPool.connect();
     try {
+        // ── Garde idempotente ─────────────────────────────────────────────────
+        // Si au moins un département existe déjà on saute le seed (coûteux).
+        const check = await client.query(`SELECT COUNT(*) AS count FROM territories
+       WHERE code LIKE 'BJ-DEP-%'`);
+        const existing = parseInt(check.rows[0]?.count ?? '0', 10);
+        if (existing > 0) {
+            console.log(`⏩ Seed territoires ignoré — ${existing} département(s) déjà en base.`);
+            return;
+        }
         await client.query('BEGIN');
         // ── 1. Types de territoires (idempotent) ──────────────────────────────
         console.log('1. Types de territoires...');
@@ -417,12 +434,19 @@ async function main() {
     catch (error) {
         await client.query('ROLLBACK');
         console.error('❌ Erreur lors du seed des territoires :', error.message);
-        process.exit(1);
+        throw error;
     }
     finally {
         client.release();
-        await pool.end();
+        if (ownPool)
+            await localPool.end();
     }
 }
-main();
+// ── Entrée CLI directe (npm run seed:territory) ───────────────────────────────
+if (require.main === module) {
+    import('dotenv/config').then(() => seedTerritories().catch((e) => {
+        console.error(e);
+        process.exit(1);
+    }));
+}
 //# sourceMappingURL=seed.territory.js.map
