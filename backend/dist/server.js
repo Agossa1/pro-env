@@ -13,10 +13,11 @@ const compression_1 = __importDefault(require("compression"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const routes_1 = require("./routes");
 const error_middlewares_1 = require("./shared/middlewares/error.middlewares");
-// URL du frontend (Render)
-const frontendUrl = process.env.FRONTEND_URL?.trim();
-// Alerte critique si FRONTEND_URL manque en prod (les cookies cross-origin seront bloqués)
-if (process.env.NODE_ENV === 'production' && !frontendUrl) {
+// URL(s) du frontend (Render) — peut être multiple, séparé par des virgules
+// Ex: FRONTEND_URL=https://frontend-w9nw.onrender.com,https://mondomaine.bj
+const rawFrontendUrl = process.env.FRONTEND_URL?.trim();
+// Alerte critique si FRONTEND_URL manque en prod
+if (process.env.NODE_ENV === 'production' && !rawFrontendUrl) {
     console.error('🚨 FRONTEND_URL est absent en production ! Les requêtes CORS cross-origin seront refusées.');
 }
 const createServer = async (db) => {
@@ -63,8 +64,12 @@ const createServer = async (db) => {
      * CORS
      * ============================
      */
+    // Parse les origines multiples (séparées par des virgules)
+    const frontendUrls = rawFrontendUrl
+        ? rawFrontendUrl.split(',').map((u) => u.trim()).filter(Boolean)
+        : [];
     const allowedOrigins = [
-        frontendUrl,
+        ...frontendUrls,
         'http://localhost:5173',
         'http://localhost:5174',
         'http://localhost:4000',
@@ -132,7 +137,7 @@ const createServer = async (db) => {
                     "'self'",
                     'wss:',
                     'https://*.basemaps.cartocdn.com',
-                    ...(frontendUrl ? [frontendUrl] : []),
+                    ...frontendUrls,
                 ],
                 fontSrc: [
                     "'self'",

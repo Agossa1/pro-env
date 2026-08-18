@@ -30,13 +30,15 @@ const envSchema = zod_1.z.object({
     OTP_EXPIRES_IN_MINUTES: zod_1.z.string().default('1min'),
     META_TOKEN: zod_1.z.string().min(10, 'Meta token must be at least 10 chars '),
     META_PHONE_NUMBER_ID: zod_1.z.string().min(8, 'Phone number Id be at least 8 chars'),
-    // SMTP Configuration
-    SMTP_HOST: zod_1.z.string(),
-    SMTP_PORT: zod_1.z.string().transform(Number).default(() => 587),
-    SMTP_USER: zod_1.z.string().email(),
-    SMTP_PASS: zod_1.z.string(),
+    // Email — Resend API (remplace SMTP bloqué sur Render)
+    RESEND_API_KEY: zod_1.z.string().optional(), // requis en prod, optionnel en dev
     MAIL_FROM: zod_1.z.string().email(),
-    MAIL_FROM_NAME: zod_1.z.string().default('Doto App')
+    MAIL_FROM_NAME: zod_1.z.string().default('SIGIE'),
+    // SMTP (conservé uniquement pour compatibilité locale — non utilisé en prod)
+    SMTP_HOST: zod_1.z.string().optional(),
+    SMTP_PORT: zod_1.z.string().transform(Number).optional(),
+    SMTP_USER: zod_1.z.string().optional(),
+    SMTP_PASS: zod_1.z.string().optional(),
 });
 const _env = envSchema.safeParse(process.env);
 if (!_env.success) {
