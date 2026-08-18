@@ -116,7 +116,7 @@ describe('Intervention Controllers', () => {
     });
 
     it('doit retourner 400 si validation Zod échoue', async () => {
-      mockReq.body = { missionId: 'uuid-invalide', assignedTeamId: '', interventionType: '' };
+      mockReq.body = { missionId: 'uuid-invalide', assignedSocieteId: '', interventionType: '' };
 
       await controller.createIntervention(mockReq as Request, mockRes as Response, mockNext);
 
@@ -125,7 +125,7 @@ describe('Intervention Controllers', () => {
     });
 
     it('doit retourner 201 en cas de succès', async () => {
-      mockReq.body = { missionId: VALID_UUID, assignedTeamId: VALID_UUID, interventionType: 'cleaning' };
+      mockReq.body = { missionId: VALID_UUID, assignedSocieteId: VALID_UUID, interventionType: 'cleaning' };
       const mockCreated = { id: 'new-uuid', interventionType: 'cleaning', status: 'not_started' };
       service.createIntervention.mockResolvedValueOnce(mockCreated as any);
 

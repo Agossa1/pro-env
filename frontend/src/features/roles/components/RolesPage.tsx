@@ -86,7 +86,7 @@ function RolesPage() {
                 </tr>
               ) : (
                 roles.map((role) => (
-                  <tr key={role.id} className="hover:bg-blue-50/30 transition-colors group">
+                  <tr key={role.id} className="hover:bg-benin-green-light/30 transition-colors group">
                     <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-md">
                         {role.code}

@@ -79,6 +79,17 @@ export interface ResendCodeDto {
   email: string;
 }
 
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  email: string;
+  code: string;
+  password: string;
+  confirmPassword: string;
+}
+
 // ─── Réponses API ─────────────────────────────────────────────────────────────
 
 export interface LoginResponse {

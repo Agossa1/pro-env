@@ -32,7 +32,7 @@ export class InterventionRepository {
     SELECT
       i.id,
       i.mission_id             AS "missionId",
-      i.assigned_team_id       AS "assignedTeamId",
+      i.assigned_societe_id    AS "assignedSocieteId",
       i.assigned_to_user_id    AS "assignedToUserId",
       i.intervention_type      AS "interventionType",
       i.status,
@@ -62,7 +62,7 @@ export class InterventionRepository {
       }
       if (query.teamId) {
         params.push(query.teamId);
-        conditions.push(`i.assigned_team_id = $${params.length}`);
+        conditions.push(`i.assigned_societe_id = $${params.length}`);
       }
       if (query.status) {
         params.push(query.status);
@@ -133,14 +133,14 @@ export class InterventionRepository {
 
       const res = await client.query(
         `INSERT INTO interventions (
-           mission_id, assigned_team_id, assigned_to_user_id,
+           mission_id, assigned_societe_id, assigned_to_user_id,
            intervention_type, vehicle_notes, equipment_notes
          )
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING id`,
         [
           payload.missionId,
-          payload.assignedTeamId,
+          payload.assignedSocieteId,
           payload.assignedToUserId ?? null,
           payload.interventionType,
           payload.vehicleNotes ?? null,

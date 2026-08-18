@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initSocieteModule = void 0;
 const logger_1 = require("../../config/loggers/logger");
+const passwordServices_1 = require("../../config/passwords/passwordServices");
+const auth_repositories_1 = require("../auth/repositories/auth.repositories");
 // Repositories
 const societe_repositories_1 = require("./repositories/societe.repositories");
 // Services
@@ -12,6 +14,7 @@ const createSociete_service_1 = require("./services/createSociete.service");
 const updateSociete_service_1 = require("./services/updateSociete.service");
 const deleteSociete_service_1 = require("./services/deleteSociete.service");
 const getSocieteTerritories_service_1 = require("./services/getSocieteTerritories.service");
+const createSocieteAccount_service_1 = require("./services/createSocieteAccount.service");
 // Controllers
 const getSocietes_controller_1 = require("./controller/getSocietes.controller");
 const getSocieteById_controller_1 = require("./controller/getSocieteById.controller");
@@ -23,13 +26,15 @@ const getSocieteTerritories_controller_1 = require("./controller/getSocieteTerri
 // Routes
 const societe_route_1 = require("./routes/societe.route");
 const initSocieteModule = (db) => {
-    // 1. Initialiser le Repository
+    // 1. Initialiser les Repositories
     const societeRepository = new societe_repositories_1.SocieteRepository(db, logger_1.logger);
+    const authRepository = new auth_repositories_1.AuthRepository(db, logger_1.logger);
     // 2. Initialiser les Services Métiers
+    const createSocieteAccountService = new createSocieteAccount_service_1.CreateSocieteAccountService(authRepository, passwordServices_1.passwordServiceInstance, logger_1.logger);
     const getSocietesService = new getSocietes_service_1.GetSocietesService(societeRepository, logger_1.logger);
     const getSocieteByIdService = new getSocieteById_service_1.GetSocieteByIdService(societeRepository, logger_1.logger);
     const getSocieteByRegistrationNumberService = new getSocieteByRegistrationNumber_service_1.GetSocieteByRegistrationNumberService(societeRepository, logger_1.logger);
-    const createSocieteService = new createSociete_service_1.CreateSocieteService(societeRepository, logger_1.logger);
+    const createSocieteService = new createSociete_service_1.CreateSocieteService(societeRepository, logger_1.logger, createSocieteAccountService);
     const updateSocieteService = new updateSociete_service_1.UpdateSocieteService(societeRepository, logger_1.logger);
     const deleteSocieteService = new deleteSociete_service_1.DeleteSocieteService(societeRepository, logger_1.logger);
     const getSocieteTerritoriesService = new getSocieteTerritories_service_1.GetSocieteTerritoriesService(societeRepository, logger_1.logger);

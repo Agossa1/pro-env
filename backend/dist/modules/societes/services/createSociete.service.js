@@ -15,9 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateSocieteService = void 0;
 const appErrors_1 = require("../../../shared/errors/appErrors");
 class CreateSocieteService {
-    constructor(societeRepository, logger) {
+    constructor(societeRepository, logger, createSocieteAccountService) {
         this.societeRepository = societeRepository;
         this.logger = logger;
+        this.createSocieteAccountService = createSocieteAccountService;
     }
     /**
      * Crée une nouvelle société après validation de l'unicité du n° d'enregistrement.
@@ -28,6 +29,9 @@ class CreateSocieteService {
         try {
             if (!payload.name || !payload.type) {
                 throw new appErrors_1.BadRequestError('Le nom et le type de la société sont requis.');
+            }
+            if (!payload.contactEmail) {
+                throw new appErrors_1.BadRequestError("L'email de contact est requis (il servira à créer le compte de la société).");
             }
             if (payload.registrationNumber) {
                 const existing = await this.societeRepository.getSocieteByRegistrationNumber(payload.registrationNumber);
@@ -43,6 +47,13 @@ class CreateSocieteService {
                 territoryId,
             });
             this.logger.info(`Société créée : ${created.name}${territoryId ? ` (associée au territoire ${territoryId})` : ''}`);
+            // Création du compte de la société + envoi de l'email d'activation
+            await this.createSocieteAccountService.createSocieteAccount({
+                fullName: created.name,
+                email: payload.contactEmail,
+                organizationId: created.id,
+                createdBy: creator?.userId,
+            });
             return created;
         }
         catch (error) {

@@ -13,7 +13,7 @@ const StatusEnum = z.enum(Object.values(InterventionStatus) as [string, ...strin
 
 export const CreateInterventionSchema = z.object({
   missionId: z.string().uuid("La mission doit être un UUID valide"),
-  assignedTeamId: z.string().uuid("L'équipe doit être un UUID valide"),
+  assignedSocieteId: z.string().uuid("La société doit être un UUID valide"),
   assignedToUserId: z.string().uuid("L'utilisateur doit être un UUID valide").nullable().optional(),
   interventionType: z.string().min(1, 'Le type d\'intervention est requis').max(100),
   vehicleNotes: z.string().nullable().optional(),

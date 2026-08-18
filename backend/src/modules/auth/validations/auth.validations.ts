@@ -32,3 +32,17 @@ export const ResendCodeSchema = z.object({
 export const RefreshTokenSchema = z.object({
   refreshToken: z.string().min(1, "Le Refresh Token est requis"),
 });
+
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email("L'adresse email est invalide"),
+});
+
+export const ResetPasswordSchema = z.object({
+  email: z.string().email("L'adresse email est invalide"),
+  code: z.string().length(6, "Le code OTP doit contenir exactement 6 chiffres").regex(/^\d+$/, "Le code doit être composé uniquement de chiffres"),
+  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  confirmPassword: z.string().min(8, "La confirmation du mot de passe est requise"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas.",
+  path: ["confirmPassword"],
+});

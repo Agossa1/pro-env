@@ -265,10 +265,14 @@ export class SocieteRepository {
     }
   }
 
-  /** Supprime une société (RESTRICT si références autres tables). */
   public async deleteSociete(id: string): Promise<void> {
     try {
-      const res = await this.db.query(`DELETE FROM organizations WHERE id = $1`, [id]);
+      // Désactivation (soft delete) au lieu d'une suppression physique
+      // pour éviter les erreurs de clés étrangères (missions, interventions...)
+      const res = await this.db.query(
+        `UPDATE organizations SET is_active = false, updated_at = NOW() WHERE id = $1`,
+        [id]
+      );
 
       if ((res.rowCount ?? 0) === 0) {
         throw new NotFoundError('Société introuvable.');
@@ -278,11 +282,6 @@ export class SocieteRepository {
       await redisCache.invalidate(`societes:id:${id}`);
     } catch (error: any) {
       if (error instanceof NotFoundError) throw error;
-      if (error.code === '23503') {
-        throw new BadRequestError(
-          'Impossible de supprimer cette société : des références y sont encore rattachées (utilisateurs, missions, territoires, équipes).'
-        );
-      }
       this.logger.error(`Erreur deleteSociete: ${error.message}`);
       throw error;
     }

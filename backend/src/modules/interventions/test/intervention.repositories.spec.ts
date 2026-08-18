@@ -122,7 +122,7 @@ describe('InterventionRepository', () => {
   describe('createIntervention', () => {
     const payload = {
       missionId: 'mission-1',
-      assignedTeamId: 'team-1',
+      assignedSocieteId: 'societe-1',
       interventionType: 'cleaning',
     };
 

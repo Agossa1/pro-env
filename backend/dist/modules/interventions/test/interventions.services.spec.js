@@ -59,11 +59,11 @@ describe('Intervention Services', () => {
         let service;
         beforeEach(() => { service = new createIntervention_service_1.CreateInterventionService(interventionRepository, mockLogger); });
         it('doit lever BadRequestError si champs requis absents', async () => {
-            await expect(service.createIntervention({ missionId: '', assignedTeamId: '', interventionType: '' }))
+            await expect(service.createIntervention({ missionId: '', assignedSocieteId: '', interventionType: '' }))
                 .rejects.toThrow(appErrors_1.BadRequestError);
         });
         it('doit créer l\'intervention', async () => {
-            const payload = { missionId: 'mission-1', assignedTeamId: 'team-1', interventionType: 'cleaning' };
+            const payload = { missionId: 'mission-1', assignedSocieteId: 'societe-1', interventionType: 'cleaning' };
             const mockCreated = { id: 'new-uuid', interventionType: 'cleaning', status: 'not_started' };
             interventionRepository.createIntervention.mockResolvedValueOnce(mockCreated);
             const result = await service.createIntervention(payload);

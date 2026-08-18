@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { isApiError } from '../../../libs/api-client';
-import { fetchUsers, createUser } from './users.api';
+import { fetchUsers, createUser, toggleUserActive } from './users.api';
 import type { CreateUserDto } from './users.types';
 
 function extractMessage(error: unknown): string {
@@ -25,6 +25,18 @@ export const createUserThunk = createAsyncThunk(
   async (dto: CreateUserDto, { rejectWithValue }) => {
     try {
       return await createUser(dto);
+    } catch (error) {
+      return rejectWithValue(extractMessage(error));
+    }
+  },
+);
+
+export const toggleUserActiveThunk = createAsyncThunk(
+  'users/toggleActive',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const res = await toggleUserActive(id);
+      return { id, isActive: res.isActive };
     } catch (error) {
       return rejectWithValue(extractMessage(error));
     }

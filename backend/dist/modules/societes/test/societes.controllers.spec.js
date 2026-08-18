@@ -124,7 +124,7 @@ describe('Societe Controllers', () => {
         let controller;
         let service;
         beforeEach(() => {
-            service = new createSociete_service_1.CreateSocieteService({}, {});
+            service = new createSociete_service_1.CreateSocieteService({}, {}, { createSocieteAccount: jest.fn() });
             controller = new createSociete_controller_1.CreateSocieteController(service);
         });
         it('doit retourner 400 si validation Zod échoue', async () => {

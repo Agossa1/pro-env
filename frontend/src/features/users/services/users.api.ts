@@ -24,3 +24,8 @@ export async function createUser(dto: CreateUserDto): Promise<AppUser> {
   const res = await apiClient.post<ApiResponse<AppUser>>('/auth/register-admin', dto);
   return res.data;
 }
+
+export async function toggleUserActive(id: string): Promise<{ isActive: boolean }> {
+  const res = await apiClient.patch<ApiResponse<{ isActive: boolean }>>(`/auth/users/${id}/toggle-active`);
+  return res.data;
+}

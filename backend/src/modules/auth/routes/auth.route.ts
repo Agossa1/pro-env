@@ -7,6 +7,9 @@ import { RefreshTokenController } from '../controller/refreshtoken.controller';
 import { ResendCodeController } from '../controller/resend-code.controller';
 import { MeController } from '../controller/me.controller';
 import { GetUsersController } from '../controller/getUsers.controller';
+import { ToggleUserActiveController } from '../controller/toggleUserActive.controller';
+import { ForgotPasswordController } from '../controller/forgot-password.controller';
+import { ResetPasswordController } from '../controller/reset-password.controller';
 import { authMiddleware, requireRole } from '../../../shared/middlewares/auth.middleware';
 
 export class AuthRoutes {
@@ -20,7 +23,10 @@ export class AuthRoutes {
     private readonly refreshTokenController: RefreshTokenController,
     private readonly resendCodeController: ResendCodeController,
     private readonly meController: MeController,
-    private readonly getUsersController: GetUsersController
+    private readonly getUsersController: GetUsersController,
+    private readonly toggleUserActiveController: ToggleUserActiveController,
+    private readonly forgotPasswordController: ForgotPasswordController,
+    private readonly resetPasswordController: ResetPasswordController
   ) {
     this.router = Router();
     this.initializeRoutes();
@@ -34,6 +40,8 @@ export class AuthRoutes {
     this.router.post('/resend-code', this.resendCodeController.resend);
     this.router.post('/refresh', this.refreshTokenController.refresh);
     this.router.post('/logout', this.logoutController.logout);
+    this.router.post('/forgot-password', this.forgotPasswordController.forgotPassword.bind(this.forgotPasswordController));
+    this.router.post('/reset-password', this.resetPasswordController.resetPassword.bind(this.resetPasswordController));
 
     // Endpoints authentifiés
     this.router.get('/me', authMiddleware, this.meController.me);
@@ -43,5 +51,8 @@ export class AuthRoutes {
 
     // POST /auth/register-admin — création d'un utilisateur par le super admin uniquement
     this.router.post('/register-admin', authMiddleware, requireRole('super_admin'), this.registerController.registerAdmin);
+
+    // PATCH /auth/users/:id/toggle-active — active/désactive un utilisateur
+    this.router.patch('/users/:id/toggle-active', authMiddleware, requireRole('super_admin'), this.toggleUserActiveController.toggle);
   }
 }

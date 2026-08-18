@@ -20,7 +20,7 @@ exports.CreateSocieteSchema = zod_1.z.object({
         .max(100, 'Le n° d\'enregistrement ne doit pas dépasser 100 caractères')
         .nullable()
         .optional(),
-    contactEmail: zod_1.z.string().email('Email invalide').nullable().optional(),
+    contactEmail: zod_1.z.string().email('Email invalide'),
     contactPhone: zod_1.z.string().max(20, 'Le téléphone ne doit pas dépasser 20 caractères').nullable().optional(),
     isActive: zod_1.z.boolean().optional(),
     // Territoire (mairie/commune ou ministère) auquel associer la société.

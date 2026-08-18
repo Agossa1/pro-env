@@ -84,6 +84,7 @@ export interface MissionStatusHistoryRow {
 export interface Mission {
   id: string;
   territoryId: string;
+  territoryName?: string;
   reportId: string | null;
   missionType: MissionType;
   priorityLevel: PriorityLevel;

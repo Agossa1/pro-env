@@ -13,7 +13,7 @@ const intervention_enums_1 = require("../types/intervention.enums");
 const StatusEnum = zod_1.z.enum(Object.values(intervention_enums_1.InterventionStatus));
 exports.CreateInterventionSchema = zod_1.z.object({
     missionId: zod_1.z.string().uuid("La mission doit être un UUID valide"),
-    assignedTeamId: zod_1.z.string().uuid("L'équipe doit être un UUID valide"),
+    assignedSocieteId: zod_1.z.string().uuid("La société doit être un UUID valide"),
     assignedToUserId: zod_1.z.string().uuid("L'utilisateur doit être un UUID valide").nullable().optional(),
     interventionType: zod_1.z.string().min(1, 'Le type d\'intervention est requis').max(100),
     vehicleNotes: zod_1.z.string().nullable().optional(),

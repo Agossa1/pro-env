@@ -15,6 +15,7 @@ import type { Logger } from 'winston';
 import { SocieteRepository } from '../repositories/societe.repositories';
 import { BadRequestError } from '../../../shared/errors/appErrors';
 import type { AppSociete, CreateSocietePayload } from '../types/societe.types';
+import { CreateSocieteAccountService } from './createSocieteAccount.service';
 
 /** Contexte de l'utilisateur connecté (req.user) */
 export interface CreateSocieteContext {
@@ -26,6 +27,7 @@ export class CreateSocieteService {
   constructor(
     private readonly societeRepository: SocieteRepository,
     private readonly logger: Logger,
+    private readonly createSocieteAccountService: CreateSocieteAccountService,
   ) {}
 
   /**
@@ -40,6 +42,10 @@ export class CreateSocieteService {
     try {
       if (!payload.name || !payload.type) {
         throw new BadRequestError('Le nom et le type de la société sont requis.');
+      }
+
+      if (!payload.contactEmail) {
+        throw new BadRequestError("L'email de contact est requis (il servira à créer le compte de la société).");
       }
 
       if (payload.registrationNumber) {
@@ -65,6 +71,15 @@ export class CreateSocieteService {
       this.logger.info(
         `Société créée : ${created.name}${territoryId ? ` (associée au territoire ${territoryId})` : ''}`
       );
+
+      // Création du compte de la société + envoi de l'email d'activation
+      await this.createSocieteAccountService.createSocieteAccount({
+        fullName: created.name,
+        email: payload.contactEmail,
+        organizationId: created.id,
+        createdBy: creator?.userId,
+      });
+
       return created;
     } catch (error: any) {
       if (error instanceof BadRequestError) throw error;

@@ -17,7 +17,7 @@ import { InterventionStatus } from './intervention.enums';
 export interface InterventionRow {
   id: string;
   mission_id: string;
-  assigned_team_id: string;
+  assigned_societe_id: string;
   assigned_to_user_id: string | null;
   intervention_type: string;
   status: InterventionStatus;
@@ -52,7 +52,7 @@ export interface FieldInterventionReportRow {
 export interface Intervention {
   id: string;
   missionId: string;
-  assignedTeamId: string;
+  assignedSocieteId: string;
   assignedToUserId: string | null;
   interventionType: string;
   status: InterventionStatus;
@@ -103,7 +103,7 @@ export interface PaginatedResult<T> {
 
 export interface CreateInterventionPayload {
   missionId: string;
-  assignedTeamId: string;
+  assignedSocieteId: string;
   assignedToUserId?: string | null;
   interventionType: string;
   vehicleNotes?: string | null;

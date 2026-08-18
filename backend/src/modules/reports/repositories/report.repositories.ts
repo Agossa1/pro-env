@@ -54,7 +54,16 @@ export class ReportRepository {
       r.sla_hours             AS "slaHours",
       r.created_at            AS "createdAt",
       r.updated_at            AS "updatedAt",
-      r.deleted_at            AS "deletedAt"
+      r.deleted_at            AS "deletedAt",
+      a.full_name             AS "createdByName",
+      rol.name                AS "createdByRole",
+      t.name                  AS "territoryName"
+  `;
+
+  private readonly reportJoins = `
+    LEFT JOIN auth a ON a.id = r.created_by
+    LEFT JOIN roles rol ON rol.id = a.role_id
+    LEFT JOIN territories t ON t.id = r.territory_id
   `;
 
   /**
@@ -97,6 +106,7 @@ export class ReportRepository {
         const res = await this.db.query(
           `${this.reportSelect}
            FROM reports r
+           ${this.reportJoins}
            WHERE ${where}
            ORDER BY r.reported_at DESC
            LIMIT $${params.length - 1} OFFSET $${params.length}`,
@@ -125,6 +135,7 @@ export class ReportRepository {
         const res = await this.db.query(
           `${this.reportSelect}
            FROM reports r
+           ${this.reportJoins}
            WHERE r.id = $1
              AND r.deleted_at IS NULL
            LIMIT 1`,

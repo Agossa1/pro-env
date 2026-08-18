@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Sidebar, Topbar, type NavItem } from '../navigations';
 import { useAuth } from '../../features/auth/hooks/useAuth';
@@ -45,22 +46,45 @@ const AlertIcon = () => (
   </svg>
 );
 
+const BriefcaseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ToolIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const BuildingsIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Tableau de bord', to: '/dashboard',  icon: <HomeIcon />,   section: 'Principal' },
-  { label: 'Signalements',    to: '/reports',     icon: <AlertIcon />,  section: 'Terrain' },
-  { label: 'Utilisateurs',    to: '/users',       icon: <UsersIcon />,  section: 'Administration', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture'] },
-  { label: 'Rôles',           to: '/roles',       icon: <ShieldIcon />, section: 'Administration', roles: ['super_admin'] },
-  { label: 'Permissions',     to: '/permissions', icon: <KeyIcon />,    section: 'Administration', roles: ['super_admin'] },
-  { label: 'Territoires',     to: '/territories', icon: <MapPinIcon />, section: 'Administration', roles: ['super_admin', 'admin_ministere'] },
+  { label: 'Tableau de bord', to: '/dashboard',    icon: <HomeIcon />,      section: 'Principal' },
+  { label: 'Signalements',    to: '/reports',      icon: <AlertIcon />,     section: 'Terrain', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture', 'technicien', 'citoyen'] },
+  { label: 'Missions',        to: '/missions',     icon: <BriefcaseIcon />, section: 'Terrain', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture', 'technicien'] },
+  { label: 'Interventions',   to: '/interventions',icon: <ToolIcon />,      section: 'Terrain' },
+  { label: 'Structures',      to: '/structures',   icon: <BuildingsIcon />, section: 'Terrain' },
+  { label: 'Sociétés',        to: '/societes',     icon: <BriefcaseIcon />, section: 'Terrain', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture'] },
+  { label: 'Utilisateurs',    to: '/users',        icon: <UsersIcon />,     section: 'Administration', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture'] },
+  { label: 'Rôles',           to: '/roles',        icon: <ShieldIcon />,    section: 'Administration', roles: ['super_admin'] },
+  { label: 'Permissions',     to: '/permissions',  icon: <KeyIcon />,       section: 'Administration', roles: ['super_admin'] },
+  { label: 'Territoires',     to: '/territories',  icon: <MapPinIcon />,    section: 'Administration', roles: ['super_admin', 'admin_ministere'] },
 ];
 
 /**
- * Layout principal de l'application (Sidebar + Topbar + Contenu).
- * Enveloppe les routes privées via `<Outlet />`.
+ * Layout principal de l'application — responsive avec sidebar drawer sur mobile.
  */
 function AppLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -71,29 +95,30 @@ function AppLayout() {
   };
 
   const filteredNavItems = NAV_ITEMS.filter((item) => {
-    // Si l'élément n'a pas de restriction de rôle, il est visible par tous
     if (!item.roles) return true;
     if (!user || !user.role) return false;
-    
-    // Exception pour Utilisateurs : on check aussi la permission canManageUsers
     if (item.to === '/users' && user.role.canManageUsers) return true;
-
     return item.roles.includes(user.role.code);
   });
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar — desktop fixed / mobile drawer */}
       <Sidebar
         items={filteredNavItems}
         userName={user?.fullName ?? 'Utilisateur'}
         userRole={user?.role?.name ?? user?.role?.code ?? '—'}
         onLogout={handleLogout}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
-      
-      <Topbar />
 
-      <main className="ml-[260px] pt-16 flex-1 flex flex-col min-h-screen">
-        <div className="p-8 flex-1">
+      {/* Topbar */}
+      <Topbar onMenuToggle={() => setSidebarOpen(prev => !prev)} />
+
+      {/* Main content — offset for desktop sidebar */}
+      <main className="flex-1 flex flex-col min-h-screen pt-[58px] lg:ml-[260px]">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </div>
       </main>

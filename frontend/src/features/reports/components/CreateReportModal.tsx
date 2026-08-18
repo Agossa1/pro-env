@@ -7,7 +7,9 @@ import {
   IssueCategory,
   PriorityLevel,
   RiskLevel,
+  WaterFlowStatus,
   type CreateReportPayload,
+  type ReportDetailsPayload,
 } from '../services/reports.types';
 
 interface Props {
@@ -45,6 +47,14 @@ const RISK_LABELS: Record<RiskLevel, string> = {
   [RiskLevel.CRITICAL]: 'Critique',
 };
 
+const FLOW_STATUS_LABELS: Record<WaterFlowStatus, string> = {
+  [WaterFlowStatus.FREE]: 'Libre',
+  [WaterFlowStatus.RESTRICTED]: 'Restreint',
+  [WaterFlowStatus.BLOCKED]: 'Bouché',
+};
+
+const numInputClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green";
+
 /** Récupère les territoires depuis l'API par ID de type parent */
 async function fetchByParent(parentId: string): Promise<TerritoryItem[]> {
   try {
@@ -80,7 +90,7 @@ async function fetchDepartments(): Promise<TerritoryItem[]> {
   }
 }
 
-const selectClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
+const selectClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
 
 export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
   const { addReport, isLoading } = useReports();
@@ -113,6 +123,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
     riskLevel: RiskLevel.LOW,
     latitude: null,
     longitude: null,
+    details: {},
   });
 
   // Médias (pièces jointes)
@@ -177,6 +188,27 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
     setForm(prev => ({ ...prev, [name]: value || null }));
   };
 
+  /** Met à jour un champ du détail 1:1 selon la catégorie */
+  const handleDetailChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setForm(prev => ({
+      ...prev,
+      details: {
+        ...(prev.details ?? {}),
+        [name]: type === 'number' ? (value ? parseFloat(value) : undefined) : value || undefined,
+      },
+    }));
+  };
+
+  /** Construit le payload `details` en excluant les champs vides */
+  const buildDetailsPayload = (): ReportDetailsPayload | null => {
+    const d = form.details ?? {};
+    const cleaned = Object.fromEntries(
+      Object.entries(d).filter(([, v]) => v !== undefined && v !== null && v !== '')
+    ) as ReportDetailsPayload;
+    return Object.keys(cleaned).length > 0 ? cleaned : null;
+  };
+
   // ── Médias : sélection et retrait ──────────────────────────────────────────
   const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -208,6 +240,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
         ...form,
         title: form.title!.toString().trim(),
         territoryId: resolvedTerritoryId,
+        details: buildDetailsPayload(),
       });
 
       // Upload des médias sélectionnés (rattachés au report créé)
@@ -345,7 +378,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
                 value={(form.title as string) || ''}
                 onChange={handleChange}
                 placeholder="Ex : Nid-de-poule sur la route nationale..."
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
               />
             </div>
 
@@ -361,7 +394,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Décrivez l'incident avec précision..."
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green resize-none"
               />
             </div>
 
@@ -393,6 +426,225 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
               </div>
             </div>
 
+            {/* Détails spécifiques à la catégorie */}
+            {form.issueCategory !== IssueCategory.OTHER && (
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-3">
+                  Détails spécifiques <span className="text-gray-400 font-normal">(optionnel)</span>
+                </p>
+
+                {form.issueCategory === IssueCategory.DRAINAGE && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-blockage">
+                        Taux de colmatage (%) <span className="text-gray-400">(0-100)</span>
+                      </label>
+                      <input
+                        id="detail-blockage"
+                        name="blockageLevelPct"
+                        type="number" min="0" max="100" step="any"
+                        value={form.details?.blockageLevelPct ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : 75"
+                        className={numInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-water-level">
+                        Niveau d'eau (cm)
+                      </label>
+                      <input
+                        id="detail-water-level"
+                        name="waterLevelCm"
+                        type="number" min="0" step="any"
+                        value={form.details?.waterLevelCm ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : 30"
+                        className={numInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-flow-status">
+                        État d'écoulement
+                      </label>
+                      <select
+                        id="detail-flow-status"
+                        name="flowStatus"
+                        value={form.details?.flowStatus ?? ''}
+                        onChange={handleDetailChange}
+                        className={selectClass}
+                      >
+                        <option value="">— Sélectionner —</option>
+                        {Object.entries(FLOW_STATUS_LABELS).map(([val, label]) => (
+                          <option key={val} value={val}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {form.issueCategory === IssueCategory.ROAD && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-damage-surface">
+                        Surface endommagée (m²)
+                      </label>
+                      <input
+                        id="detail-damage-surface"
+                        name="damageSurfaceM2"
+                        type="number" min="0" step="any"
+                        value={form.details?.damageSurfaceM2 ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : 45"
+                        className={numInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-pothole-depth">
+                        Profondeur du nid-de-poule (cm)
+                      </label>
+                      <input
+                        id="detail-pothole-depth"
+                        name="potholeDepthCm"
+                        type="number" min="0" step="any"
+                        value={form.details?.potholeDepthCm ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : 12"
+                        className={numInputClass}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {form.issueCategory === IssueCategory.WASTE && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-estimated-volume">
+                        Volume estimé (m³)
+                      </label>
+                      <input
+                        id="detail-estimated-volume"
+                        name="estimatedVolumeM3"
+                        type="number" min="0" step="any"
+                        value={form.details?.estimatedVolumeM3 ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : 2.5"
+                        className={numInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-waste-type">
+                        Type de déchets
+                      </label>
+                      <input
+                        id="detail-waste-type"
+                        name="wasteType"
+                        type="text"
+                        value={form.details?.wasteType ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : plastiques, gravats..."
+                        className={numInputClass}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {form.issueCategory === IssueCategory.BIODIVERSITY && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-species">
+                        Espèce
+                      </label>
+                      <input
+                        id="detail-species"
+                        name="speciesName"
+                        type="text"
+                        value={form.details?.speciesName ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : Khaya senegalensis"
+                        className={numInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-observation-type">
+                        Type d'observation
+                      </label>
+                      <input
+                        id="detail-observation-type"
+                        name="observationType"
+                        type="text"
+                        value={form.details?.observationType ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : coupe illicite"
+                        className={numInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-count">
+                        Nombre
+                      </label>
+                      <input
+                        id="detail-count"
+                        name="count"
+                        type="number" min="0" step="1"
+                        value={form.details?.count ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : 5"
+                        className={numInputClass}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {form.issueCategory === IssueCategory.ENVIRONMENT && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-sensor-id">
+                        Capteur (ID)
+                      </label>
+                      <input
+                        id="detail-sensor-id"
+                        name="sensorId"
+                        type="text"
+                        value={form.details?.sensorId ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : 3f8c..."
+                        className={numInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-measured-value">
+                        Valeur mesurée
+                      </label>
+                      <input
+                        id="detail-measured-value"
+                        name="measuredValue"
+                        type="number" step="any"
+                        value={form.details?.measuredValue ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : 25.4"
+                        className={numInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block" htmlFor="detail-unit">
+                        Unité
+                      </label>
+                      <input
+                        id="detail-unit"
+                        name="unit"
+                        type="text"
+                        value={form.details?.unit ?? ''}
+                        onChange={handleDetailChange}
+                        placeholder="Ex : ppm, °C, mg/L"
+                        className={numInputClass}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* GPS */}
             <div>
               <p className="text-sm font-semibold text-gray-700 mb-3">
@@ -415,7 +667,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
                     value={form.latitude ?? ''}
                     onChange={e => setForm(p => ({ ...p, latitude: e.target.value ? parseFloat(e.target.value) : null }))}
                     placeholder="6.3654"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
                   />
                 </div>
                 <div>
@@ -426,7 +678,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
                     value={form.longitude ?? ''}
                     onChange={e => setForm(p => ({ ...p, longitude: e.target.value ? parseFloat(e.target.value) : null }))}
                     placeholder="2.4183"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
                   />
                 </div>
               </div>
@@ -451,7 +703,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingMedia}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-gray-300 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 hover:border-blue-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-gray-300 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 hover:border-benin-green transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
@@ -471,7 +723,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
                             className="w-10 h-10 rounded object-cover shrink-0"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded bg-blue-100 flex items-center justify-center text-blue-700 font-bold shrink-0">
+                          <div className="w-10 h-10 rounded bg-benin-green-light flex items-center justify-center text-benin-green font-bold shrink-0">
                             {file.name.split('.').pop()?.toUpperCase()?.slice(0, 4)}
                           </div>
                         )}
@@ -509,7 +761,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
               Annuler
             </button>
             <button type="submit" disabled={isLoading}
-              className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+              className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-benin-green hover:bg-benin-green-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
               {isLoading ? 'Enregistrement...' : 'Créer le signalement'}
             </button>
           </div>

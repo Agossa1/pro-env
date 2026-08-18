@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">89.47% </span>
+                <span class="strong">78.26% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>17/19</span>
+                <span class='fraction'>18/23</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">86.66% </span>
+                <span class="strong">76.47% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>13/15</span>
+                <span class='fraction'>13/17</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">77.27% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/18</span>
+                <span class='fraction'>17/22</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -137,7 +137,22 @@
 <a name='L72'></a><a href='#L72'>72</a>
 <a name='L73'></a><a href='#L73'>73</a>
 <a name='L74'></a><a href='#L74'>74</a>
-<a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -161,8 +176,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -185,8 +202,12 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -202,6 +223,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
@@ -228,6 +258,7 @@ import type { Logger } from 'winston';
 import { SocieteRepository } from '../repositories/societe.repositories';
 import { BadRequestError } from '../../../shared/errors/appErrors';
 import type { AppSociete, CreateSocietePayload } from '../types/societe.types';
+import { CreateSocieteAccountService } from './createSocieteAccount.service';
 &nbsp;
 /** Contexte de l'utilisateur connecté (req.user) */
 export interface CreateSocieteContext {
@@ -239,6 +270,7 @@ export class CreateSocieteService {
   constructor(
     private readonly societeRepository: SocieteRepository,
     private readonly logger: Logger,
+    private readonly createSocieteAccountService: CreateSocieteAccountService,
   ) {}
 &nbsp;
   /**
@@ -255,12 +287,16 @@ export class CreateSocieteService {
         throw new BadRequestError('Le nom et le type de la société sont requis.');
       }
 &nbsp;
-      if (payload.registrationNumber) {
-        const existing = await this.societeRepository.getSocieteByRegistrationNumber(
+      if (!payload.contactEmail) {
+        throw new BadRequestError("L'email de contact est requis (il servira à créer le compte de la société).");
+      }
+&nbsp;
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (payload.registrationNumber) {
+        const existing = <span class="cstat-no" title="statement not covered" >await this.societeRepository.getSocieteByRegistrationNumber(</span>
           payload.registrationNumber
         );
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (existing) {
-          throw new BadRequestError(
+<span class="cstat-no" title="statement not covered" >        if (existing) {</span>
+<span class="cstat-no" title="statement not covered" >          throw new BadRequestError(</span>
             `Une société existe déjà avec le n° d'enregistrement "${payload.registrationNumber}".`
           );
         }
@@ -278,6 +314,15 @@ export class CreateSocieteService {
       this.logger.info(
         `Société créée : ${created.name}${territoryId ? ` (associée au territoire ${territoryId})` : ''}`
       );
+&nbsp;
+      // Création du compte de la société + envoi de l'email d'activation
+      await this.createSocieteAccountService.createSocieteAccount({
+        fullName: created.name,
+        email: payload.contactEmail,
+        organizationId: created.id,
+        createdBy: creator?.userId,
+      });
+&nbsp;
       return created;
     } catch (error: any) {
       <span class="missing-if-branch" title="else path not taken" >E</span>if (error instanceof BadRequestError) throw error;
@@ -292,7 +337,7 @@ export class CreateSocieteService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-09T16:11:11.480Z
+                at 2026-08-17T19:28:56.569Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

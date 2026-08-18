@@ -22,6 +22,7 @@ import { GetSocietesService } from '../services/getSocietes.service';
 import { GetSocieteByIdService } from '../services/getSocieteById.service';
 import { GetSocieteByRegistrationNumberService } from '../services/getSocieteByRegistrationNumber.service';
 import { CreateSocieteService } from '../services/createSociete.service';
+import { CreateSocieteAccountService } from '../services/createSocieteAccount.service';
 import { UpdateSocieteService } from '../services/updateSociete.service';
 import { DeleteSocieteService } from '../services/deleteSociete.service';
 import { GetSocieteTerritoriesService } from '../services/getSocieteTerritories.service';
@@ -156,7 +157,11 @@ describe('Societe Controllers', () => {
     let service: jest.Mocked<CreateSocieteService>;
 
     beforeEach(() => {
-      service = new CreateSocieteService({} as any, {} as any) as jest.Mocked<CreateSocieteService>;
+      service = new CreateSocieteService(
+        {} as any,
+        {} as any,
+        { createSocieteAccount: jest.fn() } as unknown as CreateSocieteAccountService,
+      ) as jest.Mocked<CreateSocieteService>;
       controller = new CreateSocieteController(service);
     });
 
@@ -170,7 +175,7 @@ describe('Societe Controllers', () => {
     });
 
     it('doit retourner 201 en cas de succès', async () => {
-      mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
+      mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', contactEmail: 'test@example.com' };
       (mockReq as any).user = { userId: 'user-1', territoryId: 'mairie-uuid' };
       const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
       service.createSociete.mockResolvedValueOnce(mockCreated as any);
@@ -186,7 +191,7 @@ describe('Societe Controllers', () => {
     });
 
     it('doit passer le territoryId fourni par l\'admin dans le payload', async () => {
-      mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', territoryId: VALID_UUID };
+      mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', territoryId: VALID_UUID, contactEmail: 'test@example.com' };
       (mockReq as any).user = { userId: 'admin-1', territoryId: null };
       const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
       service.createSociete.mockResolvedValueOnce(mockCreated as any);

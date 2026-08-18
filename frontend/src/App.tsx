@@ -4,6 +4,7 @@ import Login from './pages/auth/Login'
 import Activate from './pages/auth/Activate'
 import Dashboard from './pages/Dashboard'
 import ForgotPassword from './pages/auth/ForgotPassword'
+import ResetPassword from './pages/auth/ResetPassword'
 import NotFound from './pages/errors/NotFound.tsx'
 import AppLayout from './components/navigations/AppLayout'
 import ProtectedRoute from './components/navigations/ProtectedRoute'
@@ -14,6 +15,10 @@ import PermissionsPage from './pages/permissions/PermissionsPage'
 import PermissionDetailPage from './pages/permissions/PermissionDetailPage'
 import TerritoriesPage from './features/territory/components/TerritoriesPage'
 import { ReportsPage } from './features/reports/components/ReportsPage'
+import { MissionsPage } from './features/missions/components/MissionsPage'
+import { InterventionsPage } from './features/interventions/components/InterventionsPage'
+import { StructuresPage } from './features/structures/components/StructuresPage'
+import { SocietesPage } from './features/societes/components/SocietesPage'
 
 function App() {
   return (
@@ -23,6 +28,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/activate" element={<Activate />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
 
 
@@ -38,6 +44,10 @@ function App() {
             <Route path="/permissions/:id" element={<PermissionDetailPage />} />
             <Route path="/territories" element={<TerritoriesPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/missions" element={<MissionsPage />} />
+            <Route path="/interventions" element={<InterventionsPage />} />
+            <Route path="/structures" element={<StructuresPage />} />
+            <Route path="/societes" element={<SocietesPage />} />
           </Route>
         </Route>
 

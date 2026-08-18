@@ -25,6 +25,7 @@ CREATE TYPE user_role AS ENUM (
     'admin_mairie',
     'technicien',
     'prefecture',
+    'societe',
     'citoyen'
 );
 
@@ -50,7 +51,7 @@ CREATE TYPE risk_level_enum AS ENUM (
     'low', 'medium', 'high', 'critical'
 );
 CREATE TYPE field_report_status_enum AS ENUM (
-    'draft', 'submitted', 'under_review', 'in_progress', 'resolved', 'closed', 'archived'
+    'draft', 'submitted', 'under_review', 'in_progress', 'resolved', 'closed', 'archived', 'assigned', 'rejected'
 );
 CREATE TYPE water_flow_status_enum AS ENUM (
     'free', 'restricted', 'blocked'
@@ -726,13 +727,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_one_active_leader_per_team
 COMMENT ON INDEX uq_one_active_leader_per_team IS 'Garantit un seul chef actif par équipe';
 
 -- ---------------------------------------------------------------------
--- Interventions — exécution terrain d'une mission par une équipe
+-- Interventions — exécution terrain d'une mission par une société prestataire
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS interventions (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     mission_id          UUID NOT NULL,
-    assigned_team_id    UUID NOT NULL,
-    assigned_to_user_id UUID,  -- référent/technicien pilote au sein de l'équipe (optionnel)
+    assigned_societe_id UUID NOT NULL,
+    assigned_to_user_id UUID,  -- référent/technicien pilote (optionnel)
 
     intervention_type   VARCHAR(100) NOT NULL CHECK (length(trim(intervention_type)) > 0),
     status              field_assignment_status_enum NOT NULL DEFAULT 'not_started',
@@ -749,17 +750,17 @@ CREATE TABLE IF NOT EXISTS interventions (
 
     CONSTRAINT fk_intervention_mission FOREIGN KEY (mission_id)
         REFERENCES missions(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT fk_intervention_team FOREIGN KEY (assigned_team_id)
-        REFERENCES field_teams(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_intervention_societe FOREIGN KEY (assigned_societe_id)
+        REFERENCES organizations(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_intervention_user FOREIGN KEY (assigned_to_user_id)
         REFERENCES auth(id) ON UPDATE CASCADE ON DELETE SET NULL,
 
     CONSTRAINT chk_intervention_dates CHECK (ended_at IS NULL OR started_at IS NULL OR ended_at >= started_at)
 );
-COMMENT ON TABLE interventions IS 'Réalisée par field_teams (équipe de l''organisation assignée à la mission)';
+COMMENT ON TABLE interventions IS 'Réalisée par une société prestataire (organizations) assignée à la mission';
 
 CREATE INDEX IF NOT EXISTS idx_interventions_mission    ON interventions(mission_id);
-CREATE INDEX IF NOT EXISTS idx_interventions_team       ON interventions(assigned_team_id);
+CREATE INDEX IF NOT EXISTS idx_interventions_societe    ON interventions(assigned_societe_id);
 CREATE INDEX IF NOT EXISTS idx_interventions_user       ON interventions(assigned_to_user_id);
 CREATE INDEX IF NOT EXISTS idx_interventions_status     ON interventions(status);
 CREATE INDEX IF NOT EXISTS idx_interventions_deleted_at ON interventions(deleted_at) WHERE deleted_at IS NULL;
@@ -768,25 +769,6 @@ CREATE TRIGGER set_updated_at_interventions
     BEFORE UPDATE ON interventions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Cohérence : le technicien pilote doit appartenir à l'équipe assignée
-CREATE OR REPLACE FUNCTION fn_intervention_user_in_team()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.assigned_to_user_id IS NOT NULL AND NOT EXISTS (
-        SELECT 1 FROM field_team_members
-        WHERE team_id  = NEW.assigned_team_id
-          AND user_id  = NEW.assigned_to_user_id
-          AND is_active = TRUE
-    ) THEN
-        RAISE EXCEPTION 'assigned_to_user_id doit être membre actif de assigned_team_id';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_intervention_user_in_team
-    BEFORE INSERT OR UPDATE OF assigned_team_id, assigned_to_user_id ON interventions
-    FOR EACH ROW EXECUTE FUNCTION fn_intervention_user_in_team();
 
 -- ---------------------------------------------------------------------
 -- Rapports d'intervention terrain

@@ -325,7 +325,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
                   <div className="mt-2 flex items-center gap-2">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                       selectedRole.tier === 'platform' ? 'bg-purple-100 text-purple-700'
-                      : selectedRole.tier === 'territorial' ? 'bg-blue-100 text-blue-700'
+                      : selectedRole.tier === 'territorial' ? 'bg-benin-green-light text-benin-green'
                       : selectedRole.tier === 'field' ? 'bg-orange-100 text-orange-700'
                       : 'bg-gray-100 text-gray-600'
                     }`}>

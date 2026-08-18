@@ -174,6 +174,25 @@ class AuthRepository {
             client.release();
         }
     }
+    async toggleUserActive(authId) {
+        try {
+            const res = await this.db.query(`UPDATE account_status 
+         SET is_active = NOT is_active, updated_at = NOW() 
+         WHERE auth_id = $1 
+         RETURNING is_active`, [authId]);
+            if (res.rowCount === 0) {
+                throw new appErrors_1.NotFoundError('Utilisateur introuvable.');
+            }
+            await redis_service_1.redisCache.invalidate(`auth:status:${authId}`);
+            // Invalider aussi d'autres caches si nécessaire
+            await redis_service_1.redisCache.invalidatePattern('auth:users:all:*');
+            return res.rows[0].is_active;
+        }
+        catch (error) {
+            this.logger.error(`Erreur toggleUserActive: ${error.message}`);
+            throw error;
+        }
+    }
     async findAuthByEmail(email) {
         try {
             const normalizedEmail = email.toLowerCase();

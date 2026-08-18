@@ -10,7 +10,7 @@
 import { randomInt } from 'crypto';
 import type { Logger } from 'winston';
 import PostgresDatabase from '../../../config/database/postgres';
-import { BadRequestError } from '../../../shared/errors/appErrors';
+import { BadRequestError, NotFoundError } from '../../../shared/errors/appErrors';
 
 import type {
   AuthUser,
@@ -218,6 +218,31 @@ export class AuthRepository {
       throw error;
     } finally {
       client.release();
+    }
+  }
+
+  public async toggleUserActive(authId: string): Promise<boolean> {
+    try {
+      const res = await this.db.query(
+        `UPDATE account_status 
+         SET is_active = NOT is_active, updated_at = NOW() 
+         WHERE auth_id = $1 
+         RETURNING is_active`,
+        [authId]
+      );
+
+      if (res.rowCount === 0) {
+        throw new NotFoundError('Utilisateur introuvable.');
+      }
+
+      await redisCache.invalidate(`auth:status:${authId}`);
+      // Invalider aussi d'autres caches si nécessaire
+      await redisCache.invalidatePattern('auth:users:all:*');
+
+      return res.rows[0].is_active;
+    } catch (error: any) {
+      this.logger.error(`Erreur toggleUserActive: ${error.message}`);
+      throw error;
     }
   }
 

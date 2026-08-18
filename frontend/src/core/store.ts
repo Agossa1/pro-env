@@ -4,7 +4,11 @@ import rolesReducer from '../features/roles/services/roles.slices';
 import permissionsReducer from '../features/permissions/services/permissions.slices';
 import usersReducer from '../features/users/services/users.slices';
 import territoryReducer from '../features/territory/services/territory.slices';
-import reportsReducer from '../features/reports/services/reports.slices';
+import reportsReducer  from '../features/reports/services/reports.slices';
+import missionsReducer from '../features/missions/services/missions.slices';
+import interventionsReducer from '../features/interventions/services/interventions.slices';
+import structuresReducer from '../features/structures/services/structures.slices';
+import societesReducer from '../features/societes/services/societes.slices';
 
 /**
  * Store Redux central de l'application.
@@ -17,6 +21,10 @@ export const store = configureStore({
     users:       usersReducer,
     territory:   territoryReducer,
     reports:     reportsReducer,
+    missions:    missionsReducer,
+    interventions: interventionsReducer,
+    structures:  structuresReducer,
+    societes:     societesReducer,
   },
 });
 

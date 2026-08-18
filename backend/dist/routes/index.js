@@ -10,8 +10,10 @@ const societe_module_1 = require("../modules/societes/societe.module");
 const report_module_1 = require("../modules/reports/report.module");
 const mission_module_1 = require("../modules/missions/mission.module");
 const intervention_module_1 = require("../modules/interventions/intervention.module");
+const infrastructure_module_1 = require("../modules/infrastructures/infrastructure.module");
 const media_module_1 = require("../modules/media/media.module");
 const team_module_1 = require("../modules/teams/team.module");
+const dashboard_module_1 = require("../modules/dashboard/dashboard.module");
 const configureRoutes = (db) => {
     const router = (0, express_1.Router)();
     router.use('/auth', (0, auth_module_1.initAuthModule)(db));
@@ -22,8 +24,10 @@ const configureRoutes = (db) => {
     router.use('/reports', (0, report_module_1.initReportModule)(db));
     router.use('/missions', (0, mission_module_1.initMissionModule)(db));
     router.use('/interventions', (0, intervention_module_1.initInterventionModule)(db));
+    router.use('/infrastructures', (0, infrastructure_module_1.initInfrastructureModule)(db));
     router.use('/media', (0, media_module_1.initMediaModule)(db));
     router.use('/teams', (0, team_module_1.initTeamModule)(db));
+    router.use('/dashboard', (0, dashboard_module_1.initDashboardModule)(db));
     return router;
 };
 exports.configureRoutes = configureRoutes;

@@ -205,13 +205,6 @@ describe('SocieteRepository', () => {
         .rejects.toThrow(NotFoundError);
     });
 
-    it('doit lever BadRequestError si FK violation (23503)', async () => {
-      const fkError = { code: '23503', message: 'fk violation' };
-      mockDb.query.mockRejectedValueOnce(fkError);
-
-      await expect(societeRepository.deleteSociete('soc-1'))
-        .rejects.toThrow(BadRequestError);
-    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────

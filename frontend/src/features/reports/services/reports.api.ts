@@ -8,6 +8,19 @@ import type {
 
 const BASE = '/reports';
 
+export interface ReportMedia {
+  id: string;
+  module: string | null;
+  entityId: string | null;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  storagePath: string; // URL Cloudinary
+  publicId: string;
+  uploadedBy: string | null;
+  createdAt: string;
+}
+
 export const reportsApi = {
   getReports: async (params?: Record<string, any>): Promise<PaginatedResult<Report>> => {
     const res = await apiClient.get<ApiResponse<any>>(BASE, { params });
@@ -28,6 +41,11 @@ export const reportsApi = {
   getReportById: async (id: string): Promise<Report> => {
     const res = await apiClient.get<ApiResponse<Report>>(`${BASE}/${id}`);
     return res.data;
+  },
+
+  getReportDetails: async (reportId: string): Promise<any | null> => {
+    const res = await apiClient.get<ApiResponse<any>>(`${BASE}/${reportId}/details`);
+    return res.data?.data ?? null;
   },
 
   createReport: async (payload: CreateReportPayload): Promise<Report> => {
@@ -51,5 +69,13 @@ export const reportsApi = {
     formData.append('entityId', reportId);
 
     await apiClient.post<ApiResponse<null>>('/media/upload', formData);
+  },
+
+  getReportMedia: async (reportId: string): Promise<ReportMedia[]> => {
+    const res = await apiClient.get<ApiResponse<ReportMedia[]>>(`/media/entity/${reportId}`);
+    // apiClient retourne le corps brut JSON : { success, message, data: [...] }
+    // donc res.data est directement le tableau de médias
+    const data = Array.isArray(res.data) ? res.data : [];
+    return data.filter((m: ReportMedia) => m.mimeType?.startsWith('image/'));
   },
 };

@@ -145,6 +145,44 @@ class AuthMailer {
             // Ne bloque pas le flux
         }
     }
+    /**
+     * SIGIE — Envoie le code OTP pour réinitialiser le mot de passe.
+     */
+    async sendSigiePasswordReset(email, fullName, otpCode, resetLink) {
+        try {
+            await this.mailerInstance.sendMail({
+                to: email,
+                subject: `SIGIE — Réinitialisation de votre mot de passe`,
+                html: `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                        <h2>Bonjour ${fullName},</h2>
+                        <p>Vous avez demandé à réinitialiser votre mot de passe sur SIGIE.</p>
+                        
+                        <p>Voici votre code de sécurité à 6 chiffres :</p>
+                        <div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 4px;">
+                            ${otpCode}
+                        </div>
+
+                        <p>Cliquez sur le lien suivant pour choisir un nouveau mot de passe :</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${resetLink}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                                Réinitialiser mon mot de passe
+                            </a>
+                        </div>
+                        <p style="font-size: 14px; color: #666;">Ce code expire dans 15 minutes.</p>
+                        <p style="font-size: 12px; color: #999; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px;">
+                            Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.
+                        </p>
+                    </div>
+                `,
+            });
+            logger_1.logger.info(`SIGIE Password Reset envoyé à ${email}`);
+        }
+        catch (error) {
+            logger_1.logger.error(`Erreur envoi Password Reset SIGIE à ${email}:`, error);
+            throw new Error('Failed to send SIGIE Password Reset OTP');
+        }
+    }
 }
 exports.AuthMailer = AuthMailer;
 // Instance singleton

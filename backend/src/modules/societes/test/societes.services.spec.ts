@@ -17,6 +17,7 @@ import { GetSocietesService } from '../services/getSocietes.service';
 import { GetSocieteByIdService } from '../services/getSocieteById.service';
 import { GetSocieteByRegistrationNumberService } from '../services/getSocieteByRegistrationNumber.service';
 import { CreateSocieteService } from '../services/createSociete.service';
+import { CreateSocieteAccountService } from '../services/createSocieteAccount.service';
 import { UpdateSocieteService } from '../services/updateSociete.service';
 import { DeleteSocieteService } from '../services/deleteSociete.service';
 import { GetSocieteTerritoriesService } from '../services/getSocieteTerritories.service';
@@ -125,7 +126,11 @@ describe('Societe Services', () => {
     let service: CreateSocieteService;
 
     beforeEach(() => {
-      service = new CreateSocieteService(societeRepository, mockLogger);
+      service = new CreateSocieteService(
+        societeRepository,
+        mockLogger,
+        { createSocieteAccount: jest.fn() } as unknown as CreateSocieteAccountService,
+      );
     });
 
     it('doit lever BadRequestError si nom/type absents', async () => {
@@ -148,7 +153,7 @@ describe('Societe Services', () => {
       const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
       societeRepository.createSociete.mockResolvedValueOnce(mockCreated as any);
 
-      const result = await service.createSociete({ name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any });
+      const result = await service.createSociete({ name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any, contactEmail: 'contact@btpbenin.bj' });
 
       expect(result).toEqual(mockCreated);
       expect(mockLogger.info).toHaveBeenCalled();
@@ -160,7 +165,7 @@ describe('Societe Services', () => {
       societeRepository.createSociete.mockResolvedValueOnce(mockCreated as any);
 
       await service.createSociete(
-        { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any },
+        { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any, contactEmail: 'contact@btpbenin.bj' },
         { userId: 'user-1', territoryId: 'mairie-uuid' }
       );
 
@@ -175,7 +180,7 @@ describe('Societe Services', () => {
       societeRepository.createSociete.mockResolvedValueOnce(mockCreated as any);
 
       await service.createSociete(
-        { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any, territoryId: 'ministere-uuid' },
+        { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any, contactEmail: 'contact@btpbenin.bj', territoryId: 'ministere-uuid' },
         { userId: 'admin-1', territoryId: null }
       );
 

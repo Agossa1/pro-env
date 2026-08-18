@@ -17,8 +17,8 @@ class CreateInterventionService {
     /** Crée une nouvelle intervention (exécution d'une mission par une équipe). */
     async createIntervention(payload) {
         try {
-            if (!payload.missionId || !payload.assignedTeamId || !payload.interventionType) {
-                throw new appErrors_1.BadRequestError('La mission, l\'équipe assignée et le type d\'intervention sont requis.');
+            if (!payload.missionId || !payload.assignedSocieteId || !payload.interventionType) {
+                throw new appErrors_1.BadRequestError('La mission, la société assignée et le type d\'intervention sont requis.');
             }
             const created = await this.interventionRepository.createIntervention(payload);
             this.logger.info(`Intervention créée : ${created.interventionType} (mission ${created.missionId})`);

@@ -88,6 +88,24 @@ export async function logoutUser(): Promise<void> {
   await apiClient.post<ApiResponse<null>>('/auth/logout');
 }
 
+/** POST /auth/forgot-password — Demande de réinitialisation */
+export async function forgotPassword(dto: import('./auth.types').ForgotPasswordDto): Promise<void> {
+  await apiClient.post<ApiResponse<null>>(
+    '/auth/forgot-password',
+    dto,
+    { skipAuthRefresh: true },
+  );
+}
+
+/** POST /auth/reset-password — Réinitialisation effective */
+export async function resetPassword(dto: import('./auth.types').ResetPasswordDto): Promise<void> {
+  await apiClient.post<ApiResponse<null>>(
+    '/auth/reset-password',
+    dto,
+    { skipAuthRefresh: true },
+  );
+}
+
 /** GET /auth/me — Profil de l'utilisateur connecté */
 export async function fetchMe(): Promise<AuthUser> {
   const res = await apiClient.get<ApiResponse<any>>('/auth/me');

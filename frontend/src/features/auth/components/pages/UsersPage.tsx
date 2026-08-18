@@ -21,7 +21,7 @@ const PlusIcon = () => (
 );
 
 export function UsersPage() {
-  const { users, status, reload } = useUsers();
+  const { users, status, reload, toggleActive } = useUsers();
   const { user } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -52,7 +52,7 @@ export function UsersPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <tr className="bg-gray-50/50 border-b border-gray-200 text-xs font-semibold text-gray-500">
                 <th className="px-6 py-4">Utilisateur</th>
                 <th className="px-6 py-4">Rôle</th>
                 <th className="px-6 py-4">Territoire</th>
@@ -83,10 +83,10 @@ export function UsersPage() {
             {!isLoading && users.length > 0 && (
               <tbody className="divide-y divide-gray-100">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-blue-50/30 transition-colors group">
+                  <tr key={user.id} className="hover:bg-benin-green-light/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
+                        <div className="h-10 w-10 rounded-full bg-benin-green-light flex items-center justify-center text-benin-green font-bold">
                           {user.fullName.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -126,8 +126,12 @@ export function UsersPage() {
                           icon={<TrashIcon />}
                           variant="ghost"
                           className="text-gray-400 hover:text-red-600 hover:bg-red-50"
-                          title="Désactiver"
-                          onClick={() => alert('Désactivation à implémenter')}
+                          title={user.isActive ? "Désactiver" : "Activer"}
+                          onClick={() => {
+                            if (window.confirm(`Voulez-vous ${user.isActive ? 'désactiver' : 'activer'} cet utilisateur ?`)) {
+                              toggleActive(user.id);
+                            }
+                          }}
                         />
                       </div>
                     </td>

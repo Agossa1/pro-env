@@ -22,9 +22,9 @@ export class CreateInterventionService {
     payload: CreateInterventionPayload
   ): Promise<Intervention> {
     try {
-      if (!payload.missionId || !payload.assignedTeamId || !payload.interventionType) {
+      if (!payload.missionId || !payload.assignedSocieteId || !payload.interventionType) {
         throw new BadRequestError(
-          'La mission, l\'équipe assignée et le type d\'intervention sont requis.'
+          'La mission, la société assignée et le type d\'intervention sont requis.'
         );
       }
 

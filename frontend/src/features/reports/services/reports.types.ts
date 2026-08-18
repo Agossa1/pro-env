@@ -69,6 +69,12 @@ export interface Report {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  /** Nom complet du créateur (JOIN auth) */
+  createdByName?: string | null;
+  /** Nom du rôle du créateur (JOIN roles) */
+  createdByRole?: string | null;
+  /** Nom du territoire (JOIN territories) */
+  territoryName?: string | null;
 }
 
 export interface PaginatedResult<T> {
@@ -77,6 +83,22 @@ export interface PaginatedResult<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface ReportDetailsPayload {
+  blockageLevelPct?: number;
+  waterLevelCm?: number;
+  flowStatus?: WaterFlowStatus;
+  damageSurfaceM2?: number;
+  potholeDepthCm?: number;
+  estimatedVolumeM3?: number;
+  wasteType?: string;
+  speciesName?: string;
+  observationType?: string;
+  count?: number;
+  sensorId?: string;
+  measuredValue?: number;
+  unit?: string;
 }
 
 export interface CreateReportPayload {
@@ -92,7 +114,7 @@ export interface CreateReportPayload {
   longitude?: number | null;
   slaHours?: number;
   status?: ReportStatus;
-  details?: any | null;
+  details?: ReportDetailsPayload | null;
 }
 
 export interface UpdateReportPayload {

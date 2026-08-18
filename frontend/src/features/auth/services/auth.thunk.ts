@@ -69,6 +69,30 @@ export const logoutThunk = createAsyncThunk<void, void, { rejectValue: string }>
   },
 );
 
+/** Demande de réinitialisation de mot de passe */
+export const forgotPasswordThunk = createAsyncThunk<void, import('./auth.types').ForgotPasswordDto, { rejectValue: string }>(
+  'auth/forgotPassword',
+  async (dto, { rejectWithValue }) => {
+    try {
+      await import('./auth.api').then(api => api.forgotPassword(dto));
+    } catch (error) {
+      return rejectWithValue(extractMessage(error));
+    }
+  },
+);
+
+/** Réinitialisation de mot de passe */
+export const resetPasswordThunk = createAsyncThunk<void, import('./auth.types').ResetPasswordDto, { rejectValue: string }>(
+  'auth/resetPassword',
+  async (dto, { rejectWithValue }) => {
+    try {
+      await import('./auth.api').then(api => api.resetPassword(dto));
+    } catch (error) {
+      return rejectWithValue(extractMessage(error));
+    }
+  },
+);
+
 /** Récupération du profil utilisateur connecté */
 export const fetchMeThunk = createAsyncThunk<AuthUser, void, { rejectValue: string }>(
   'auth/fetchMe',

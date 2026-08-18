@@ -17,6 +17,9 @@ import { LogoutService } from './services/logout.service';
 import { RefreshTokenService } from './services/refreshtoken.service';
 import { ResendCodeService } from './services/resend-code.service';
 import { GetUsersService } from './services/getUsers.service';
+import { ToggleUserActiveService } from './services/toggleUserActive.service';
+import { ForgotPasswordService } from './services/forgot-password.service';
+import { ResetPasswordService } from './services/reset-password.service';
 
 // Controllers
 import { RegisterController } from './controller/register.controller';
@@ -27,6 +30,9 @@ import { RefreshTokenController } from './controller/refreshtoken.controller';
 import { ResendCodeController } from './controller/resend-code.controller';
 import { MeController } from './controller/me.controller';
 import { GetUsersController } from './controller/getUsers.controller';
+import { ToggleUserActiveController } from './controller/toggleUserActive.controller';
+import { ForgotPasswordController } from './controller/forgot-password.controller';
+import { ResetPasswordController } from './controller/reset-password.controller';
 
 // Routes
 import { AuthRoutes } from './routes/auth.route';
@@ -46,6 +52,9 @@ export const initAuthModule = (db: PostgresDatabase): Router => {
   const refreshTokenService = new RefreshTokenService(authRepository, logger, tokenManager);
   const resendCodeService = new ResendCodeService(authRepository, logger, passwordServiceInstance);
   const getUsersService = new GetUsersService(authRepository, logger);
+  const toggleUserActiveService = new ToggleUserActiveService(authRepository);
+  const forgotPasswordService = new ForgotPasswordService(authRepository, logger, passwordServiceInstance);
+  const resetPasswordService = new ResetPasswordService(authRepository, logger, passwordServiceInstance);
 
   // 4. Initialiser les Contrôleurs
   const registerController = new RegisterController(registerService);
@@ -56,6 +65,9 @@ export const initAuthModule = (db: PostgresDatabase): Router => {
   const resendCodeController = new ResendCodeController(resendCodeService);
   const meController = new MeController(authRepository);
   const getUsersController = new GetUsersController(getUsersService);
+  const toggleUserActiveController = new ToggleUserActiveController(toggleUserActiveService);
+  const forgotPasswordController = new ForgotPasswordController(forgotPasswordService);
+  const resetPasswordController = new ResetPasswordController(resetPasswordService);
 
   // 5. Lier les Contrôleurs aux Routes
   const authRoutes = new AuthRoutes(
@@ -66,7 +78,10 @@ export const initAuthModule = (db: PostgresDatabase): Router => {
     refreshTokenController,
     resendCodeController,
     meController,
-    getUsersController
+    getUsersController,
+    toggleUserActiveController,
+    forgotPasswordController,
+    resetPasswordController
   );
 
   return authRoutes.router;

@@ -116,6 +116,12 @@ export interface Report {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+  /** Nom complet du créateur (JOIN auth) */
+  createdByName?: string | null;
+  /** Nom du rôle du créateur (JOIN roles) */
+  createdByRole?: string | null;
+  /** Nom du territoire (JOIN territories) */
+  territoryName?: string | null;
 }
 
 /** Détails spécifiques par catégorie (1:1) */

@@ -91,7 +91,7 @@ function PermissionsPage() {
                   perms.map((perm) => {
                     const actionColor = ACTION_COLORS[perm.action] || 'bg-gray-100 text-gray-600 border-gray-200';
                     return (
-                      <tr key={perm.id} className="hover:bg-blue-50/30 transition-colors group">
+                      <tr key={perm.id} className="hover:bg-benin-green-light/30 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>

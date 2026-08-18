@@ -15,6 +15,9 @@ export interface Territory {
   territoryTypeName?: string;
   parentTerritoryId: string | null;
   status: string;
+  geometry?: any;
+  centroid?: any;
+  bbox?: any;
 }
 
 export interface PaginatedTerritoriesResult {

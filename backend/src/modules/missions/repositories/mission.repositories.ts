@@ -36,6 +36,7 @@ export class MissionRepository {
     SELECT
       m.id,
       m.territory_id             AS "territoryId",
+      t.name                     AS "territoryName",
       m.report_id                AS "reportId",
       m.mission_type             AS "missionType",
       m.priority_level           AS "priorityLevel",
@@ -97,6 +98,7 @@ export class MissionRepository {
         const res = await this.db.query(
           `${this.missionSelect}
            FROM missions m
+           LEFT JOIN territories t ON m.territory_id = t.id
            WHERE ${where}
            ORDER BY m.created_at DESC
            LIMIT $${params.length - 1} OFFSET $${params.length}`,
@@ -125,6 +127,7 @@ export class MissionRepository {
         const res = await this.db.query(
           `${this.missionSelect}
            FROM missions m
+           LEFT JOIN territories t ON m.territory_id = t.id
            WHERE m.id = $1
              AND m.deleted_at IS NULL
            LIMIT 1`,

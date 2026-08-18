@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.54% </span>
+                <span class="strong">78.51% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>105/132</span>
+                <span class='fraction'>106/135</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.62% </span>
+                <span class="strong">71.79% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>53/74</span>
+                <span class='fraction'>56/78</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.23% </span>
+                <span class="strong">78.19% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>103/130</span>
+                <span class='fraction'>104/133</span>
             </div>
         
             
@@ -528,7 +528,15 @@
 <a name='L463'></a><a href='#L463'>463</a>
 <a name='L464'></a><a href='#L464'>464</a>
 <a name='L465'></a><a href='#L465'>465</a>
-<a name='L466'></a><a href='#L466'>466</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -841,6 +849,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -852,10 +864,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1288,11 +1304,11 @@ export class TerritoryRepository {
    * (parentTerritoryId). Géométries retournées en GeoJSON.
    */
   public async getAllTerritories(
-    query: PaginationQuery &amp; { territoryTypeId?: string; parentTerritoryId?: string } = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
+    query: PaginationQuery &amp; { territoryTypeId?: string; parentTerritoryId?: string; territoryTypeCode?: string } = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
   ): Promise&lt;PaginatedResult&lt;Territory&gt;&gt; {
     try {
       const page = Math.max(1, query.page ?? <span class="branch-1 cbranch-no" title="branch not covered" >1);</span>
-      const limit = Math.min(100, Math.max(1, query.limit ?? <span class="branch-1 cbranch-no" title="branch not covered" >50));</span>
+      const limit = Math.min(5000, Math.max(1, query.limit ?? <span class="branch-1 cbranch-no" title="branch not covered" >50));</span>
       const offset = (page - 1) * limit;
 &nbsp;
       const conditions: string[] = [`t.deleted_at IS NULL`];
@@ -1302,6 +1318,10 @@ export class TerritoryRepository {
         params.push(query.territoryTypeId);
         conditions.push(`t.territory_type_id = $${params.length}`);
       }
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (query.territoryTypeCode) {
+<span class="cstat-no" title="statement not covered" >        params.push(query.territoryTypeCode);</span>
+<span class="cstat-no" title="statement not covered" >        conditions.push(`tt.code = $${params.length}`);</span>
+      }
       <span class="missing-if-branch" title="if path not taken" >I</span>if (query.parentTerritoryId) {
 <span class="cstat-no" title="statement not covered" >        params.push(query.parentTerritoryId);</span>
 <span class="cstat-no" title="statement not covered" >        conditions.push(`t.parent_territory_id = $${params.length}`);</span>
@@ -1309,11 +1329,12 @@ export class TerritoryRepository {
 &nbsp;
       const where = conditions.join(' AND ');
 &nbsp;
-      const key = `territory:all:${page}:${limit}:${query.territoryTypeId ?? <span class="branch-1 cbranch-no" title="branch not covered" >''}:</span>${query.parentTerritoryId ?? ''}`;
+      const key = `territory:all:${page}:${limit}:${query.territoryTypeId ?? <span class="branch-1 cbranch-no" title="branch not covered" >''}:</span>${query.territoryTypeCode ?? ''}:${query.parentTerritoryId ?? ''}`;
       return await redisCache.getOrSet(key, async () =&gt; {
         const countRes = await this.db.query(
           `SELECT COUNT(*)::int AS total
            FROM territories t
+           LEFT JOIN territory_types tt ON t.territory_type_id = tt.id
            WHERE ${where}`,
           params
         );
@@ -1324,6 +1345,8 @@ export class TerritoryRepository {
           `SELECT
              t.id,
              t.territory_type_id    AS "territoryTypeId",
+             tt.code                AS "territoryTypeCode",
+             tt.name                AS "territoryTypeName",
              t.parent_territory_id  AS "parentTerritoryId",
              t.organization_id      AS "organizationId",
              t.code, t.name, t.status, t.metadata,
@@ -1335,6 +1358,7 @@ export class TerritoryRepository {
              ST_AsGeoJSON(t.centroid) AS centroid,
              ST_AsGeoJSON(t.bbox)      AS bbox
            FROM territories t
+           LEFT JOIN territory_types tt ON tt.id = t.territory_type_id
            WHERE ${where}
            ORDER BY t.name ASC
            LIMIT $${params.length - 1} OFFSET $${params.length}`,
@@ -1465,7 +1489,7 @@ export class TerritoryRepository {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-09T16:11:11.480Z
+                at 2026-08-17T19:28:56.569Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

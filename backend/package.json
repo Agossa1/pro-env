@@ -14,7 +14,9 @@
     "migrate": "tsx src/config/database/migrate.ts",
     "seed:territory": "tsx src/infra/seed/seed.territory.ts",
     "build": "tsc",
-    "super-admin":"tsx src/scripts/fix-superadmin-password.ts"
+    "super-admin":"tsx src/scripts/fix-superadmin-password.ts",
+    "fix-admin": "tsx src/scripts/fix-superadmin-password.ts",
+    "create-first-user":"tsx src/scripts/create-first-user.ts"
   },
   "devDependencies": {
     "@swc/core": "^1.15.47",

@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { AppUser } from './users.types';
-import { loadUsers, createUserThunk } from './users.thunk';
+import { loadUsers, createUserThunk, toggleUserActiveThunk } from './users.thunk';
 
 export interface UsersState {
   list: AppUser[];
@@ -69,6 +69,21 @@ const usersSlice = createSlice({
       })
       .addCase(createUserThunk.rejected, (state, action) => {
         state.isMutating = false;
+        state.error = action.payload as string;
+      });
+
+    // toggleUserActiveThunk
+    builder
+      .addCase(toggleUserActiveThunk.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(toggleUserActiveThunk.fulfilled, (state, action) => {
+        const user = state.list.find((u) => u.id === action.payload.id);
+        if (user) {
+          user.isActive = action.payload.isActive;
+        }
+      })
+      .addCase(toggleUserActiveThunk.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },
