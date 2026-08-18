@@ -1,4 +1,11 @@
 services:
+  - type: web
+    name: pro-env-api
+    rootDir: backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+
   - type: static
     name: frontend
     rootDir: frontend
