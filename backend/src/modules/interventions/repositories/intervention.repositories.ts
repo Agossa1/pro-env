@@ -47,7 +47,7 @@ export class InterventionRepository {
 
   /** Récupère les interventions avec pagination + filtres. */
   public async getAllInterventions(
-    query: PaginationQuery & { missionId?: string; teamId?: string; status?: string } = {}
+    query: PaginationQuery & { missionId?: string; teamId?: string; status?: string; territoryId?: string; createdBy?: string } = {}
   ): Promise<PaginatedResult<Intervention>> {
     try {
       const page = Math.max(1, query.page ?? 1);
@@ -68,12 +68,23 @@ export class InterventionRepository {
         params.push(query.status);
         conditions.push(`i.status = $${params.length}`);
       }
+      if (query.territoryId) {
+        params.push(query.territoryId);
+        conditions.push(`m.territory_id = $${params.length}`);
+      }
+      if (query.createdBy) {
+        params.push(query.createdBy);
+        // Pour les interventions, on limite à celles assignées au technicien
+        conditions.push(`i.assigned_to_user_id = $${params.length}`);
+      }
       const where = conditions.join(' AND ');
 
-      const key = `interventions:all:${page}:${limit}:${query.missionId ?? ''}:${query.teamId ?? ''}:${query.status ?? ''}`;
+      const key = `interventions:all:${page}:${limit}:${query.missionId ?? ''}:${query.teamId ?? ''}:${query.status ?? ''}:${query.territoryId ?? ''}:${query.createdBy ?? ''}`;
       return await redisCache.getOrSet(key, async () => {
         const countRes = await this.db.query(
-          `SELECT COUNT(*)::int AS total FROM interventions i WHERE ${where}`,
+          `SELECT COUNT(*)::int AS total FROM interventions i 
+           LEFT JOIN missions m ON i.mission_id = m.id
+           WHERE ${where}`,
           params
         );
         const total = countRes.rows[0].total as number;
@@ -82,6 +93,7 @@ export class InterventionRepository {
         const res = await this.db.query(
           `${this.interventionSelect}
            FROM interventions i
+           LEFT JOIN missions m ON i.mission_id = m.id
            WHERE ${where}
            ORDER BY i.created_at DESC
            LIMIT $${params.length - 1} OFFSET $${params.length}`,

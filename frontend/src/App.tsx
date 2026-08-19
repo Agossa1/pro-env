@@ -20,6 +20,7 @@ import { MissionsPage } from './features/missions/components/MissionsPage'
 import { InterventionsPage } from './features/interventions/components/InterventionsPage'
 import { StructuresPage } from './features/structures/components/StructuresPage'
 import { SocietesPage } from './features/societes/components/SocietesPage'
+import { TeamsPage } from './features/teams/components/TeamsPage'
 
 function App() {
   return (
@@ -69,6 +70,7 @@ function App() {
             <Route path="/interventions" element={<InterventionsPage />} />
             <Route path="/structures" element={<StructuresPage />} />
             <Route path="/societes" element={<SocietesPage />} />
+            <Route path="/teams" element={<TeamsPage />} />
           </Route>
         </Route>
 

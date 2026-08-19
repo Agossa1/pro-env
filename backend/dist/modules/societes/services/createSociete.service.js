@@ -39,9 +39,10 @@ class CreateSocieteService {
                     throw new appErrors_1.BadRequestError(`Une société existe déjà avec le n° d'enregistrement "${payload.registrationNumber}".`);
                 }
             }
-            // Déterminer le territoire d'association :
-            // - Si non fourni par un admin, on utilise le territoire de l'utilisateur connecté
-            const territoryId = payload.territoryId ?? creator?.territoryId ?? null;
+            // Les sociétés sont des prestataires pouvant travailler avec toutes les
+            // mairies : on ne leur associe PAS de territoire automatiquement.
+            // L'association n'est possible que si un territoire est fourni explicitement.
+            const territoryId = payload.territoryId ?? null;
             const created = await this.societeRepository.createSociete({
                 ...payload,
                 territoryId,

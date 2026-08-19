@@ -55,6 +55,10 @@ class MissionRepository {
                 params.push(query.territoryId);
                 conditions.push(`m.territory_id = $${params.length}`);
             }
+            if (query.createdBy) {
+                params.push(query.createdBy);
+                conditions.push(`m.created_by = $${params.length}`);
+            }
             if (query.status) {
                 params.push(query.status);
                 conditions.push(`m.status = $${params.length}`);
@@ -68,7 +72,7 @@ class MissionRepository {
                 conditions.push(`m.assigned_organization_id = $${params.length}`);
             }
             const where = conditions.join(' AND ');
-            const key = `missions:all:${page}:${limit}:${query.territoryId ?? ''}:${query.status ?? ''}:${query.missionType ?? ''}:${query.organizationId ?? ''}`;
+            const key = `missions:all:${page}:${limit}:${query.territoryId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.missionType ?? ''}:${query.organizationId ?? ''}`;
             return await redis_service_1.redisCache.getOrSet(key, async () => {
                 const countRes = await this.db.query(`SELECT COUNT(*)::int AS total FROM missions m WHERE ${where}`, params);
                 const total = countRes.rows[0].total;

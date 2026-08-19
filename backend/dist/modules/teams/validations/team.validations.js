@@ -32,8 +32,11 @@ exports.UpdateTeamSchema = zod_1.z.object({
         .optional(),
 });
 exports.AddMemberSchema = zod_1.z.object({
-    userId: zod_1.z.string().uuid("L'utilisateur doit être un UUID valide"),
+    fullName: zod_1.z.string().min(1, 'Le nom est requis').max(255),
+    email: zod_1.z.string().email('Email invalide'),
+    phone: zod_1.z.string().max(20).optional(),
     role: RoleEnum.optional(),
+    organizationId: zod_1.z.string().uuid('La societe doit etre un UUID valide').nullable().optional(),
 });
 exports.IdParamSchema = zod_1.z.object({
     id: zod_1.z.string().uuid("L'identifiant doit être un UUID valide"),

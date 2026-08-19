@@ -184,17 +184,21 @@ class TeamRepository {
     async getTeamMembers(teamId) {
         try {
             const res = await this.db.query(`SELECT
-           id,
-           team_id       AS "teamId",
-           user_id       AS "userId",
-           role_in_team  AS "roleInTeam",
-           is_active     AS "isActive",
-           joined_at     AS "joinedAt",
-           left_at       AS "leftAt"
-         FROM field_team_members
-         WHERE team_id = $1
-           AND is_active = TRUE
-         ORDER BY joined_at ASC`, [teamId]);
+           m.id,
+           m.team_id       AS "teamId",
+           m.user_id       AS "userId",
+           a.full_name     AS "userFullName",
+           a.email         AS "userEmail",
+           a.phone         AS "userPhone",
+           m.role_in_team  AS "roleInTeam",
+           m.is_active     AS "isActive",
+           m.joined_at     AS "joinedAt",
+           m.left_at       AS "leftAt"
+         FROM field_team_members m
+         LEFT JOIN auth a ON a.id = m.user_id
+         WHERE m.team_id = $1
+           AND m.is_active = TRUE
+         ORDER BY m.joined_at ASC`, [teamId]);
             return res.rows;
         }
         catch (error) {
@@ -203,7 +207,7 @@ class TeamRepository {
         }
     }
     /** Ajoute un membre à une équipe (idempotent, leader unique actif). */
-    async addMemberToTeam(teamId, userId, role = team_enums_1.TeamMemberRole.MEMBER, isActive = true) {
+    async addMemberToTeam(teamId, userId, role = team_enums_1.TeamMemberRole.OPS_OPERATOR, isActive = true) {
         try {
             const res = await this.db.query(`INSERT INTO field_team_members (team_id, user_id, role_in_team, is_active)
          VALUES ($1, $2, $3, $4)

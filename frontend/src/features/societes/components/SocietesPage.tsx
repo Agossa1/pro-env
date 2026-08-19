@@ -58,7 +58,7 @@ export const SocietesPage: React.FC = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col lg:flex-row gap-4 justify-between">
+      <div className="bg-white p-4 rounded-sm border border-gray-200 flex flex-col lg:flex-row gap-4 justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <input
             type="text"
@@ -100,7 +100,7 @@ export const SocietesPage: React.FC = () => {
 
       {/* Data Render */}
       {viewMode === 'table' ? (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>

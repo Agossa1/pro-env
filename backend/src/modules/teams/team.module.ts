@@ -4,6 +4,8 @@ import { logger } from '../../config/loggers/logger';
 
 // Repositories
 import { TeamRepository } from './repositories/team.repositories';
+import { AuthRepository } from '../auth/repositories/auth.repositories';
+import { PasswordService } from '../../config/passwords/passwordServices';
 
 // Services
 import { GetTeamsService } from './services/getTeams.service';
@@ -29,8 +31,10 @@ import { RemoveMemberFromTeamController } from './controller/removeMemberFromTea
 import { TeamRoutes } from './routes/team.route';
 
 export const initTeamModule = (db: PostgresDatabase): Router => {
-  // 1. Repository
+  // 1. Repositories
   const teamRepository = new TeamRepository(db, logger);
+  const authRepository = new AuthRepository(db, logger);
+  const passwordService = new PasswordService();
 
   // 2. Services
   const getTeamsService = new GetTeamsService(teamRepository, logger);
@@ -39,7 +43,7 @@ export const initTeamModule = (db: PostgresDatabase): Router => {
   const updateTeamService = new UpdateTeamService(teamRepository, logger);
   const deleteTeamService = new DeleteTeamService(teamRepository, logger);
   const getTeamMembersService = new GetTeamMembersService(teamRepository, logger);
-  const addMemberToTeamService = new AddMemberToTeamService(teamRepository, logger);
+  const addMemberToTeamService = new AddMemberToTeamService(teamRepository, authRepository, passwordService, logger);
   const removeMemberFromTeamService = new RemoveMemberFromTeamService(teamRepository, logger);
 
   // 3. Controllers

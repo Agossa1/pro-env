@@ -59,7 +59,7 @@ export class MissionRepository {
 
   /** Récupère les missions avec pagination + filtres. */
   public async getAllMissions(
-    query: PaginationQuery & { territoryId?: string; status?: string; missionType?: string; organizationId?: string } = {}
+    query: PaginationQuery & { territoryId?: string; createdBy?: string; status?: string; missionType?: string; organizationId?: string } = {}
   ): Promise<PaginatedResult<Mission>> {
     try {
       const page = Math.max(1, query.page ?? 1);
@@ -71,6 +71,10 @@ export class MissionRepository {
       if (query.territoryId) {
         params.push(query.territoryId);
         conditions.push(`m.territory_id = $${params.length}`);
+      }
+      if (query.createdBy) {
+        params.push(query.createdBy);
+        conditions.push(`m.created_by = $${params.length}`);
       }
       if (query.status) {
         params.push(query.status);
@@ -86,7 +90,7 @@ export class MissionRepository {
       }
       const where = conditions.join(' AND ');
 
-      const key = `missions:all:${page}:${limit}:${query.territoryId ?? ''}:${query.status ?? ''}:${query.missionType ?? ''}:${query.organizationId ?? ''}`;
+      const key = `missions:all:${page}:${limit}:${query.territoryId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.missionType ?? ''}:${query.organizationId ?? ''}`;
       return await redisCache.getOrSet(key, async () => {
         const countRes = await this.db.query(
           `SELECT COUNT(*)::int AS total FROM missions m WHERE ${where}`,

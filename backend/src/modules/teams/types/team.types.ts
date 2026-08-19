@@ -54,6 +54,9 @@ export interface FieldTeamMember {
   id: string;
   teamId: string;
   userId: string;
+  userFullName?: string | null;
+  userEmail?: string | null;
+  userPhone?: string | null;
   roleInTeam: TeamMemberRole;
   isActive: boolean;
   joinedAt: Date;

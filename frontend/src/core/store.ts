@@ -9,6 +9,7 @@ import missionsReducer from '../features/missions/services/missions.slices';
 import interventionsReducer from '../features/interventions/services/interventions.slices';
 import structuresReducer from '../features/structures/services/structures.slices';
 import societesReducer from '../features/societes/services/societes.slices';
+import teamsReducer from '../features/teams/services/teams.slices';
 
 /**
  * Store Redux central de l'application.
@@ -25,6 +26,7 @@ export const store = configureStore({
     interventions: interventionsReducer,
     structures:  structuresReducer,
     societes:     societesReducer,
+    teams:       teamsReducer,
   },
 });
 

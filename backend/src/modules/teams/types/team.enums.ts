@@ -25,6 +25,8 @@ export enum TeamType {
 
 /** Rôle d'un membre dans une équipe */
 export enum TeamMemberRole {
-  LEADER = 'leader',
-  MEMBER = 'member',
+  COMMAND_LEAD = 'COMMAND_LEAD',
+  OPS_OPERATOR = 'OPS_OPERATOR',
+  LOG_OFFICER = 'LOG_OFFICER',
+  SAFETY_OFFICER = 'SAFETY_OFFICER',
 }

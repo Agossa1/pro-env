@@ -45,7 +45,7 @@ describe('Auth Controllers', () => {
             expect(loginService.login).toHaveBeenCalledWith('test@test.com', 'password123');
             expect(mockRes.cookie).toHaveBeenCalledWith('refreshToken', 'refresh-token', expect.objectContaining({
                 httpOnly: true,
-                sameSite: 'strict'
+                sameSite: 'lax'
             }));
             expect(mockRes.status).toHaveBeenCalledWith(200);
             expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({

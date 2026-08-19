@@ -67,6 +67,10 @@ class ReportRepository {
                 params.push(query.territoryId);
                 conditions.push(`r.territory_id = $${params.length}`);
             }
+            if (query.createdBy) {
+                params.push(query.createdBy);
+                conditions.push(`r.created_by = $${params.length}`);
+            }
             if (query.status) {
                 params.push(query.status);
                 conditions.push(`r.status = $${params.length}`);
@@ -76,7 +80,7 @@ class ReportRepository {
                 conditions.push(`r.issue_category = $${params.length}`);
             }
             const where = conditions.join(' AND ');
-            const key = `reports:all:${page}:${limit}:${query.territoryId ?? ''}:${query.status ?? ''}:${query.issueCategory ?? ''}`;
+            const key = `reports:all:${page}:${limit}:${query.territoryId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.issueCategory ?? ''}`;
             return await redis_service_1.redisCache.getOrSet(key, async () => {
                 const countRes = await this.db.query(`SELECT COUNT(*)::int AS total FROM reports r WHERE ${where}`, params);
                 const total = countRes.rows[0].total;

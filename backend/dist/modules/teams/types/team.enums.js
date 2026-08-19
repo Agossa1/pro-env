@@ -28,7 +28,9 @@ var TeamType;
 /** Rôle d'un membre dans une équipe */
 var TeamMemberRole;
 (function (TeamMemberRole) {
-    TeamMemberRole["LEADER"] = "leader";
-    TeamMemberRole["MEMBER"] = "member";
+    TeamMemberRole["COMMAND_LEAD"] = "COMMAND_LEAD";
+    TeamMemberRole["OPS_OPERATOR"] = "OPS_OPERATOR";
+    TeamMemberRole["LOG_OFFICER"] = "LOG_OFFICER";
+    TeamMemberRole["SAFETY_OFFICER"] = "SAFETY_OFFICER";
 })(TeamMemberRole || (exports.TeamMemberRole = TeamMemberRole = {}));
 //# sourceMappingURL=team.enums.js.map

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { GetMissionsService } from '../services/getMissions.service';
+import { getScopeFilters } from '../../../shared/helpers/scopeFilters.helper';
 
 export class GetMissionsController {
   constructor(private readonly getMissionsService: GetMissionsService) {}
@@ -10,10 +11,14 @@ export class GetMissionsController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      const { forcedTerritoryId, forcedCreatedBy } = getScopeFilters(req);
+
       const query = {
         page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
-        territoryId: req.query.territoryId as string | undefined,
+        // Les restrictions de rôle écrasent les filtres passés en query string
+        territoryId: forcedTerritoryId ?? (req.query.territoryId as string | undefined),
+        createdBy: forcedCreatedBy ?? (req.query.createdBy as string | undefined),
         status: req.query.status as string | undefined,
         missionType: req.query.missionType as string | undefined,
         organizationId: req.query.organizationId as string | undefined,

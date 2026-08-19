@@ -9,8 +9,14 @@ class AddMemberToTeamController {
         this.addMemberToTeam = async (req, res, next) => {
             try {
                 const { id } = team_validations_1.IdParamSchema.parse(req.params);
-                const { userId, role } = team_validations_1.AddMemberSchema.parse(req.body);
-                const member = await this.addMemberToTeamService.addMemberToTeam(id, userId, role);
+                const { fullName, email, phone, role, organizationId } = team_validations_1.AddMemberSchema.parse(req.body);
+                const member = await this.addMemberToTeamService.addMemberToTeam(id, {
+                    fullName,
+                    email,
+                    phone: phone || undefined,
+                    role: role || undefined,
+                    organizationId: organizationId || null,
+                });
                 res.status(201).json({
                     success: true,
                     message: 'Membre ajouté à l\'équipe avec succès.',

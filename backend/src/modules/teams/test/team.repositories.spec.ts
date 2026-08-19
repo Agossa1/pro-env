@@ -97,20 +97,20 @@ describe('TeamRepository', () => {
 
   describe('getTeamMembers / addMemberToTeam / removeMemberFromTeam', () => {
     it('doit retourner les membres actifs', async () => {
-      const members = [{ id: 'm1', teamId: 'team-1', userId: 'u1', roleInTeam: TeamMemberRole.MEMBER, isActive: true, joinedAt: new Date(), leftAt: null }];
+      const members = [{ id: 'm1', teamId: 'team-1', userId: 'u1', roleInTeam: TeamMemberRole.OPS_OPERATOR, isActive: true, joinedAt: new Date(), leftAt: null }];
       mockDb.query.mockResolvedValueOnce({ rows: members });
       expect(await teamRepository.getTeamMembers('team-1')).toEqual(members);
     });
 
     it('doit ajouter un membre', async () => {
-      const member = { id: 'm1', teamId: 'team-1', userId: 'u1', roleInTeam: TeamMemberRole.MEMBER, isActive: true, joinedAt: new Date(), leftAt: null };
+      const member = { id: 'm1', teamId: 'team-1', userId: 'u1', roleInTeam: TeamMemberRole.OPS_OPERATOR, isActive: true, joinedAt: new Date(), leftAt: null };
       mockDb.query.mockResolvedValueOnce({ rows: [member] });
       expect(await teamRepository.addMemberToTeam('team-1', 'u1')).toEqual(member);
     });
 
     it('doit lever BadRequestError si chef existant (23505)', async () => {
       mockDb.query.mockRejectedValueOnce({ code: '23505', constraint: 'uq_one_active_leader_per_team' });
-      await expect(teamRepository.addMemberToTeam('team-1', 'u1', TeamMemberRole.LEADER))
+      await expect(teamRepository.addMemberToTeam('team-1', 'u1', TeamMemberRole.COMMAND_LEAD))
         .rejects.toThrow(BadRequestError);
     });
   });

@@ -14,12 +14,17 @@ export class AddMemberToTeamController {
   ): Promise<void> => {
     try {
       const { id } = IdParamSchema.parse(req.params);
-      const { userId, role } = AddMemberSchema.parse(req.body);
+      const { fullName, email, phone, role, organizationId } = AddMemberSchema.parse(req.body);
 
       const member = await this.addMemberToTeamService.addMemberToTeam(
         id,
-        userId,
-        role as TeamMemberRole | undefined
+        {
+          fullName,
+          email,
+          phone: phone || undefined,
+          role: (role as TeamMemberRole) || undefined,
+          organizationId: organizationId || null,
+        }
       );
 
       res.status(201).json({

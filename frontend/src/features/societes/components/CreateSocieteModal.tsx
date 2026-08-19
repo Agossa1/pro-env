@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useSocietes } from '../hooks/useSocietes';
-import { useTerritory } from '../../territory/hooks/useTerritory';
 import { SocieteType, type CreateSocietePayload } from '../services/societes.types';
 import { TYPE_LABELS } from './SocietesPage';
 
@@ -14,34 +13,18 @@ const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
 
 export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
   const { create } = useSocietes();
-  const { territories, loadForForm } = useTerritory();
 
   const [name, setName] = useState('');
   const [type, setType] = useState<SocieteType>(SocieteType.PRIVATE_COMPANY);
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
-  const [communeId, setCommuneId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    loadForForm();
-  }, [loadForForm]);
-
-  const departments = territories.filter((t) => t.territoryTypeCode === 'DEPARTMENT');
-  const communes = territories.filter((t) => t.territoryTypeCode === 'COMMUNE');
-  const filteredCommunes = communes.filter((c) => c.parentTerritoryId === departmentId);
-
-  const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDepartmentId(e.target.value);
-    setCommuneId('');
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !contactEmail || !communeId) {
-      toast.error("Le nom, l'email et la commune sont requis.");
+    if (!name || !contactEmail) {
+      toast.error("Le nom et l'email sont requis.");
       return;
     }
     setIsSubmitting(true);
@@ -52,7 +35,6 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
         registrationNumber: registrationNumber || null,
         contactEmail,
         contactPhone: contactPhone || null,
-        territoryId: communeId,
       };
       await create(payload).unwrap();
       toast.success(`Société créée. Un lien d'activation a été envoyé à ${contactEmail}.`);
@@ -157,42 +139,12 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
               </div>
             </div>
 
-            {/* Territoire */}
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">Territoire de compétence</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Département *</label>
-                  <select
-                    value={departmentId}
-                    onChange={handleDepartmentChange}
-                    className={inputClass}
-                    required
-                  >
-                    <option value="">Sélectionner...</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Commune *</label>
-                  <select
-                    value={communeId}
-                    onChange={(e) => setCommuneId(e.target.value)}
-                    className={inputClass}
-                    required
-                    disabled={!departmentId}
-                  >
-                    <option value="">
-                      {departmentId ? 'Sélectionner...' : "D'abord un département"}
-                    </option>
-                    {filteredCommunes.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+            {/* Note : les sociétés sont des prestataires pouvant travailler avec toutes les mairies */}
+            <div className="bg-benin-green-light/30 border border-benin-green/20 rounded-lg px-4 py-3">
+              <p className="text-xs text-benin-green-dark">
+                💡 Les sociétés prestataires interviennent sur l'ensemble du territoire national.
+                Elles ne sont pas rattachées à une commune ou un département spécifique.
+              </p>
             </div>
 
           </form>

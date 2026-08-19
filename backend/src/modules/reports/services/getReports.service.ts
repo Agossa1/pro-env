@@ -12,6 +12,7 @@ import type { Report, PaginationQuery, PaginatedResult } from '../types/report.t
 
 export interface GetAllReportsQuery extends PaginationQuery {
   territoryId?: string;
+  createdBy?: string;
   status?: string;
   issueCategory?: string;
 }

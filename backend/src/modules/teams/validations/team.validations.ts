@@ -34,8 +34,11 @@ export const UpdateTeamSchema = z.object({
 });
 
 export const AddMemberSchema = z.object({
-  userId: z.string().uuid("L'utilisateur doit être un UUID valide"),
+  fullName: z.string().min(1, 'Le nom est requis').max(255),
+  email: z.string().email('Email invalide'),
+  phone: z.string().max(20).optional(),
   role: RoleEnum.optional(),
+  organizationId: z.string().uuid('La societe doit etre un UUID valide').nullable().optional(),
 });
 
 export const IdParamSchema = z.object({

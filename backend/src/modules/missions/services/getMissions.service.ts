@@ -12,6 +12,7 @@ import type { Mission, PaginationQuery, PaginatedResult } from '../types/mission
 
 export interface GetAllMissionsQuery extends PaginationQuery {
   territoryId?: string;
+  createdBy?: string;
   status?: string;
   missionType?: string;
   organizationId?: string;

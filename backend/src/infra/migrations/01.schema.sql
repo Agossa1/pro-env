@@ -70,7 +70,7 @@ CREATE TYPE mission_status_enum AS ENUM (
 CREATE TYPE field_assignment_status_enum AS ENUM (
     'not_started', 'started', 'paused', 'resumed', 'completed', 'failed', 'cancelled'
 );
-CREATE TYPE team_member_role_enum AS ENUM ('leader', 'member');
+CREATE TYPE team_member_role_enum AS ENUM ('COMMAND_LEAD', 'OPS_OPERATOR', 'LOG_OFFICER', 'SAFETY_OFFICER');
 CREATE TYPE team_type_enum AS ENUM ('institution', 'provider');
 CREATE TYPE role_tier_enum AS ENUM ('platform', 'territorial', 'field');
 CREATE TYPE otp_type_enum AS ENUM ('EMAIL_VERIFICATION', 'PHONE_VERIFICATION', 'PASSWORD_RESET', 'TWO_FACTOR');

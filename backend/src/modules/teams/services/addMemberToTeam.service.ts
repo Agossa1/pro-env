@@ -8,31 +8,73 @@
 
 import type { Logger } from 'winston';
 import { TeamRepository } from '../repositories/team.repositories';
+import { AuthRepository } from '../../auth/repositories/auth.repositories';
+import { PasswordService } from '../../../config/passwords/passwordServices';
 import { BadRequestError } from '../../../shared/errors/appErrors';
 import { TeamMemberRole } from '../types/team.enums';
 import type { FieldTeamMember } from '../types/team.types';
 
+export interface AddMemberToTeamParams {
+  fullName: string;
+  email: string;
+  phone?: string;
+  role?: TeamMemberRole;
+  organizationId?: string | null;
+}
+
 export class AddMemberToTeamService {
   constructor(
     private readonly teamRepository: TeamRepository,
+    private readonly authRepository: AuthRepository,
+    private readonly password: PasswordService,
     private readonly logger: Logger,
   ) {}
 
-  /** Ajoute un membre (leader/member) à une équipe. */
+  /** Crée l'utilisateur technicien puis l'ajoute à l'équipe. */
   public async addMemberToTeam(
     teamId: string,
-    userId: string,
-    role: TeamMemberRole = TeamMemberRole.MEMBER
+    params: AddMemberToTeamParams
   ): Promise<FieldTeamMember> {
     try {
-      if (!teamId || !userId) {
-        throw new BadRequestError('L\'équipe et l\'utilisateur sont requis.');
+      if (!teamId || !params.fullName || !params.email) {
+        throw new BadRequestError("Le nom, l'email et l'équipe sont requis.");
       }
 
-      const member = await this.teamRepository.addMemberToTeam(teamId, userId, role);
+      const role = params.role ?? TeamMemberRole.OPS_OPERATOR;
+
+      // 1. Vérifier que l'email n'est pas déjà utilisé
+      const existenceCheck = await this.authRepository.checkUserExistence(params.email);
+      if (existenceCheck.exists) {
+        throw new BadRequestError(existenceCheck.reason ?? 'Un compte existe déjà avec cet email.');
+      }
+
+      // 2. Récupérer le rôle 'technicien'
+      const technicienRole = await this.authRepository.getRoleByCode('technicien');
+      if (!technicienRole) {
+        throw new BadRequestError("Le rôle 'technicien' n'existe pas. Lancez le seed des rôles.");
+      }
+
+      // 3. Mot de passe aléatoire (le compte sera activé via lien d'activation)
+      const rawPassword = this.password.generateRandomPassword();
+      const passwordHash = await this.password.hashPassword(rawPassword);
+
+      // 4. Création du compte auth (rôle technicien)
+      const createdUser = await this.authRepository.createUser({
+        fullName: params.fullName,
+        email: params.email.toLowerCase(),
+        phone: params.phone ?? undefined,
+        passwordHash,
+        roleId: technicienRole.id,
+        territoryId: null,
+        organizationId: params.organizationId ?? null,
+        createdBy: undefined,
+      });
+
+      // 5. Ajout du membre à l'équipe
+      const member = await this.teamRepository.addMemberToTeam(teamId, createdUser.id, role);
 
       this.logger.info(
-        `Utilisateur ${userId} ajouté à l'équipe ${teamId} (${role})`
+        `Utilisateur ${createdUser.id} ajouté à l'équipe ${teamId} (${role})`
       );
       return member;
     } catch (error: any) {

@@ -71,7 +71,7 @@ export class ReportRepository {
    * défauts 1 et 50). Filtres optionnels : territoire, statut, catégorie.
    */
   public async getAllReports(
-    query: PaginationQuery & { territoryId?: string; status?: string; issueCategory?: string } = {}
+    query: PaginationQuery & { territoryId?: string; createdBy?: string; status?: string; issueCategory?: string } = {}
   ): Promise<PaginatedResult<Report>> {
     try {
       const page = Math.max(1, query.page ?? 1);
@@ -84,6 +84,10 @@ export class ReportRepository {
         params.push(query.territoryId);
         conditions.push(`r.territory_id = $${params.length}`);
       }
+      if (query.createdBy) {
+        params.push(query.createdBy);
+        conditions.push(`r.created_by = $${params.length}`);
+      }
       if (query.status) {
         params.push(query.status);
         conditions.push(`r.status = $${params.length}`);
@@ -94,7 +98,7 @@ export class ReportRepository {
       }
       const where = conditions.join(' AND ');
 
-      const key = `reports:all:${page}:${limit}:${query.territoryId ?? ''}:${query.status ?? ''}:${query.issueCategory ?? ''}`;
+      const key = `reports:all:${page}:${limit}:${query.territoryId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.issueCategory ?? ''}`;
       return await redisCache.getOrSet(key, async () => {
         const countRes = await this.db.query(
           `SELECT COUNT(*)::int AS total FROM reports r WHERE ${where}`,
