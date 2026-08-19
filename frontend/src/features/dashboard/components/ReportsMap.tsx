@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FiMapPin, FiAlertTriangle, FiAlertCircle, FiInfo, FiMaximize, FiMinimize, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiMapPin, FiAlertTriangle, FiAlertCircle, FiInfo, FiMaximize, FiMinimize, FiEye, FiEyeOff, FiChevronUp, FiChevronDown, FiFilter } from 'react-icons/fi';
 import { useTerritory } from '../../territory/hooks/useTerritory';
 
 // Leaflet is loaded via CDN-style dynamic import to avoid SSR issues
@@ -61,6 +61,7 @@ const STATS = [
 
 export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLegendOpen, setIsLegendOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
@@ -412,8 +413,20 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
         </div>
 
         {/* Legend */}
-        <div className="absolute bottom-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-100 p-4 min-w-[170px] select-none">
-          <h4 className="text-xs font-bold text-gray-800 mb-3 border-b border-gray-100 pb-2">Légende & Filtres</h4>
+        <div className="absolute bottom-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-100 min-w-[170px] select-none">
+          <div 
+            className="flex items-center justify-between p-3 sm:p-4 cursor-pointer"
+            onClick={() => setIsLegendOpen(!isLegendOpen)}
+          >
+            <div className="flex items-center gap-2">
+              <FiFilter className="w-4 h-4 text-gray-500" />
+              <h4 className="text-xs font-bold text-gray-800">Légende & Filtres</h4>
+            </div>
+            {isLegendOpen ? <FiChevronDown className="w-4 h-4 text-gray-500" /> : <FiChevronUp className="w-4 h-4 text-gray-500" />}
+          </div>
+          
+          {isLegendOpen && (
+            <div className="px-4 pb-4 border-t border-gray-100 pt-3 max-h-[300px] overflow-y-auto">
           
           {/* Section Territoires */}
           <div className="mb-3">
@@ -501,15 +514,16 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
                   </div>
                 );
               })}
+              </div>
             </div>
-          </div>
+            </div>
+          )}
         </div>
 
         {reports.filter(r => r.latitude && r.longitude).length === 0 && (
-          <div className="absolute inset-0 z-[999] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
-            <FiMapPin className="w-10 h-10 text-gray-300 mb-3" />
-            <p className="text-sm font-medium text-gray-400">Aucun signalement géolocalisé</p>
-            <p className="text-xs text-gray-300 mt-1">Les signalements avec coordonnées GPS apparaîtront ici</p>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[900] flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100 pointer-events-none">
+            <FiMapPin className="w-4 h-4 text-gray-400" />
+            <p className="text-xs font-medium text-gray-500">Aucun signalement géolocalisé</p>
           </div>
         )}
       </div>

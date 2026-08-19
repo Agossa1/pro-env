@@ -1,29 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1786994936797" clover="3.2.0">
-  <project timestamp="1786994936797" name="All files">
-    <metrics statements="2823" coveredstatements="2225" conditionals="1162" coveredconditionals="745" methods="421" coveredmethods="372" elements="4406" coveredelements="3342" complexity="0" loc="2823" ncloc="2823" packages="55" files="163" classes="163"/>
+<coverage generated="1787120294475" clover="3.2.0">
+  <project timestamp="1787120294475" name="All files">
+    <metrics statements="2822" coveredstatements="2225" conditionals="1164" coveredconditionals="746" methods="420" coveredmethods="372" elements="4406" coveredelements="3343" complexity="0" loc="2822" ncloc="2822" packages="55" files="163" classes="163"/>
     <package name="config.app">
-      <metrics statements="15" coveredstatements="9" conditionals="2" coveredconditionals="1" methods="3" coveredmethods="0"/>
+      <metrics statements="14" coveredstatements="9" conditionals="2" coveredconditionals="1" methods="2" coveredmethods="0"/>
       <file name="appConfig.ts" path="/Volumes/Livebenin/Dev/Pro-Env/apps/backend/src/config/app/appConfig.ts">
         <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="20" type="stmt"/>
         <line num="4" count="60" type="stmt"/>
       </file>
       <file name="env.ts" path="/Volumes/Livebenin/Dev/Pro-Env/apps/backend/src/config/app/env.ts">
-        <metrics statements="13" coveredstatements="7" conditionals="2" coveredconditionals="1" methods="3" coveredmethods="0"/>
+        <metrics statements="12" coveredstatements="7" conditionals="2" coveredconditionals="1" methods="2" coveredmethods="0"/>
         <line num="1" count="20" type="stmt"/>
         <line num="2" count="20" type="stmt"/>
         <line num="5" count="20" type="stmt"/>
         <line num="9" count="20" type="stmt"/>
         <line num="11" count="0" type="stmt"/>
         <line num="15" count="0" type="stmt"/>
-        <line num="35" count="0" type="stmt"/>
-        <line num="42" count="20" type="stmt"/>
-        <line num="44" count="20" type="cond" truecount="1" falsecount="1"/>
-        <line num="45" count="0" type="stmt"/>
-        <line num="46" count="0" type="stmt"/>
-        <line num="47" count="0" type="stmt"/>
-        <line num="50" count="360" type="stmt"/>
+        <line num="45" count="20" type="stmt"/>
+        <line num="47" count="20" type="cond" truecount="1" falsecount="1"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="53" count="360" type="stmt"/>
       </file>
     </package>
     <package name="config.database">
@@ -184,9 +183,9 @@
       </file>
     </package>
     <package name="modules.auth.controller">
-      <metrics statements="15" coveredstatements="15" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
+      <metrics statements="15" coveredstatements="15" conditionals="4" coveredconditionals="3" methods="2" coveredmethods="2"/>
       <file name="login.controller.ts" path="/Volumes/Livebenin/Dev/Pro-Env/apps/backend/src/modules/auth/controller/login.controller.ts">
-        <metrics statements="15" coveredstatements="15" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
+        <metrics statements="15" coveredstatements="15" conditionals="4" coveredconditionals="3" methods="2" coveredmethods="2"/>
         <line num="2" count="1" type="stmt"/>
         <line num="4" count="1" type="stmt"/>
         <line num="6" count="3" type="stmt"/>
@@ -196,12 +195,12 @@
         <line num="12" count="3" type="stmt"/>
         <line num="15" count="2" type="stmt"/>
         <line num="19" count="1" type="stmt"/>
-        <line num="26" count="1" type="stmt"/>
-        <line num="29" count="1" type="stmt"/>
-        <line num="38" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="39" count="1" type="stmt"/>
-        <line num="44" count="1" type="stmt"/>
-        <line num="46" count="1" type="stmt"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="39" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
+        <line num="47" count="1" type="stmt"/>
       </file>
     </package>
     <package name="modules.auth.repositories">

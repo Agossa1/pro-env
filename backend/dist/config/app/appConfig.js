@@ -22,9 +22,12 @@ exports.appConfig = {
         expiresRefreshSecret: env_1.env.EXPIRES_REFRESH_SECRET,
     },
     mailer: {
-        // Resend lit RESEND_API_KEY directement depuis process.env
         from: env_1.env.MAIL_FROM,
         fromName: env_1.env.MAIL_FROM_NAME,
+        host: env_1.env.SMTP_HOST,
+        port: env_1.env.SMTP_PORT,
+        user: env_1.env.SMTP_USER,
+        pass: env_1.env.SMTP_PASS,
     }
 };
 //# sourceMappingURL=appConfig.js.map

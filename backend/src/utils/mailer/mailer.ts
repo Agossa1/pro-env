@@ -1,13 +1,4 @@
-/*
- * Mailer Utility — Resend API
- * ─────────────────────────────────────────────────────
- * Utilise le service Resend (API HTTP) — aucun port SMTP requis.
- *
- * Variable d'env requise : RESEND_API_KEY
- * ─────────────────────────────────────────────────────
- */
-
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { appConfig } from '../../config/app/appConfig';
 import { logger } from '../../config/loggers/logger';
 
@@ -19,44 +10,48 @@ interface SendMailOptions {
 }
 
 export class Mailer {
-    private resend: Resend | null = null;
+    private transporter: nodemailer.Transporter | null = null;
 
     constructor() {
-        const apiKey = process.env.RESEND_API_KEY;
-        if (!apiKey) {
-            logger.error('🚨 RESEND_API_KEY est absent — les emails ne seront pas envoyés.');
+        const { host, port, user, pass } = appConfig.mailer;
+
+        if (!host || !user || !pass) {
+            logger.warn('🚨 Configuration SMTP incomplète. Les emails ne seront pas envoyés.');
         } else {
-            this.resend = new Resend(apiKey);
-            logger.info('✅ Resend configuré et prêt.');
+            this.transporter = nodemailer.createTransport({
+                host: host,
+                port: port || 587,
+                secure: port === 465, // true pour 465, false pour les autres ports
+                auth: {
+                    user: user,
+                    pass: pass,
+                },
+            });
+            logger.info(`✅ Nodemailer configuré avec le serveur SMTP ${host}:${port}`);
         }
     }
 
     /**
-     * Envoie un email via l'API Resend.
+     * Envoie un email via Nodemailer.
      */
     public async sendMail(options: SendMailOptions): Promise<void> {
-        if (!this.resend) {
-            logger.warn(`📧 Email non envoyé (RESEND_API_KEY absent) : ${options.to} — ${options.subject}`);
+        if (!this.transporter) {
+            logger.warn(`📧 Email non envoyé (SMTP non configuré) : ${options.to} — ${options.subject}`);
             return;
         }
 
         try {
-            const { error } = await this.resend.emails.send({
+            await this.transporter.sendMail({
                 from: `${appConfig.mailer.fromName} <${appConfig.mailer.from}>`,
-                to:      options.to,
+                to: options.to,
                 subject: options.subject,
-                html:    options.html,
-                text:    options.text,
+                html: options.html,
+                text: options.text,
             });
 
-            if (error) {
-                logger.error('❌ Erreur Resend :', error);
-                throw new Error(error.message || 'Failed to send email');
-            }
-
-            logger.info(`📧 Email envoyé via Resend à ${options.to}`);
+            logger.info(`📧 Email envoyé via SMTP à ${options.to}`);
         } catch (error: any) {
-            logger.error('❌ Erreur Resend :', error?.message ?? error);
+            logger.error('❌ Erreur SMTP :', error?.message ?? error);
             throw new Error('Failed to send email');
         }
     }
