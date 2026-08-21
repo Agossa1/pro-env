@@ -50,8 +50,8 @@ function SidebarContent({ items, userName, userRole, onLogout, onClose }: Omit<S
       {/* Header */}
       <div className="px-5 pt-6 pb-5 border-b border-white/10 shrink-0 flex items-center justify-between">
         <div>
-          <div className="text-2xl font-bold text-white tracking-wide leading-tight">SIGIE</div>
-          <div className="text-sm text-gray-400 mt-1 tracking-wide">République du Bénin</div>
+          <div className="text-2xl font-bold text-white  leading-tight">SIGIE</div>
+          <div className="text-lg text-gray-400 mt-1 ">République du Bénin</div>
         </div>
         {/* Close button only on mobile */}
         <button
@@ -79,7 +79,7 @@ function SidebarContent({ items, userName, userRole, onLogout, onClose }: Omit<S
                 end={item.to === '/'}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-5 py-2.5 text-sm transition-colors border-l-2 ${
+                  `flex items-center gap-3 px-5 py-2.5 text-xl  transition-colors border-l-2 ${
                     isActive
                       ? 'text-white bg-benin-green/20 border-benin-green font-medium'
                       : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
@@ -107,8 +107,8 @@ function SidebarContent({ items, userName, userRole, onLogout, onClose }: Omit<S
             </div>
             {userName && (
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white truncate">{userName}</div>
-                {userRole && <div className="text-xs text-gray-400 truncate">{userRole}</div>}
+                <div className="text-xl font-medium text-white truncate">{userName}</div>
+                {userRole && <div className="text-base text-gray-400 truncate">{userRole}</div>}
               </div>
             )}
             {onLogout && (

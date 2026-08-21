@@ -153,59 +153,59 @@ export class InfrastructureRepository {
     }
   }
 
-  /** Crée une infrastructure. */
-  public async createInfrastructure(
-    payload: CreateInfrastructurePayload
-  ): Promise<Infrastructure> {
-    try {
-      const res = await this.db.query(
-        `INSERT INTO infrastructures (
-           territory_id, mapped_area_id, name, reference_code,
-           type, condition, status, description, material,
-           dimensions, installation_date, last_maintained_at,
-           location, geometry, latitude, longitude, metadata, created_by
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-         RETURNING id`,
-        [
-          payload.territoryId,
-          payload.mappedAreaId ?? null,
-          payload.name,
-          payload.referenceCode ?? null,
-          payload.type,
-          payload.condition ?? 'good',
-          payload.status ?? 'ACTIVE',
-          payload.description ?? null,
-          payload.material ?? null,
-          payload.dimensions ?? null,
-          payload.installationDate ?? null,
-          payload.lastMaintainedAt ?? null,
-          payload.location ?? null,
-          payload.geometry ?? null,
-          payload.latitude ?? null,
-          payload.longitude ?? null,
-          payload.metadata ?? null,
-          payload.createdBy ?? null,
-        ]
-      );
-      const created = res.rows[0] as { id: string };
+    /** Crée une infrastructure. */
+    public async createInfrastructure(
+        payload: CreateInfrastructurePayload
+    ): Promise<Infrastructure> {
+        try {
+            const res = await this.db.query(
+                `INSERT INTO infrastructures (
+                    territory_id, mapped_area_id, name, reference_code,
+                    type, condition, status, description, material,
+                    dimensions, installation_date, last_maintained_at,
+                    location, geometry, latitude, longitude, metadata, created_by
+                )
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+                     RETURNING id`,
+                [
+                    payload.territoryId,
+                    payload.mappedAreaId ?? null,
+                    payload.name,
+                    payload.referenceCode ?? null,
+                    payload.type,
+                    payload.condition ?? 'good',
+                    payload.status ?? 'ACTIVE',
+                    payload.description ?? null,
+                    payload.material ?? null,
+                    payload.dimensions ?? null,
+                    payload.installationDate ?? null,
+                    payload.lastMaintainedAt ?? null,
+                    payload.location ?? null,
+                    payload.geometry ?? null,
+                    payload.latitude ?? null,
+                    payload.longitude ?? null,
+                    JSON.stringify(payload.metadata ?? {}), // <-- CORRECTION ICI
+                    payload.createdBy ?? null,
+                ]
+            );
+            const created = res.rows[0] as { id: string };
 
-      await redisCache.invalidatePattern('infrastructures:all:*');
+            await redisCache.invalidatePattern('infrastructures:all:*');
 
-      return await this.getInfrastructureById(created.id) as Infrastructure;
-    } catch (error: any) {
-      if (error.code === '23503') {
-        throw new BadRequestError('Référence invalide : territoire ou zone cartographiée.');
-      }
-      if (error.code === '23505') {
-        throw new BadRequestError('Le code de référence existe déjà.');
-      }
-      this.logger.error(`Erreur createInfrastructure: ${error.message}`);
-      throw error;
-    }
-  }
+            return await this.getInfrastructureById(created.id) as Infrastructure;
+        } catch (error: any) {
+            if (error.code === '23503') {
+                throw new BadRequestError('Référence invalide : territoire ou zone cartographiée.');
+            }
+            if (error.code === '23505') {
+                throw new BadRequestError('Le code de référence existe déjà.');
+            }
+            this.logger.error(`Erreur createInfrastructure: ${error.message}`);
+            throw error;
+        }
+    } 
 
-  /** Met à jour une infrastructure. */
+    /** Met à jour une infrastructure. */
   public async updateInfrastructure(
     id: string,
     payload: UpdateInfrastructurePayload

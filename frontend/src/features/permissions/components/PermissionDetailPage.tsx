@@ -89,12 +89,12 @@ function PermissionDetailPage() {
               {isEditing ? (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <div className="text-sm font-medium text-gray-500 mb-1">Module</div>
-                    <div className="text-base text-gray-900 font-mono bg-gray-50 p-2 rounded inline-block">{permission.module}</div>
+                    <div className="text-xl font-medium text-gray-500 mb-1">Module</div>
+                    <div className="text-lg text-gray-900  bg-gray-50 p-2 rounded inline-block">{permission.module}</div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-500 mb-1">Action</div>
-                    <span className={`text-xs font-bold px-2 py-1 rounded ${actionColor}`}>
+                    <div className="text-xl font-medium text-gray-500 mb-1">Action</div>
+                    <span className={`text-lg font-bold px-2 py-1 rounded ${actionColor}`}>
                       {permission.action}
                     </span>
                   </div>
@@ -124,21 +124,21 @@ function PermissionDetailPage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <div className="text-sm font-medium text-gray-500 mb-1">Module</div>
-                      <div className="text-base text-gray-900 font-mono bg-gray-50 p-2 rounded inline-block">
+                      <div className="text-lg font-medium text-gray-500 mb-1">Module</div>
+                      <div className="text-base text-gray-900   bg-gray-50 p-2 rounded inline-block">
                         {permission.module}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-500 mb-1">Action</div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded ${actionColor}`}>
+                      <div className="text-lg font-medium text-gray-500 mb-1">Action</div>
+                      <span className={`text-base px-2 py-1 rounded ${actionColor}`}>
                         {permission.action}
                       </span>
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-sm font-medium text-gray-500 mb-1">Description</div>
+                    <div className="text-lg font-medium text-gray-500 mb-1">Description</div>
                     <div className="text-base text-gray-900 whitespace-pre-wrap">
                       {permission.description || 'Aucune description détaillée.'}
                     </div>

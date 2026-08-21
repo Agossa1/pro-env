@@ -98,30 +98,30 @@ export const StructuresPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Structures</h1>
-          <p className="text-sm text-gray-500">Équipements physiques urbains : caniveaux, routes, ponts, éclairage...</p>
+          <p className="text-lg text-gray-600">Équipements physiques urbains : caniveaux, routes, ponts, éclairage...</p>
         </div>
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
+          className="px-4 py-2 rounded-lg text-lg font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
         >
           + Nouvelle structure
         </button>
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col lg:flex-row gap-4 justify-between">
+      <div className="bg-white p-4 rounded-sm border border-gray-300 flex flex-col lg:flex-row gap-4 justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <input
             type="text"
             placeholder="Rechercher par nom ou code..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:max-w-xs pl-4 pr-4 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
+            className="w-full sm:max-w-xs pl-4 pr-4 py-2 rounded-lg border border-gray-300 text-lg focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
           />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20"
+            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-lg focus:ring-2 focus:ring-benin-green/20"
           >
             <option value="">Tous les types</option>
             {Object.entries(TYPE_LABELS).map(([val, label]) => (
@@ -131,7 +131,7 @@ export const StructuresPage: React.FC = () => {
           <select
             value={filterCondition}
             onChange={(e) => setFilterCondition(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20"
+            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-lg focus:ring-2 focus:ring-benin-green/20"
           >
             <option value="">Toutes les conditions</option>
             {Object.entries(CONDITION_LABELS).map(([val, label]) => (
@@ -141,7 +141,7 @@ export const StructuresPage: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20"
+            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-lg focus:ring-2 focus:ring-benin-green/20"
           >
             <option value="">Tous les statuts</option>
             {Object.entries(STATUS_LABELS).map(([val, label]) => (
@@ -173,7 +173,7 @@ export const StructuresPage: React.FC = () => {
       {viewMode === 'table' ? (
         <div className="bg-white rounded-xl border border-gray-200  overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
+            <table className="w-full text-left text-lg whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-6 py-4 font-semibold text-gray-700">Nom</th>
@@ -194,7 +194,7 @@ export const StructuresPage: React.FC = () => {
 
               {!isLoading && filteredStructures.length === 0 && (
                 <tbody className="divide-y divide-gray-100">
-                  <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-500">Aucune structure trouvée.</td></tr>
+                  <tr><td colSpan={7} className="px-6 py-12 text-center text-lg text-gray-500">Aucune structure trouvée.</td></tr>
                 </tbody>
               )}
 
@@ -237,9 +237,9 @@ export const StructuresPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {isLoading ? (
-            <div className="col-span-full py-12 text-center text-sm text-gray-500">Chargement...</div>
+            <div className="col-span-full py-12 text-center text-lg text-gray-500">Chargement...</div>
           ) : filteredStructures.length === 0 ? (
-            <div className="col-span-full py-12 text-center text-sm text-gray-500">Aucune structure trouvée.</div>
+            <div className="col-span-full py-12 text-center text-lg text-gray-500">Aucune structure trouvée.</div>
           ) : (
             filteredStructures.map((s) => (
               <div key={s.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col cursor-pointer" onClick={() => setSelectedStructureId(s.id)}>
@@ -253,7 +253,7 @@ export const StructuresPage: React.FC = () => {
                 </div>
                 <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-2">{s.name}</h3>
                 <p className="text-xs text-gray-400 font-mono mb-2">{s.referenceCode || ''}</p>
-                <p className="text-sm text-gray-500 flex-1 line-clamp-3 mb-4">{s.description || 'Aucune description fournie.'}</p>
+                <p className="text-lg text-gray-500 flex-1 line-clamp-3 mb-4">{s.description || 'Aucune description fournie.'}</p>
                 <div className="pt-4 border-t border-gray-100 mt-auto">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">{s.territoryName || territoryMap[s.territoryId] || '—'}</span>

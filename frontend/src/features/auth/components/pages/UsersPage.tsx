@@ -52,7 +52,7 @@ export function UsersPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-200 text-xs font-semibold text-gray-500">
+              <tr className="bg-gray-50/50 border-b border-gray-200 text-xl  text-gray-700">
                 <th className="px-6 py-4">Utilisateur</th>
                 <th className="px-6 py-4">Rôle</th>
                 <th className="px-6 py-4">Territoire</th>
@@ -63,7 +63,7 @@ export function UsersPage() {
             {isLoading && (
               <tbody className="divide-y divide-gray-100">
                 <tr key="loading">
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-lg text-gray-700">
                     Chargement des utilisateurs...
                   </td>
                 </tr>
@@ -73,7 +73,7 @@ export function UsersPage() {
             {!isLoading && users.length === 0 && (
               <tbody className="divide-y divide-gray-100">
                 <tr key="empty">
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-lg text-gray-700">
                     Aucun utilisateur trouvé.
                   </td>
                 </tr>
@@ -90,33 +90,33 @@ export function UsersPage() {
                           {user.fullName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">{user.fullName}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
-                          {user.phone && <div className="text-xs text-gray-400">{user.phone}</div>}
+                          <div className="font-semibold text-lg text-gray-900">{user.fullName}</div>
+                          <div className="text-base text-gray-500">{user.email}</div>
+                          {user.phone && <div className="text-lg text-gray-400">{user.phone}</div>}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md border text-xs font-medium bg-gray-50 text-gray-700 border-gray-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md border text-lg font-medium bg-gray-50 text-gray-700 border-gray-200">
                         {user.roleName || user.roleCode}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-base text-gray-600">
                       {user.territoryName || '—'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1">
                         {user.isActive ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 w-fit">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-base font-medium bg-emerald-50 text-emerald-700 w-fit">
                             Actif
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 w-fit">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-base font-medium bg-rose-50 text-rose-700 w-fit">
                             Inactif
                           </span>
                         )}
                         {user.isVerified && (
-                          <span className="text-[10px] text-gray-400">Vérifié</span>
+                          <span className="text-[14px] text-gray-500">Vérifié</span>
                         )}
                       </div>
                     </td>

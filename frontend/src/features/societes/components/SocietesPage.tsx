@@ -47,30 +47,30 @@ export const SocietesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Sociétés</h1>
-          <p className="text-sm text-gray-500">Prestataires et concessionnaires exécutant les missions terrain</p>
+          <p className="text-lg text-gray-700">Prestataires et concessionnaires exécutant les missions terrain</p>
         </div>
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
+          className="px-4 py-2 rounded-lg text-lg font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
         >
           + Nouvelle société
         </button>
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-sm border border-gray-200 flex flex-col lg:flex-row gap-4 justify-between">
+      <div className="bg-white p-4 rounded-sm border border-gray-300 flex flex-col lg:flex-row gap-4 justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <input
             type="text"
             placeholder="Rechercher par nom ou n° d'enregistrement..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:max-w-xs pl-4 pr-4 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
+            className="w-full sm:max-w-xs pl-4 pr-4 py-2 rounded-lg border border-gray-300 text-base focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
           />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20"
+            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-base focus:ring-2 focus:ring-benin-green/20"
           >
             <option value="">Tous les types</option>
             {Object.entries(TYPE_LABELS).map(([val, label]) => (
@@ -102,7 +102,7 @@ export const SocietesPage: React.FC = () => {
       {viewMode === 'table' ? (
         <div className="bg-white rounded-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
+            <table className="w-full text-left text-lg whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-6 py-4 font-semibold text-gray-700">Nom</th>
@@ -132,20 +132,19 @@ export const SocietesPage: React.FC = () => {
                     <tr key={s.id} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-6 py-4">
                         <p className="font-medium text-gray-900 truncate max-w-[200px]">{s.name}</p>
-                        <p className="text-xs text-gray-400 font-mono">{s.id.substring(0, 8)}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${TYPE_COLORS[s.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-base font-medium border ${TYPE_COLORS[s.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                           {TYPE_LABELS[s.type] || s.type}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-xs">{s.registrationNumber || '—'}</td>
+                      <td className="px-6 py-4 text-gray-600 f  text-base">{s.registrationNumber || '—'}</td>
                       <td className="px-6 py-4 text-gray-600">{s.contactEmail || '—'}</td>
                       <td className="px-6 py-4 text-gray-600">{s.contactPhone || '—'}</td>
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => setSelectedSocieteId(s.id)}
-                          className="text-benin-green hover:text-benin-green-dark font-medium text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-benin-green hover:text-benin-green-dark font-medium text-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           Détails
                         </button>

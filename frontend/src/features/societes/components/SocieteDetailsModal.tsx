@@ -78,33 +78,33 @@ export const SocieteDetailsModal: React.FC<Props> = ({ societe, onClose }) => {
         {/* Body */}
         <div className="overflow-y-auto flex-1 p-6 space-y-8">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Informations</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Informations</h3>
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="block text-gray-500 mb-1">Type</span>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${TYPE_COLORS[societe.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                <span className="block text-lg text-gray-500 mb-1">Type</span>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-base font-medium border ${TYPE_COLORS[societe.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                   {TYPE_LABELS[societe.type] || societe.type}
                 </span>
               </div>
               <div>
-                <span className="block text-gray-500 mb-1">Statut</span>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${societe.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                <span className="block text-lg text-gray-500 mb-1">Statut</span>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-base font-medium border ${societe.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
                   {societe.isActive ? 'Actif' : 'Inactif'}
                 </span>
               </div>
               <div>
-                <span className="block text-gray-500 mb-1">Email</span>
-                <span className="font-medium text-gray-900">{societe.contactEmail || '—'}</span>
+                <span className="block text-lg text-gray-500 mb-1">Email</span>
+                <span className="font-medium text-base text-gray-900">{societe.contactEmail || '—'}</span>
               </div>
               <div>
-                <span className="block text-gray-500 mb-1">Téléphone</span>
-                <span className="font-medium text-gray-900">{societe.contactPhone || '—'}</span>
+                <span className="block text-lg text-gray-500 mb-1">Téléphone</span>
+                <span className="font-medium text-base text-gray-900">{societe.contactPhone || '—'}</span>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Territoires de compétence</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Territoires de compétence</h3>
             {territoryOptions.length === 0 ? (
               <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg border border-gray-100">Aucun territoire assigné.</p>
             ) : (
@@ -112,7 +112,7 @@ export const SocieteDetailsModal: React.FC<Props> = ({ societe, onClose }) => {
                 {territoryOptions.map((t) => (
                   <li key={t.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg">
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="text-sm text-gray-700">{t.name}</span>
+                    <span className="text-base text-gray-700">{t.name.toLocaleUpperCase()}</span>
                   </li>
                 ))}
               </ul>
@@ -120,10 +120,10 @@ export const SocieteDetailsModal: React.FC<Props> = ({ societe, onClose }) => {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Actions</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Actions</h3>
             <button
               onClick={handleToggleActive}
-              className={`px-3.5 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+              className={`px-3.5 py-1.5 rounded-md text-lg font-medium border transition-colors ${
                 societe.isActive
                   ? 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                   : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
@@ -139,13 +139,13 @@ export const SocieteDetailsModal: React.FC<Props> = ({ societe, onClose }) => {
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg text-base font-medium text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
           >
             {isDeleting ? 'Suppression...' : 'Supprimer'}
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-lg text-base font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
           >
             Fermer
           </button>

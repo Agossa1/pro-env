@@ -118,14 +118,14 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
             <div className="min-w-0">
               <h2 className="text-lg font-bold text-gray-900 truncate">{team.name}</h2>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-base font-medium border ${
                   team.teamType === TeamType.PROVIDER
                     ? 'bg-blue-50 text-blue-700 border-blue-200'
                     : 'bg-purple-50 text-purple-700 border-purple-200'
                 }`}>
                   {TEAM_TYPE_LABELS[team.teamType]}
                 </span>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-base font-medium border ${
                   team.isActive
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     : 'bg-gray-100 text-gray-500 border-gray-200'
@@ -151,10 +151,10 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
             <button
               key={key}
               onClick={() => setActiveTab(key as 'info' | 'members')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              className={`px-4 py-3 text-lg font-medium border-b-2 transition-colors -mb-px ${
                 activeTab === key
                   ? 'border-benin-green text-benin-green'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-700 hover:text-gray-700'
               }`}
             >
               {label}
@@ -168,18 +168,18 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Type d'équipe</p>
-                  <p className="text-sm font-semibold text-gray-700">{TEAM_TYPE_LABELS[team.teamType]}</p>
+                  <p className="text-1xl font-medium text-gray-500   mb-1">Type d'équipe</p>
+                  <p className="text-lg font-semibold text-gray-700">{TEAM_TYPE_LABELS[team.teamType]}</p>
                 </div>
                 {team.organizationId && (
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Société rattachée</p>
-                    <p className="text-sm font-semibold text-gray-700">Identifiant: {team.organizationId.substring(0, 8)}...</p>
+                    <p className="text-1xl font-medium text-gray-600   mb-1">Société rattachée</p>
+                    <p className="text-xl font-semibold text-gray-700"> {team.name }</p>
                   </div>
                 )}
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Créée le</p>
-                  <p className="text-sm text-gray-700">{new Date(team.createdAt).toLocaleDateString('fr-FR')}</p>
+                  <p className="text-1xl font-medium text-gray-600 mb-1">Créée le</p>
+                  <p className="text-lg text-gray-700">{new Date(team.createdAt).toLocaleDateString('fr-FR')}</p>
                 </div>
               </div>
 
@@ -188,14 +188,14 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
                 team.isActive ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'
               }`}>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{team.isActive ? 'Équipe active' : 'Équipe inactive'}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-base font-semibold text-gray-900">{team.isActive ? 'Équipe active' : 'Équipe inactive'}</p>
+                  <p className="text-base text-gray-500 mt-0.5">
                     {team.isActive ? 'L\'équipe peut être assignée à des missions.' : 'L\'équipe ne peut pas être assignée.'}
                   </p>
                 </div>
                 <button
                   onClick={handleToggleActive}
-                  className={`px-4 py-2 text-xs font-medium rounded-lg border transition-colors ${
+                  className={`px-4 py-2 text-base font-medium rounded-lg border transition-colors ${
                     team.isActive
                       ? 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                       : 'bg-benin-green text-white border-benin-green hover:bg-benin-green-dark'

@@ -3,13 +3,14 @@ import toast from 'react-hot-toast';
 import { useSocietes } from '../hooks/useSocietes';
 import { SocieteType, type CreateSocietePayload } from '../services/societes.types';
 import { TYPE_LABELS } from './SocietesPage';
+import {CiCircleAlert} from "react-icons/ci";
 
 interface Props {
   onClose: () => void;
 }
 
-const inputClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green";
-const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+const inputClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green";
+const labelClass = "block text-lg font-medium text-gray-700 mb-1.5";
 
 export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
   const { create } = useSocietes();
@@ -54,8 +55,8 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Nouvelle société</h2>
-            <p className="text-sm text-gray-500">Prestataire / concessionnaire + création du compte</p>
+            <h2 className="text-xl font-bold text-gray-900">Nouvelle société</h2>
+            <p className="text-lg text-gray-600">Prestataire / concessionnaire + création du compte</p>
           </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600 rounded-full transition-colors" type="button">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +71,7 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
 
             {/* Identification */}
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">Identification</p>
+              <p className="text-xl font-bold text-gray-700 mb-4">Identification</p>
               <div className="space-y-4">
                 <div>
                   <label className={labelClass}>Nom de la société *</label>
@@ -112,7 +113,7 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
 
             {/* Contact */}
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">Contact (compte &amp; invitation)</p>
+              <p className="text-xl font-bold text-gray-700   mb-4">Contact (compte &amp; invitation)</p>
               <div className="space-y-4">
                 <div>
                   <label className={labelClass}>Email de contact *</label>
@@ -124,7 +125,7 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
                     className={inputClass}
                     placeholder="contact@societe.bj"
                   />
-                  <p className="text-xs text-gray-400 mt-1">Un lien d'activation sera envoyé à cet email pour créer le mot de passe.</p>
+                  <p className="text-sm text-gray-600 mt-1">Un lien d'activation sera envoyé à cet email pour créer le mot de passe.</p>
                 </div>
                 <div>
                   <label className={labelClass}>Téléphone</label>
@@ -140,9 +141,9 @@ export const CreateSocieteModal: React.FC<Props> = ({ onClose }) => {
             </div>
 
             {/* Note : les sociétés sont des prestataires pouvant travailler avec toutes les mairies */}
-            <div className="bg-benin-green-light/30 border border-benin-green/20 rounded-lg px-4 py-3">
-              <p className="text-xs text-benin-green-dark">
-                💡 Les sociétés prestataires interviennent sur l'ensemble du territoire national.
+            <div className="  border border-blue-100 rounded-lg px-4 py-3 flex items-center gap-2">
+              <CiCircleAlert className="text-red-700 size-7 shrink-0" />
+              <p className="text-sm text-red-700 m-0"> Les sociétés prestataires interviennent sur l'ensemble du territoire national.
                 Elles ne sont pas rattachées à une commune ou un département spécifique.
               </p>
             </div>

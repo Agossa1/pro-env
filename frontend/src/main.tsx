@@ -7,6 +7,11 @@ import { setInitialized } from './features/auth/services/auth.slices'
 import { fetchMeThunk } from './features/auth/services/auth.thunk'
 import './index.css'
 import App from './App.tsx'
+// Supprimez les lignes @fontsource/open-sans et ajoutez :
+import "@fontsource/roboto/400.css"; // Regular
+import "@fontsource/roboto/700.css"; // Bold
+
+
 
 /**
  * Patch global pour empêcher React de crasher (Failed to execute 'removeChild' on 'Node')

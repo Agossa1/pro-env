@@ -121,13 +121,13 @@ class InfrastructureRepository {
     async createInfrastructure(payload) {
         try {
             const res = await this.db.query(`INSERT INTO infrastructures (
-           territory_id, mapped_area_id, name, reference_code,
-           type, condition, status, description, material,
-           dimensions, installation_date, last_maintained_at,
-           location, geometry, latitude, longitude, metadata, created_by
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-         RETURNING id`, [
+                    territory_id, mapped_area_id, name, reference_code,
+                    type, condition, status, description, material,
+                    dimensions, installation_date, last_maintained_at,
+                    location, geometry, latitude, longitude, metadata, created_by
+                )
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+                     RETURNING id`, [
                 payload.territoryId,
                 payload.mappedAreaId ?? null,
                 payload.name,
@@ -144,7 +144,7 @@ class InfrastructureRepository {
                 payload.geometry ?? null,
                 payload.latitude ?? null,
                 payload.longitude ?? null,
-                payload.metadata ?? null,
+                JSON.stringify(payload.metadata ?? {}), // <-- CORRECTION ICI
                 payload.createdBy ?? null,
             ]);
             const created = res.rows[0];

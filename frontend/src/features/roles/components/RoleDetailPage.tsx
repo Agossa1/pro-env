@@ -106,9 +106,9 @@ function RoleDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+          <div className="bg-white border border-gray-300 rounded-sm  ">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Informations générales</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Informations générales</h2>
               {!isEditing && (
                 <Button variant="secondary" onClick={() => setIsEditing(true)}>
                   Modifier
@@ -153,7 +153,7 @@ function RoleDetailPage() {
                   </FormField>
 
                   <div className="pt-4 border-t border-gray-200">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Privilèges globaux</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Privilèges globaux</h3>
                     <div className="space-y-3">
                       <label className="flex items-start gap-3">
                         <Checkbox
@@ -162,8 +162,8 @@ function RoleDetailPage() {
                           onChange={handleChange}
                         />
                         <div>
-                          <div className="text-sm font-medium text-gray-900">Gérer les utilisateurs</div>
-                          <div className="text-sm text-gray-500">Permet d'ajouter, modifier ou supprimer des utilisateurs.</div>
+                          <div className="text-lg font-medium text-gray-900">Gérer les utilisateurs</div>
+                          <div className="text-lg text-gray-500">Permet d'ajouter, modifier ou supprimer des utilisateurs.</div>
                         </div>
                       </label>
 
@@ -174,8 +174,8 @@ function RoleDetailPage() {
                           onChange={handleChange}
                         />
                         <div>
-                          <div className="text-sm font-medium text-gray-900">Gérer les rôles et permissions</div>
-                          <div className="text-sm text-gray-500">Permet de créer des rôles et d'attribuer des permissions.</div>
+                          <div className="text-lg font-medium text-gray-900">Gérer les rôles et permissions</div>
+                          <div className="text-lg text-gray-500">Permet de créer des rôles et d'attribuer des permissions.</div>
                         </div>
                       </label>
                     </div>
@@ -203,30 +203,30 @@ function RoleDetailPage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <div className="text-sm font-medium text-gray-500 mb-1">Nom d'affichage</div>
+                      <div className="text-lg font-medium text-gray-500 mb-1">Nom d'affichage</div>
                       <div className="text-base text-gray-900">{role.name}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-500 mb-1">Niveau (Tier)</div>
+                      <div className="text-lg font-medium text-gray-500 mb-1">Niveau (Tier)</div>
                       <div className="text-base text-gray-900">{role.tier || '—'}</div>
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-sm font-medium text-gray-500 mb-1">Description</div>
+                    <div className="text-lg font-medium text-gray-500 mb-1">Description</div>
                     <div className="text-base text-gray-900">{role.description || 'Aucune description'}</div>
                   </div>
 
                   <div className="pt-4 border-t border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-500 mb-3">Privilèges globaux</h3>
+                    <h3 className="text-lg font-medium text-gray-500 mb-3">Privilèges globaux</h3>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${role.canManageUsers ? 'bg-benin-green' : 'bg-gray-300'}`} />
-                        <span className="text-sm text-gray-700">Gestion des utilisateurs {role.canManageUsers ? '(Oui)' : '(Non)'}</span>
+                        <div className={`w-2 h-2 rounded-full size-16 ${role.canManageUsers ? 'bg-benin-green' : 'bg-gray-300'}`} />
+                        <span className="text-base text-gray-700">Gestion des utilisateurs {role.canManageUsers ? '(Oui)' : '(Non)'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${role.canManageRoles ? 'bg-benin-green' : 'bg-gray-300'}`} />
-                        <span className="text-sm text-gray-700">Gestion des rôles {role.canManageRoles ? '(Oui)' : '(Non)'}</span>
+                        <span className="text-base text-gray-700">Gestion des rôles {role.canManageRoles ? '(Oui)' : '(Non)'}</span>
                       </div>
                     </div>
                   </div>
@@ -237,18 +237,18 @@ function RoleDetailPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-white border border-gray-300 rounded-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">Permissions détaillées</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Permissions détaillées</h2>
             </div>
             <div className="p-0">
               {Object.entries(permissionsByModule).length === 0 ? (
-                <div className="p-6 text-sm text-gray-500">Chargement des permissions...</div>
+                <div className="p-6 text-lg text-gray-500">Chargement des permissions...</div>
               ) : (
                 <div className="divide-y divide-gray-100">
                   {Object.entries(permissionsByModule).map(([module, perms]) => (
                     <div key={module} className="p-4">
-                      <h3 className="text-sm font-bold text-gray-900 mb-3 bg-gray-100 inline-block px-2 py-1 rounded">
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 bg-gray-100 inline-block px-2 py-1 rounded">
                         {module}
                       </h3>
                       <div className="space-y-3 pl-2">
@@ -263,10 +263,10 @@ function RoleDetailPage() {
                               />
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${actionColor}`}>
+                                  <span className={`text-[16px]  px-1.5 py-0.5 rounded ${actionColor}`}>
                                     {perm.action}
                                   </span>
-                                  <span className="text-sm font-medium text-gray-900">
+                                  <span className="text-lg font-medium text-gray-900">
                                     {perm.description || `${perm.action} sur ${perm.module}`}
                                   </span>
                                 </div>

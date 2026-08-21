@@ -11,14 +11,16 @@
   --color-benin-red-dark: #c00d24;
   --color-benin-red-light: #fde8eb;
 
-  --font-sans: 'Inter', system-ui, 'Segoe UI', sans-serif;
+  /* Remplacement de 'Inter' par 'Open Sans' */
+  --font-sans: 'Roboto', system-ui, 'Segoe UI', sans-serif;
 }
 
 @layer base {
   html, body, #root {
-    @apply bg-gray-50 text-gray-900 antialiased;
-    font-size: 16px; 
-    /* Empêche les pages de "bouger" horizontalement sur mobile (ITP / Safari / Chrome) */
+    /* Tailwind v4 applique automatiquement --font-sans sur le body,
+       mais vous pouvez aussi forcer la classe font-sans ici si nécessaire */
+    @apply bg-gray-50 text-gray-900 antialiased font-sans;
+    font-size: 16px;
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
