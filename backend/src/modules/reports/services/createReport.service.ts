@@ -38,6 +38,19 @@ export class CreateReportService {
         );
       }
 
+      // Vérification de l'unicité du signalement
+      const isDuplicate = await this.reportRepository.checkDuplicateReport(
+        payload.title.trim(),
+        payload.issueCategory,
+        payload.territoryId
+      );
+
+      if (isDuplicate) {
+        throw new BadRequestError(
+          'Un signalement similaire (même titre et catégorie dans ce territoire) existe déjà.'
+        );
+      }
+
       const created = await this.reportRepository.createReport({
         ...payload,
         createdBy: creator?.userId ?? payload.createdBy ?? null,

@@ -25,6 +25,11 @@ class CreateReportService {
             if (!payload.territoryId || !payload.title || !payload.issueCategory) {
                 throw new appErrors_1.BadRequestError('Le territoire, le titre et la catégorie du rapport sont requis.');
             }
+            // Vérification de l'unicité du signalement
+            const isDuplicate = await this.reportRepository.checkDuplicateReport(payload.title.trim(), payload.issueCategory, payload.territoryId);
+            if (isDuplicate) {
+                throw new appErrors_1.BadRequestError('Un signalement similaire (même titre et catégorie dans ce territoire) existe déjà.');
+            }
             const created = await this.reportRepository.createReport({
                 ...payload,
                 createdBy: creator?.userId ?? payload.createdBy ?? null,

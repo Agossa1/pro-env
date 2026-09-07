@@ -125,6 +125,25 @@ class ReportRepository {
         }
     }
     /**
+     * Vérifie si un signalement similaire existe déjà (même titre, catégorie et territoire)
+     * pour éviter les doublons.
+     */
+    async checkDuplicateReport(title, category, territoryId) {
+        try {
+            const res = await this.db.query(`SELECT 1 FROM reports
+         WHERE LOWER(title) = LOWER($1)
+           AND issue_category = $2
+           AND territory_id = $3
+           AND deleted_at IS NULL
+         LIMIT 1`, [title, category, territoryId]);
+            return (res.rowCount ?? 0) > 0;
+        }
+        catch (error) {
+            this.logger.error(`Erreur checkDuplicateReport: ${error.message}`);
+            throw error;
+        }
+    }
+    /**
      * Crée un rapport de bout en bout dans une transaction.
      * - INSERT dans `reports` (statut et créateur par défaut)
      * - INSERT éventuel dans `report_details_*` selon issue_category

@@ -74,16 +74,20 @@ const createServer = async (db) => {
         'http://localhost:5174',
         'http://localhost:4000',
         'http://localhost:8081',
+        // Render.com static sites (accept any *.onrender.com subdomain in prod)
+        'https://frontend.onrender.com',
     ].filter((origin) => Boolean(origin));
     console.log('✅ Allowed Origins :', allowedOrigins);
     const corsOptions = {
         origin(origin, callback) {
-            console.log('🌍 Origin reçue :', origin);
-            // Postman, curl, applications mobiles...
+            // Postman, curl, applications mobiles sans origine
             if (!origin) {
                 return callback(null, true);
             }
-            if (allowedOrigins.includes(origin)) {
+            // Autorise tout sous-domaine onrender.com en production (pour la flexibilité)
+            const isRenderOrigin = origin.endsWith('.onrender.com');
+            const isAllowed = allowedOrigins.includes(origin) || isRenderOrigin;
+            if (isAllowed) {
                 return callback(null, true);
             }
             console.error('❌ Origin refusée :', origin);
