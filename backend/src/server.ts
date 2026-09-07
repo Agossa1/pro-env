@@ -22,6 +22,9 @@ if (process.env.NODE_ENV === 'production' && !rawFrontendUrl) {
 export const createServer = async (db: PostgresDatabase) => {
     const app = express();
 
+    // Requis pour les cookies Secure (SameSite=None) derrière le reverse proxy de Render (qui gère le HTTPS)
+    app.set('trust proxy', 1);
+
     /**
      * ============================
      * Rate Limiters
