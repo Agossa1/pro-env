@@ -109,7 +109,7 @@ function AppLayout() {
   });
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Sidebar — desktop fixed / mobile drawer */}
       <Sidebar
         items={filteredNavItems}
@@ -124,8 +124,8 @@ function AppLayout() {
       <Topbar onMenuToggle={() => setSidebarOpen(prev => !prev)} />
 
       {/* Main content — offset for desktop sidebar */}
-      <main className="flex-1 flex flex-col min-h-screen pt-[58px] lg:ml-[260px] max-w-full overflow-x-hidden w-full">
-        <div className="flex-1 p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 flex flex-col min-h-screen pt-[58px] lg:ml-[260px] w-0 min-w-0 overflow-x-hidden">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 w-full">
           <Outlet />
         </div>
       </main>
