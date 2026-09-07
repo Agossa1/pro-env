@@ -114,8 +114,12 @@ export function ActivityChart({ data, period, onPeriodChange, isLoading }: Activ
           display: false
         },
         ticks: {
-          color: '#9CA3AF',
-          font: { size: 11 },
+          color: '#6B7280',
+          font: {
+            family: "'Inter', sans-serif",
+            size: 11,
+            weight: 500,
+          },
           padding: 10
         }
       },
@@ -128,8 +132,12 @@ export function ActivityChart({ data, period, onPeriodChange, isLoading }: Activ
           dash: [3, 3]
         },
         ticks: {
-          color: '#9CA3AF',
-          font: { size: 11 },
+          color: '#6b7280',
+          font: {
+            family: "'Inter', sans-serif",
+            size: 11,
+            weight: 500,
+          },
           padding: 10,
           callback: function(value: any) {
             if (value === 0) return '0';
@@ -149,11 +157,11 @@ export function ActivityChart({ data, period, onPeriodChange, isLoading }: Activ
   return (
     <div className="bg-white p-5 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-100 flex flex-col h-[380px]">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-[15px] font-semibold text-[#4B5563]">Aperçu de l'Activité</h2>
+        <h2 className="text-lg font-bold text-gray-900">Aperçu de l'Activité</h2>
         <select
           value={period}
           onChange={(e) => onPeriodChange(e.target.value as 'monthly' | 'quarterly')}
-          className="text-xs bg-[#F3F4F6] text-gray-600 border-none rounded px-3 py-1.5 focus:outline-none cursor-pointer font-medium"
+          className="text-md bg-[#F3F4F6] text-gray-500 border-none rounded px-3 py-1.5 focus:outline-none cursor-pointer font-medium"
         >
           <option value="monthly">Cette Année</option>
           <option value="quarterly">Trimestriel</option>

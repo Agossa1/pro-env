@@ -15,7 +15,7 @@ export default function GlobalLoader() {
       
       <div className="flex flex-col items-center gap-1.5">
         <h2 className="text-lg font-bold text-gray-800 tracking-wider">SIGIE</h2>
-        <div className="flex items-center gap-1 text-lg font-semibold text-gray-400 ">
+        <div className="flex items-center gap-1 text-lg  text-gray-400 ">
           <span>Chargement</span>
           <span className="flex gap-0.5">
             <span className="w-1 h-1 bg-gray-400 rounded-full animate-[bounce_1s_infinite_-0.3s]" />

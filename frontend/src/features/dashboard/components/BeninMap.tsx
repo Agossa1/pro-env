@@ -52,10 +52,10 @@ export function BeninMap({ reports, isLoading }: BeninMapProps) {
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[15px] font-semibold text-[#4B5563]">
+        <h2 className="text-base font-bold text-gray-900">
           Carte des signalements (Bénin)
         </h2>
-        <span className="text-xs text-gray-500">{markers.length} signalement(s) localisé(s)</span>
+        <span className="text-xs text-gray-500 font-medium">{markers.length} signalement(s) localisé(s)</span>
       </div>
 
       {loadError && (
@@ -85,9 +85,9 @@ export function BeninMap({ reports, isLoading }: BeninMapProps) {
             : markers.map((r) => (
                 <Marker key={r.id} position={[r.latitude as number, r.longitude as number]}>
                   <Popup>
-                    <div className="text-xs">
+                    <div className="text-sm">
                       <strong className="block">{r.title}</strong>
-                      <span className="text-gray-600">{r.category}</span>
+                      <span className="text-gray-500">{r.category}</span>
                       <span className="block text-gray-500">{r.territory} · {r.status}</span>
                     </div>
                   </Popup>

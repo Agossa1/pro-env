@@ -106,10 +106,10 @@ export function RadarChartCategories({ data, isLoading }: RadarChartCategoriesPr
   return (
     <div className="bg-white p-5 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-100 h-full flex flex-col items-center">
       <div className="w-full text-left">
-        <h2 className="text-[15px] font-semibold text-[#4B5563] mb-2">Aperçu des Catégories</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-2">Aperçu des Catégories</h2>
       </div>
       
-      <div className="flex-1 w-full min-h-0 mt-4 relative flex justify-center pb-8">
+      <div className="flex-1 w-full h-full mt-4 relative flex justify-center">
         <div className="w-full max-w-[250px] aspect-square">
           <Radar data={chartData} options={options} />
         </div>
@@ -118,7 +118,7 @@ export function RadarChartCategories({ data, isLoading }: RadarChartCategoriesPr
       <div className="mt-4 flex flex-wrap justify-center gap-3">
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-[#3B82F6]" />
-          <span className="text-[11px] text-gray-500">Signalements par catégorie</span>
+          <span className="text-sm text-gray-500 font-medium">Signalements par catégorie</span>
         </div>
       </div>
     </div>

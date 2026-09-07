@@ -204,7 +204,8 @@ class ReportRepository {
              assigned_to = COALESCE($7, assigned_to),
              resolved_at = COALESCE($8, resolved_at),
              latitude = COALESCE($9, latitude),
-             longitude = COALESCE($10, longitude)
+             longitude = COALESCE($10, longitude),
+             infrastructure_id = COALESCE($12, infrastructure_id)
          WHERE id = $11
            AND deleted_at IS NULL
          RETURNING
@@ -234,6 +235,7 @@ class ReportRepository {
                 payload.latitude ?? null,
                 payload.longitude ?? null,
                 id,
+                payload.infrastructureId ?? null,
             ]);
             if (res.rowCount === 0) {
                 throw new appErrors_1.NotFoundError('Rapport introuvable.');

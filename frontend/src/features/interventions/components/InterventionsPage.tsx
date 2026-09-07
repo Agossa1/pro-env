@@ -45,23 +45,23 @@ export const InterventionsPage: React.FC = () => {
   const filteredList = list.filter(i => TAB_MAPPING[activeTab].includes(i.status));
 
   return (
-    <div className="h-[calc(100vh-64px)] overflow-y-auto bg-gray-50/50 p-6 sm:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="h-[calc(100vh-64px)] overflow-y-auto bg-gray-50/50 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6">
         
         {/* En-tête */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Interventions</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Interventions</h1>
             <p className="text-sm text-gray-500 mt-1">Exécution terrain et suivi des équipes</p>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+        {/* Tabs — scrollables horizontalement sur mobile */}
+        <div className="border-b border-gray-200 -mx-4 sm:mx-0 px-4 sm:px-0">
+          <nav className="-mb-px flex space-x-5 sm:space-x-8 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveTab('nouveaux')}
-              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${
+              className={`shrink-0 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'nouveaux'
                   ? 'border-benin-green text-benin-green'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -71,7 +71,7 @@ export const InterventionsPage: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('en_cours')}
-              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${
+              className={`shrink-0 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'en_cours'
                   ? 'border-benin-green text-benin-green'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -81,7 +81,7 @@ export const InterventionsPage: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('termines')}
-              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${
+              className={`shrink-0 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'termines'
                   ? 'border-benin-green text-benin-green'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -94,17 +94,17 @@ export const InterventionsPage: React.FC = () => {
 
         {/* Contenu */}
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-pulse">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 animate-pulse">
             {[1, 2, 3].map(i => (
               <div key={i} className="bg-white p-5 rounded-2xl border border-gray-200 h-32" />
             ))}
           </div>
         ) : filteredList.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 border-dashed">
+          <div className="text-center py-12 sm:py-16 bg-white rounded-2xl border border-gray-100 border-dashed">
             <p className="text-sm text-gray-500">Aucune intervention dans cet onglet.</p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {filteredList.map(item => (
               <div 
                 key={item.id}

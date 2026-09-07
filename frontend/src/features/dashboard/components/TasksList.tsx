@@ -28,11 +28,11 @@ export function TasksList({ missions, isLoading }: TasksListProps) {
 
   return (
     <div className="bg-white p-5 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-100 h-full">
-      <h2 className="text-[15px] font-semibold text-[#4B5563] mb-5">Missions Prioritaires</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-5">Missions Prioritaires</h2>
       
       <div className="space-y-5">
         {missions.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">Aucune mission</p>
+          <p className="text-md text-gray-500 font-medium text-center py-4">Aucune mission</p>
         ) : (
           missions.map((mission, idx) => (
             <div key={mission.id} className="flex items-start gap-3 group">
@@ -49,8 +49,8 @@ export function TasksList({ missions, isLoading }: TasksListProps) {
               
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <h3 className="text-[13px] font-semibold text-gray-800 truncate">{mission.title}</h3>
-                <p className="text-[11px] text-gray-400 mt-0.5 truncate">{mission.territory || 'Intervention sur site'}</p>
+                <h3 className="text-md font-semibold text-gray-800 truncate">{mission.title}</h3>
+                <p className="text-sm text-gray-500 font-medium mt-0.5 truncate">{mission.territory || 'Intervention sur site'}</p>
               </div>
               
               {/* Actions */}

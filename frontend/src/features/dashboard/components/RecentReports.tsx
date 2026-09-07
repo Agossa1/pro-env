@@ -5,7 +5,7 @@ const STATUS_STYLES: Record<string, string> = {
   in_review: 'text-amber-700 bg-amber-50',
   assigned: 'text-indigo-700 bg-indigo-50',
   resolved: 'text-emerald-700 bg-emerald-50',
-  closed: 'text-gray-600 bg-gray-100',
+  closed: 'text-gray-500 bg-gray-100',
   rejected: 'text-rose-700 bg-rose-50',
 };
 const STATUS_LABELS: Record<string, string> = {
@@ -59,14 +59,14 @@ export function RecentReports({ result, search, status, onSearchChange, onStatus
           <select
             value={status}
             onChange={(e) => { onStatusChange(e.target.value); onPageChange(1); }}
-            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 focus:outline-none focus:ring-1 focus:ring-benin-green/30 bg-white"
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-500 focus:outline-none focus:ring-1 focus:ring-benin-green/30 bg-white"
           >
             <option value="">Tous les statuts</option>
             {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
           {/* Recherche */}
           <div className="relative flex-1 sm:w-52">
-            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -104,7 +104,7 @@ export function RecentReports({ result, search, status, onSearchChange, onStatus
               : data.length === 0
               ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-400">
+                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-500 font-medium">
                     Aucun signalement trouvé
                   </td>
                 </tr>
@@ -117,11 +117,11 @@ export function RecentReports({ result, search, status, onSearchChange, onStatus
                       <span className="text-sm font-medium text-gray-900 truncate max-w-[180px]">{r.title}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(r.reportedAt)}</td>
-                  <td className="px-4 py-4 text-sm text-gray-500">{CATEGORY_LABELS[r.category] ?? r.category}</td>
-                  <td className="px-4 py-4 text-sm text-gray-500 truncate max-w-[120px]">{r.territory}</td>
+                  <td className="px-4 py-4 text-sm text-gray-500 font-medium whitespace-nowrap">{formatDate(r.reportedAt)}</td>
+                  <td className="px-4 py-4 text-sm text-gray-500 font-medium">{CATEGORY_LABELS[r.category] ?? r.category}</td>
+                  <td className="px-4 py-4 text-sm text-gray-500 font-medium truncate max-w-[120px]">{r.territory}</td>
                   <td className="px-4 py-4">
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_STYLES[r.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_STYLES[r.status] ?? 'bg-gray-100 text-gray-500'}`}>
                       {STATUS_LABELS[r.status] ?? r.status}
                     </span>
                   </td>
@@ -138,14 +138,14 @@ export function RecentReports({ result, search, status, onSearchChange, onStatus
           <button
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
-            className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 disabled:opacity-40 transition-colors"
           >
             ← Précédent
           </button>
           <div className="flex items-center gap-1">
             {pageNumbers().map((p, i) =>
               p === '...'
-                ? <span key={i} className="w-8 text-center text-sm text-gray-400">…</span>
+                ? <span key={i} className="w-8 text-center text-sm text-gray-500 font-medium">…</span>
                 : (
                   <button
                     key={i}
@@ -153,7 +153,7 @@ export function RecentReports({ result, search, status, onSearchChange, onStatus
                     className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
                       p === page
                         ? 'bg-benin-green text-white shadow-sm'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        : 'text-gray-500 hover:bg-gray-100'
                     }`}
                   >
                     {p}
@@ -164,7 +164,7 @@ export function RecentReports({ result, search, status, onSearchChange, onStatus
           <button
             onClick={() => onPageChange(page + 1)}
             disabled={page === totalPages}
-            className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 disabled:opacity-40 transition-colors"
           >
             Suivant →
           </button>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -10,6 +11,7 @@ import {
   type CreateStructurePayload,
 } from '../services/structures.types';
 import { TYPE_LABELS, CONDITION_LABELS } from './StructuresPage';
+import { structuresApi } from '../services/structures.api';
 
 interface Props {
   onClose: () => void;
@@ -42,6 +44,12 @@ const ClickHandler: React.FC<ClickHandlerProps> = ({ onPick }) => {
   return null;
 };
 
+// ─── Prévisualisation d'une photo sélectionnée ───────────────────────────────
+interface PhotoPreview {
+  file: File;
+  previewUrl: string;
+}
+
 export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
   const { create } = useStructures();
   const { territories, loadForForm } = useTerritory();
@@ -61,12 +69,25 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
   const [description, setDescription] = useState('');
   const [material, setMaterial] = useState('');
 
+  // Photos
+  const [photoPreviews, setPhotoPreviews] = useState<PhotoPreview[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadForForm();
   }, [loadForForm]);
+
+  // Nettoyage des object URLs à la destruction du composant
+  useEffect(() => {
+    return () => {
+      photoPreviews.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    };
+  }, [photoPreviews]);
 
   // Départements et communes déduits de la hiérarchie seedée
   const departments = territories.filter((t) => t.territoryTypeCode === 'DEPARTMENT');
@@ -82,6 +103,49 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
     setLatitude(Number(lat.toFixed(6)));
     setLongitude(Number(lng.toFixed(6)));
   };
+
+  // ── Gestion des photos ────────────────────────────────────────────────────
+
+  const addFiles = useCallback((files: FileList | File[]) => {
+    const imageFiles = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    const newPreviews: PhotoPreview[] = imageFiles.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+    setPhotoPreviews((prev) => [...prev, ...newPreviews]);
+  }, []);
+
+  const removePhoto = (index: number) => {
+    setPhotoPreviews((prev) => {
+      URL.revokeObjectURL(prev[index].previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      addFiles(e.target.files);
+    }
+    // Réinitialise l'input pour permettre re-sélection du même fichier
+    e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => setIsDragging(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files.length > 0) {
+      addFiles(e.dataTransfer.files);
+    }
+  };
+
+  // ── Soumission ────────────────────────────────────────────────────────────
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,12 +168,32 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
         latitude: latitude,
         longitude: longitude,
       };
-      await create(payload).unwrap();
+      const result = await create(payload).unwrap();
+
+      // Upload des photos une par une
+      if (photoPreviews.length > 0) {
+        const structureId = (result as any)?.id ?? (result as any)?.data?.id;
+        if (structureId) {
+          for (let i = 0; i < photoPreviews.length; i++) {
+            setUploadProgress(`Upload photo ${i + 1}/${photoPreviews.length}…`);
+            try {
+              await structuresApi.uploadPhoto(structureId, photoPreviews[i].file);
+            } catch (uploadErr) {
+              console.warn(`Échec upload photo ${i + 1}:`, uploadErr);
+            }
+          }
+        }
+      }
+
+      toast.success('Structure créée avec succès !');
       onClose();
     } catch (err: any) {
-      setError(err?.message || "Une erreur est survenue lors de la création.");
+      const msg = err?.message || "Une erreur est survenue lors de la création.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(null);
     }
   };
 
@@ -311,6 +395,86 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
               </div>
             </div>
 
+            {/* ── Photos ──────────────────────────────────────────────────────── */}
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-3">Photos (Optionnel)</p>
+
+              {/* Zone drag & drop */}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`
+                  relative flex flex-col items-center justify-center gap-2
+                  border-2 border-dashed rounded-xl p-6 cursor-pointer
+                  transition-all duration-200 select-none
+                  ${isDragging
+                    ? 'border-benin-green bg-benin-green/5 scale-[1.01]'
+                    : 'border-gray-300 bg-gray-50 hover:border-benin-green/50 hover:bg-gray-100'
+                  }
+                `}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileInputChange}
+                />
+                {/* Icône caméra */}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isDragging ? 'bg-benin-green/10' : 'bg-gray-200'}`}>
+                  <svg className={`w-5 h-5 transition-colors ${isDragging ? 'text-benin-green' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-700">
+                    {isDragging ? 'Déposez les photos ici' : 'Glissez des photos ou cliquez pour sélectionner'}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, WEBP — plusieurs fichiers acceptés</p>
+                </div>
+              </div>
+
+              {/* Grille des prévisualisations */}
+              {photoPreviews.length > 0 && (
+                <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {photoPreviews.map((preview, idx) => (
+                    <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                      <img
+                        src={preview.previewUrl}
+                        alt={`Photo ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Bouton suppression */}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); removePhoto(idx); }}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                        title="Retirer cette photo"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      {/* Indicateur de nom */}
+                      <div className="absolute bottom-0 inset-x-0 bg-black/50 px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <p className="text-white text-[9px] truncate">{preview.file.name}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {photoPreviews.length > 0 && (
+                <p className="text-xs text-gray-400 mt-2">
+                  {photoPreviews.length} photo{photoPreviews.length > 1 ? 's' : ''} sélectionnée{photoPreviews.length > 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+
           </div>
 
           {/* Footer */}
@@ -327,7 +491,17 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
               disabled={isSubmitting}
               className="px-5 py-2.5 text-sm font-medium text-white bg-benin-green rounded-lg hover:bg-benin-green-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isSubmitting ? 'Création...' : "Créer la structure"}
+              {isSubmitting ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  {uploadProgress ?? 'Création…'}
+                </>
+              ) : (
+                'Créer la structure'
+              )}
             </button>
           </div>
         </form>

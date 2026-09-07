@@ -102,9 +102,9 @@ const STATUS_TRANSITIONS: Partial<Record<ReportStatus, ReportStatus[]>> = {
 
 // Composant réutilisable pour une cellule de métadonnée
 const MetaCell: React.FC<{ label: string; value: React.ReactNode; wide?: boolean }> = ({ label, value, wide }) => (
-  <div className={`flex flex-col gap-0.5 py-3 px-4 rounded-lg bg-gray-50 border border-gray-100${wide ? ' col-span-2' : ''}`}>
+  <div className={`flex flex-col gap-0.5 py-3 px-4 rounded-lg bg-gray-50 border border-gray-100${wide ? ' sm:col-span-2' : ''}`}>
     <span className="text-xs text-gray-400">{label}</span>
-    <span className="text-sm font-medium text-gray-800">{value}</span>
+    <span className="text-sm font-medium text-gray-800 break-words">{value}</span>
   </div>
 );
 
@@ -173,7 +173,7 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 lg:p-6">
         <div
           className="absolute inset-0 bg-black/30"
           onClick={onClose}
@@ -181,10 +181,15 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
         />
 
         {/* Modal */}
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden">
+        <div className="relative bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-xl flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden">
+
+          {/* Drag indicator (mobile) */}
+          <div className="flex justify-center pt-3 pb-1 sm:hidden shrink-0">
+            <div className="w-10 h-1 rounded-full bg-gray-200" />
+          </div>
 
           {/* En-tête */}
-          <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between gap-4 shrink-0">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b border-gray-100 flex items-start justify-between gap-3 sm:gap-4 shrink-0">
             <div className="flex-1 min-w-0">
 
               {/* Badges statut / priorité / risque */}
@@ -242,12 +247,12 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
           </div>
 
           {/* Corps scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-5">
 
             {/* Description */}
             <div>
               <p className="text-xs font-medium text-gray-400 mb-1.5">Description</p>
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <p className="text-sm text-gray-700 leading-relaxed break-words">
                 {report.description || <span className="text-gray-400 italic">Aucune description fournie.</span>}
               </p>
             </div>
@@ -281,7 +286,7 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
             {/* Métadonnées */}
             <div>
               <p className="text-xs font-medium text-gray-400 mb-2">Informations</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <MetaCell label="Déclaré le" value={new Date(report.reportedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} />
                 <MetaCell label="Délai SLA" value={`${report.slaHours} h`} />
                 <MetaCell label="Priorité" value={PRIORITY_LABELS[report.priority] || report.priority} />
@@ -321,7 +326,7 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
                 {loadingDetails ? (
                   <p className="text-sm text-gray-400 italic">Chargement des détails…</p>
                 ) : details ? (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {report.issueCategory === IssueCategory.DRAINAGE && (
                       <>
                         {details.blockage_level_pct != null && (
@@ -413,18 +418,18 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
           </div>
 
           {/* Pied */}
-          <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 shrink-0">
-            <button
-              onClick={() => setIsCreateMissionModalOpen(true)}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors shadow-sm"
-            >
-              Créer une mission
-            </button>
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 shrink-0">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors order-2 sm:order-1"
             >
               Fermer
+            </button>
+            <button
+              onClick={() => setIsCreateMissionModalOpen(true)}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors shadow-sm order-1 sm:order-2"
+            >
+              Créer une mission
             </button>
           </div>
         </div>

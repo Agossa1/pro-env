@@ -113,41 +113,99 @@ export const InterventionDetailsModal: React.FC<Props> = ({ interventionId, onCl
     }
   };
 
+  // Boutons d'action selon le statut
+  const actionButtons = () => {
+    if (intervention.status === InterventionStatus.NOT_STARTED) {
+      return (
+        <button
+          onClick={() => handleStatusChange(InterventionStatus.STARTED)}
+          className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-medium text-white bg-benin-green rounded-lg hover:bg-benin-green-dark transition-colors"
+        >
+          Démarrer
+        </button>
+      );
+    }
+    if (intervention.status === InterventionStatus.STARTED || intervention.status === InterventionStatus.RESUMED) {
+      return (
+        <>
+          <button
+            onClick={() => handleStatusChange(InterventionStatus.PAUSED)}
+            className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors"
+          >
+            Mettre en pause
+          </button>
+          <button
+            onClick={() => handleStatusChange(InterventionStatus.COMPLETED)}
+            className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Terminer
+          </button>
+        </>
+      );
+    }
+    if (intervention.status === InterventionStatus.PAUSED) {
+      return (
+        <button
+          onClick={() => handleStatusChange(InterventionStatus.RESUMED)}
+          className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          Reprendre
+        </button>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 lg:p-6" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-full">
+      {/* Modal — bottom-sheet sur mobile, centré sur desktop */}
+      <div className="relative bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-xl flex flex-col max-h-[92dvh] sm:max-h-[88vh]">
+
+        {/* ── Indicateur de glissement (mobile) ── */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden shrink-0">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h2 className="text-lg font-bold text-gray-900">Détails de l'intervention</h2>
-              <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[intervention.status]}`}>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 flex items-start justify-between gap-3 shrink-0">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">Détails de l'intervention</h2>
+              <span className={`px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${STATUS_COLORS[intervention.status]}`}>
                 {STATUS_LABELS[intervention.status]}
               </span>
             </div>
-            <p className="text-sm text-gray-500 font-mono">ID: {intervention.id}</p>
+            <p className="text-xs sm:text-sm text-gray-500 font-mono truncate">
+              Numéro d'identification : {intervention.id}
+            </p>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600 rounded-full transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          <button
+            onClick={onClose}
+            className="shrink-0 p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600 rounded-full transition-colors"
+            aria-label="Fermer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        {/* Body */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-8">
+        {/* Body — scrollable */}
+        <div className="overflow-y-auto flex-1 px-4 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8">
           
-          {/* Section: Informations */}
+          {/* Section: Informations logistiques */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Informations logistiques</h3>
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="block text-gray-500 mb-1">Véhicules</span>
-                <span className="font-medium text-gray-900">{intervention.vehicleNotes || '—'}</span>
+                <span className="block text-gray-500 mb-1 text-xs uppercase tracking-wide">Véhicules</span>
+                <span className="font-medium text-gray-900 break-words">{intervention.vehicleNotes || '—'}</span>
               </div>
               <div>
-                <span className="block text-gray-500 mb-1">Équipements</span>
-                <span className="font-medium text-gray-900">{intervention.equipmentNotes || '—'}</span>
+                <span className="block text-gray-500 mb-1 text-xs uppercase tracking-wide">Équipements</span>
+                <span className="font-medium text-gray-900 break-words">{intervention.equipmentNotes || '—'}</span>
               </div>
             </div>
           </div>
@@ -162,9 +220,9 @@ export const InterventionDetailsModal: React.FC<Props> = ({ interventionId, onCl
                 ) : (
                   <ul className="divide-y divide-gray-100">
                     {teamMembers.map(m => (
-                      <li key={m.id} className="p-3 flex items-center justify-between text-sm hover:bg-gray-50">
+                      <li key={m.id} className="px-4 py-3 flex items-center justify-between text-sm hover:bg-gray-50">
                         <span className="font-medium text-gray-900">{m.user?.firstName} {m.user?.lastName}</span>
-                        <span className="text-gray-500 capitalize">{m.role}</span>
+                        <span className="text-gray-500 capitalize text-xs bg-gray-100 px-2 py-0.5 rounded">{m.role}</span>
                       </li>
                     ))}
                   </ul>
@@ -173,60 +231,77 @@ export const InterventionDetailsModal: React.FC<Props> = ({ interventionId, onCl
             </div>
           )}
 
-          {/* Section: Rapports */}
+          {/* Section: Rapports terrain */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 gap-2">
               <h3 className="text-sm font-semibold text-gray-900">Rapports terrain</h3>
-              {!showReportForm && intervention.status !== InterventionStatus.COMPLETED && intervention.status !== InterventionStatus.CANCELLED && (
-                <button 
+              {!showReportForm
+                && intervention.status !== InterventionStatus.COMPLETED
+                && intervention.status !== InterventionStatus.CANCELLED && (
+                <button
                   onClick={() => setShowReportForm(true)}
-                  className="text-xs font-medium text-benin-green hover:text-benin-green-dark bg-benin-green-light px-2 py-1 rounded"
+                  className="shrink-0 text-xs font-medium text-benin-green hover:text-benin-green-dark bg-benin-green-light px-2.5 py-1 rounded-lg transition-colors"
                 >
                   + Ajouter un rapport
                 </button>
               )}
             </div>
-            
+
             {showReportForm && (
               <form onSubmit={handleAddReport} className="mb-6 bg-benin-green-light/30 p-4 rounded-xl border border-benin-green/20 space-y-4">
                 <div>
                   <label className={labelClass}>Travaux réalisés</label>
-                  <textarea 
-                    required rows={2} 
-                    className={inputClass} 
-                    value={workDone} onChange={e => setWorkDone(e.target.value)} 
-                    placeholder="Description des tâches accomplies..." 
+                  <textarea
+                    required
+                    rows={2}
+                    className={inputClass}
+                    value={workDone}
+                    onChange={e => setWorkDone(e.target.value)}
+                    placeholder="Description des tâches accomplies..."
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>% de dégagement</label>
-                    <input 
+                    <input
                       type="number" min="0" max="100" required
                       className={inputClass}
-                      value={blockagePct} onChange={e => setBlockagePct(Number(e.target.value))}
+                      value={blockagePct}
+                      onChange={e => setBlockagePct(Number(e.target.value))}
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>Score de condition finale (0-100)</label>
-                    <input 
+                    <label className={labelClass}>Score condition finale (0-10)</label>
+                    <input
                       type="number" min="0" max="10" required
                       className={inputClass}
-                      value={conditionScore} onChange={e => setConditionScore(Number(e.target.value))}
+                      value={conditionScore}
+                      onChange={e => setConditionScore(Number(e.target.value))}
                     />
                   </div>
                 </div>
                 <div>
                   <label className={labelClass}>Recommandations</label>
-                  <input 
-                    type="text" 
-                    className={inputClass} 
-                    value={recommendations} onChange={e => setRecommendations(e.target.value)} 
+                  <input
+                    type="text"
+                    className={inputClass}
+                    value={recommendations}
+                    onChange={e => setRecommendations(e.target.value)}
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setShowReportForm(false)} className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
-                  <button type="submit" disabled={isSubmitting} className="px-3 py-1.5 text-xs font-medium text-white bg-benin-green hover:bg-benin-green-dark rounded-lg disabled:opacity-50">
+                  <button
+                    type="button"
+                    onClick={() => setShowReportForm(false)}
+                    className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-3 py-1.5 text-xs font-medium text-white bg-benin-green hover:bg-benin-green-dark rounded-lg disabled:opacity-50 transition-colors"
+                  >
                     {isSubmitting ? 'Envoi...' : 'Soumettre le rapport'}
                   </button>
                 </div>
@@ -234,21 +309,25 @@ export const InterventionDetailsModal: React.FC<Props> = ({ interventionId, onCl
             )}
 
             {reports.length === 0 ? (
-              <p className="text-sm text-gray-500 italic">Aucun rapport terrain pour le moment.</p>
+              <p className="text-sm text-gray-500 italic py-4 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                Aucun rapport terrain pour le moment.
+              </p>
             ) : (
               <div className="space-y-3">
                 {reports.map(r => (
                   <div key={r.id} className="bg-white border border-gray-200 rounded-xl p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <p className="text-sm font-medium text-gray-900">{r.workDone}</p>
-                      <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleString()}</span>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <p className="text-sm font-medium text-gray-900 flex-1">{r.workDone}</p>
+                      <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">
+                        {new Date(r.createdAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+                      </span>
                     </div>
-                    <div className="flex gap-4 text-xs text-gray-600 mt-2 bg-gray-50 p-2 rounded-lg">
-                      <span>Dégagement: <strong className="text-gray-900">{r.blockageRemovedPct}%</strong></span>
-                      <span>Score final: <strong className="text-gray-900">{r.finalConditionScore}/100</strong></span>
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg">
+                      <span>Dégagement : <strong className="text-gray-900">{r.blockageRemovedPct}%</strong></span>
+                      <span>Score final : <strong className="text-gray-900">{r.finalConditionScore}/100</strong></span>
                     </div>
                     {r.recommendations && (
-                      <p className="text-xs text-gray-500 mt-2 italic">Recommandation: {r.recommendations}</p>
+                      <p className="text-xs text-gray-500 mt-2 italic">Recommandation : {r.recommendations}</p>
                     )}
                   </div>
                 ))}
@@ -258,46 +337,55 @@ export const InterventionDetailsModal: React.FC<Props> = ({ interventionId, onCl
 
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
-          <div className="flex gap-2">
-            {intervention.status === InterventionStatus.NOT_STARTED && (
-              <button onClick={() => handleStatusChange(InterventionStatus.STARTED)} className="px-4 py-2 text-sm font-medium text-white bg-benin-green rounded-lg hover:bg-benin-green-dark">
-                Démarrer
+        {/* Footer — responsive */}
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50 shrink-0">
+          {/* Actions de statut (pleine largeur sur mobile) */}
+          {actionButtons() && (
+            <div className="flex flex-wrap gap-2 mb-3 sm:mb-0 sm:hidden">
+              {actionButtons()}
+            </div>
+          )}
+
+          <div className="hidden sm:flex items-center justify-between gap-3">
+            {/* Boutons d'action à gauche (desktop) */}
+            <div className="flex gap-2">
+              {actionButtons()}
+            </div>
+
+            {/* Supprimer + Fermer à droite (desktop) */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors"
+              >
+                Supprimer
               </button>
-            )}
-            {(intervention.status === InterventionStatus.STARTED || intervention.status === InterventionStatus.RESUMED) && (
-              <>
-                <button onClick={() => handleStatusChange(InterventionStatus.PAUSED)} className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700">
-                  Mettre en pause
-                </button>
-                <button onClick={() => handleStatusChange(InterventionStatus.COMPLETED)} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
-                  Terminer
-                </button>
-              </>
-            )}
-            {intervention.status === InterventionStatus.PAUSED && (
-              <button onClick={() => handleStatusChange(InterventionStatus.RESUMED)} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">
-                Reprendre
+              <button
+                onClick={onClose}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                Fermer
               </button>
-            )}
+            </div>
           </div>
-          
-          <div className="flex items-center gap-2">
+
+          {/* Mobile : Supprimer + Fermer sur une ligne séparée */}
+          <div className="flex gap-2 sm:hidden">
             <button
               onClick={handleDelete}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors"
+              className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors"
             >
               Supprimer
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
             >
               Fermer
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );

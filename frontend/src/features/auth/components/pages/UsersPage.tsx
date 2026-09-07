@@ -90,28 +90,28 @@ export function UsersPage() {
                           {user.fullName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-semibold text-lg text-gray-900">{user.fullName}</div>
-                          <div className="text-base text-gray-500">{user.email}</div>
-                          {user.phone && <div className="text-lg text-gray-400">{user.phone}</div>}
+                          <div className="font-semibold text-sm text-gray-900">{user.fullName}</div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
+                          {user.phone && <div className="text-sm text-gray-400">{user.phone}</div>}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md border text-lg font-medium bg-gray-50 text-gray-700 border-gray-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md border text-sm font-medium bg-gray-50 text-gray-700 border-gray-200">
                         {user.roleName || user.roleCode}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-base text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-600">
                       {user.territoryName || '—'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1">
                         {user.isActive ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-base font-medium bg-emerald-50 text-emerald-700 w-fit">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-emerald-50 text-emerald-700 w-fit">
                             Actif
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-base font-medium bg-rose-50 text-rose-700 w-fit">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-rose-50 text-rose-700 w-fit">
                             Inactif
                           </span>
                         )}

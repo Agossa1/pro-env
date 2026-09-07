@@ -116,3 +116,18 @@ export interface UpdateStructurePayload {
   longitude?: number | null;
   metadata?: Record<string, unknown> | null;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEDIA TYPES — photos attachées à une structure
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface StructureMedia {
+  id: string;
+  fileName: string;
+  storagePath: string; // URL Cloudinary publique
+  publicId: string;    // ID Cloudinary (pour la suppression)
+  mimeType: string;
+  sizeBytes: number;
+  uploadedBy: string | null;
+  createdAt: string;
+}

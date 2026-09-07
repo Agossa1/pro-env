@@ -120,7 +120,7 @@ export const TeamsPage: React.FC = () => {
                     <br />
                     <button
                       onClick={() => setIsCreateOpen(true)}
-                      className="mt-2 text-benin-green hover:underline text-lg"
+                      className="mt-2 text-benin-green hover:underline text-sm"
                     >
                       Créer la première équipe →
                     </button>
@@ -134,16 +134,16 @@ export const TeamsPage: React.FC = () => {
                 {filteredTeams.map((team) => (
                   <tr key={team.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="px-6 py-4">
-                      <p className="font-medium text-lgtext-gray-900 truncate max-w-[200px]">{team.name}</p>
+                      <p className="font-medium text-sm text-gray-900 truncate max-w-[200px]">{team.name}</p>
 
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-base font-medium border ${TEAM_TYPE_COLORS[team.teamType] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium border ${TEAM_TYPE_COLORS[team.teamType] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                         {TEAM_TYPE_LABELS[team.teamType] || team.teamType}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-base font-medium border ${
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium border ${
                         team.isActive
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : 'bg-gray-100 text-gray-500 border-gray-200'
@@ -157,7 +157,7 @@ export const TeamsPage: React.FC = () => {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => setSelectedTeam(team)}
-                        className="text-benin-green hover:text-benin-green-dark font-medium text-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-benin-green hover:text-benin-green-dark font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         Détails
                       </button>

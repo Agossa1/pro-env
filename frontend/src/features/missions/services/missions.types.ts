@@ -44,6 +44,7 @@ export interface Mission {
   territoryId: string;
   territoryName?: string;
   reportId: string | null;
+  infrastructureId: string | null;
   missionType: MissionType;
   priorityLevel: PriorityLevel;
   title: string;
@@ -108,6 +109,7 @@ export interface PaginatedResult<T> {
 export interface CreateMissionPayload {
   territoryId: string;
   reportId?: string | null;
+  infrastructureId?: string | null;
   missionType: MissionType;
   priorityLevel?: PriorityLevel;
   title: string;
@@ -122,6 +124,7 @@ export interface CreateMissionPayload {
 export interface UpdateMissionPayload {
   title?: string;
   description?: string | null;
+  infrastructureId?: string | null;
   missionType?: MissionType;
   priorityLevel?: PriorityLevel;
   status?: MissionStatus;

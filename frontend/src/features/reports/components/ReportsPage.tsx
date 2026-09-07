@@ -136,7 +136,7 @@ export const ReportsPage: React.FC = () => {
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
+          className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -147,7 +147,7 @@ export const ReportsPage: React.FC = () => {
 
       {/* Barre de filtres */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-2 flex-1">
+        <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full sm:w-auto">
           <input
             type="text"
             placeholder="Rechercher..."
@@ -155,13 +155,13 @@ export const ReportsPage: React.FC = () => {
             onChange={(e) => setSearch(e.target.value)}
             className={`${inputCls} w-full sm:max-w-xs`}
           />
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={inputCls}>
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={`${inputCls} w-full sm:w-auto`}>
             <option value="">Tous les statuts</option>
             {Object.entries(STATUS_LABELS).map(([val, label]) => (
               <option key={val} value={val}>{label}</option>
             ))}
           </select>
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className={inputCls}>
+          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className={`${inputCls} w-full sm:w-auto`}>
             <option value="">Toutes les catégories</option>
             {Object.entries(CATEGORY_LABELS).map(([val, label]) => (
               <option key={val} value={val}>{label}</option>
@@ -373,7 +373,7 @@ export const ReportsPage: React.FC = () => {
       {/* ── Lightbox ── */}
       {lightbox && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
           onClick={() => setLightbox(null)}
         >
           <button

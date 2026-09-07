@@ -65,6 +65,7 @@ export const UpdateReportSchema = z.object({
   resolvedAt: z.coerce.date().nullable().optional(),
   latitude: z.number().min(-90).max(90).nullable().optional(),
   longitude: z.number().min(-180).max(180).nullable().optional(),
+  infrastructureId: z.string().uuid("L'infrastructure doit être un UUID valide").nullable().optional(),
 });
 
 export const IdParamSchema = z.object({

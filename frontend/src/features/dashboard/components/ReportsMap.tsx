@@ -120,7 +120,7 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
       });
 
       // Tile layer
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
       }).addTo(map);
 
@@ -374,8 +374,8 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
             <FiMapPin className="w-4 h-4 text-[#1E88E5]" />
           </div>
           <div>
-            <h2 className="text-[15px] font-semibold text-[#4B5563]">Carte des Signalements</h2>
-            <p className="text-[11px] text-gray-400">{reports.length} signalement{reports.length > 1 ? 's' : ''} géolocalisé{reports.length > 1 ? 's' : ''}</p>
+            <h2 className="text-lg font-bold text-gray-900">Carte des Signalements</h2>
+            <p className="text-sm text-gray-600">{reports.length} signalement{reports.length > 1 ? 's' : ''} géolocalisé{reports.length > 1 ? 's' : ''}</p>
           </div>
         </div>
 
@@ -387,8 +387,8 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
                 <div className={`w-6 h-6 rounded-full ${s.bg} flex items-center justify-center`}>
                   <s.icon className={`w-3 h-3 ${s.color}`} />
                 </div>
-                <span className="text-[12px] font-semibold text-gray-700">{statCounts[s.key]}</span>
-                <span className="text-[11px] text-gray-400 hidden sm:inline">{s.label}</span>
+                <span className="text-lg font-medium text-gray-900">{statCounts[s.key]}</span>
+                <span className="text-sm text-gray-600 hidden sm:inline">{s.label}</span>
               </div>
             ))}
           </div>
@@ -397,7 +397,7 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
 
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-500 transition-colors"
             title={isFullscreen ? "Réduire la carte" : "Agrandir la carte"}
           >
             {isFullscreen ? <FiMinimize className="w-4 h-4" /> : <FiMaximize className="w-4 h-4" />}
@@ -430,7 +430,7 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
           
           {/* Section Territoires */}
           <div className="mb-3">
-            <p className="text-[10px] font-semibold text-gray-500 tracking-wide mb-1.5">Découpage administratif</p>
+            <p className="text-xs font-semibold text-gray-500 tracking-wide mb-1.5">Découpage administratif</p>
             <div className="flex flex-col gap-0.5">
               
               <div 
@@ -439,9 +439,9 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
               >
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-3 bg-[#10B981]/10 border-2 border-[#10B981] rounded-[2px]" />
-                  <span className="text-[11px] text-gray-600">Département</span>
+                  <span className="text-xs text-gray-500 font-medium">Département</span>
                 </div>
-                {visibleLayers.DEPARTMENT ? <FiEye className="w-3.5 h-3.5 text-gray-400" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
+                {visibleLayers.DEPARTMENT ? <FiEye className="w-3.5 h-3.5 text-gray-500" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
               </div>
               
               <div 
@@ -450,9 +450,9 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
               >
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-3 bg-[#6366F1]/10 border border-[#6366F1] border-dashed rounded-[2px]" />
-                  <span className="text-[11px] text-gray-600">Commune</span>
+                  <span className="text-xs text-gray-500 font-medium">Commune</span>
                 </div>
-                {visibleLayers.COMMUNE ? <FiEye className="w-3.5 h-3.5 text-gray-400" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
+                {visibleLayers.COMMUNE ? <FiEye className="w-3.5 h-3.5 text-gray-500" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
               </div>
 
               <div 
@@ -461,9 +461,9 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
               >
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-3 bg-[#F59E0B]/10 border border-[#F59E0B] border-dashed opacity-70 rounded-[2px]" />
-                  <span className="text-[11px] text-gray-600">Arrondissement</span>
+                  <span className="text-xs text-gray-500 font-medium">Arrondissement</span>
                 </div>
-                {visibleLayers.ARRONDISSEMENT ? <FiEye className="w-3.5 h-3.5 text-gray-400" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
+                {visibleLayers.ARRONDISSEMENT ? <FiEye className="w-3.5 h-3.5 text-gray-500" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
               </div>
 
               <div 
@@ -472,9 +472,9 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
               >
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-3 bg-[#EF4444]/10 border border-[#EF4444] border-dashed opacity-50 rounded-[2px]" />
-                  <span className="text-[11px] text-gray-600">Quartier/Village</span>
+                  <span className="text-xs text-gray-500 font-medium">Quartier/Village</span>
                 </div>
-                {visibleLayers.QUARTIER ? <FiEye className="w-3.5 h-3.5 text-gray-400" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
+                {visibleLayers.QUARTIER ? <FiEye className="w-3.5 h-3.5 text-gray-500" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
               </div>
 
               <div 
@@ -482,10 +482,10 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
                 onClick={() => toggleLayer('labels')}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-3 flex items-center justify-center font-bold text-[10px] text-gray-400">Aa</div>
-                  <span className="text-[11px] text-gray-600">Nom du territoire</span>
+                  <div className="w-4 h-3 flex items-center justify-center font-bold text-xs text-gray-500 font-medium">Aa</div>
+                  <span className="text-xs text-gray-500 font-medium">Nom du territoire</span>
                 </div>
-                {visibleLayers.labels ? <FiEye className="w-3.5 h-3.5 text-gray-400" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
+                {visibleLayers.labels ? <FiEye className="w-3.5 h-3.5 text-gray-500" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
               </div>
 
             </div>
@@ -493,7 +493,7 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
 
           {/* Section Signalements */}
           <div>
-            <p className="text-[10px] font-semibold text-gray-500 tracking-wide mb-1.5">Signalements</p>
+            <p className="text-xs font-semibold text-gray-500  mb-1.5">Signalements</p>
             <div className="flex flex-col gap-0.5">
               {LEGEND_ITEMS.map(item => {
                 const isVisible = visibleLayers[item.key as keyof typeof visibleLayers];
@@ -508,9 +508,9 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
                         className="w-3 h-3 rounded-full border-2 border-white shadow-sm"
                         style={{ background: item.color }}
                       />
-                      <span className="text-[11px] text-gray-600">{item.label}</span>
+                      <span className="text-xs text-gray-500 font-medium">{item.label}</span>
                     </div>
-                    {isVisible ? <FiEye className="w-3.5 h-3.5 text-gray-400" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
+                    {isVisible ? <FiEye className="w-3.5 h-3.5 text-gray-500" /> : <FiEyeOff className="w-3.5 h-3.5 text-gray-300" />}
                   </div>
                 );
               })}
@@ -522,7 +522,7 @@ export function ReportsMap({ reports, isLoading }: ReportsMapProps) {
 
         {reports.filter(r => r.latitude && r.longitude).length === 0 && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[900] flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100 pointer-events-none">
-            <FiMapPin className="w-4 h-4 text-gray-400" />
+            <FiMapPin className="w-4 h-4 text-gray-500" />
             <p className="text-xs font-medium text-gray-500">Aucun signalement géolocalisé</p>
           </div>
         )}

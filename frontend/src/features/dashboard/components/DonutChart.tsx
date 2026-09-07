@@ -85,7 +85,7 @@ export function DonutChart({ data, isLoading }: DonutChartProps) {
 
   return (
     <div className="bg-white p-5 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-100 h-[380px] flex flex-col relative">
-      <h2 className="text-[15px] font-semibold text-[#4B5563] mb-2">Statut des Signalements</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-2">Statut des Signalements</h2>
       
       <div className="flex-1 min-h-0 relative flex items-center justify-center pb-20">
         <div className="w-[220px] h-[220px]">
@@ -100,9 +100,9 @@ export function DonutChart({ data, isLoading }: DonutChartProps) {
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-[12px] font-medium text-gray-700">{item.name}</span>
+                <span className="text-sm font-medium text-gray-500">{item.name}</span>
               </div>
-              <div className="flex items-center gap-1 text-[12px] text-gray-500">
+              <div className="flex items-center gap-1 text-sm text-gray-500 font-medium">
                 <FiArrowUp className="w-3 h-3 text-emerald-500" />
                 {item.percentage}%
               </div>

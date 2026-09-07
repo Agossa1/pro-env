@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { RecentIntervention } from '../services/dashboard.types';
 
 const STATUS_STYLES: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-600',
+  draft: 'bg-gray-100 text-gray-500',
   assigned: 'bg-benin-green-light text-benin-green',
   in_progress: 'bg-amber-50 text-amber-700',
   completed: 'bg-emerald-50 text-emerald-700',
@@ -39,14 +39,14 @@ export function RecentInterventions({ interventions, isLoading }: Props) {
           <button
             onClick={() => setStartIndex(Math.max(0, startIndex - 1))}
             disabled={startIndex === 0}
-            className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-600 disabled:opacity-30 transition-all"
+            className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-500 disabled:opacity-30 transition-all"
           >
             ‹
           </button>
           <button
             onClick={() => setStartIndex(Math.min(interventions.length - visibleCount, startIndex + 1))}
             disabled={startIndex + visibleCount >= interventions.length}
-            className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-600 disabled:opacity-30 transition-all"
+            className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-500 disabled:opacity-30 transition-all"
           >
             ›
           </button>
@@ -64,7 +64,7 @@ export function RecentInterventions({ interventions, isLoading }: Props) {
           ))}
         </div>
       ) : interventions.length === 0 ? (
-        <div className="py-8 text-center text-sm text-gray-400">Aucune intervention récente</div>
+        <div className="py-8 text-center text-sm text-gray-500 font-medium">Aucune intervention récente</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {visible.map((item) => (
@@ -76,12 +76,12 @@ export function RecentInterventions({ interventions, isLoading }: Props) {
                   {getInitials(item.societeName ?? 'NA')}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-gray-700 truncate">{item.societeName ?? '—'}</p>
-                  <p className="text-[10px] text-gray-400">{formatDate(item.createdAt)}</p>
+                  <p className="text-xs font-semibold text-gray-500 truncate">{item.societeName ?? '—'}</p>
+                  <p className="text-xs text-gray-500 font-medium">{formatDate(item.createdAt)}</p>
                 </div>
               </div>
               <p className="text-sm font-medium text-gray-800 line-clamp-2">{item.title}</p>
-              <span className={`self-start text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[item.status] ?? 'bg-gray-100 text-gray-600'}`}>
+              <span className={`self-start text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[item.status] ?? 'bg-gray-100 text-gray-500'}`}>
                 {STATUS_LABELS[item.status] ?? item.status}
               </span>
             </div>

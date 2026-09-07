@@ -206,4 +206,5 @@ export interface UpdateReportPayload {
   resolvedAt?: Date | null;
   latitude?: number | null;
   longitude?: number | null;
+  infrastructureId?: string | null;
 }

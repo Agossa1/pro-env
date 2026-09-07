@@ -16,6 +16,7 @@ const PriorityEnum = z.enum(Object.values(PriorityLevel) as [string, ...string[]
 export const CreateMissionSchema = z.object({
   territoryId: z.string().uuid("Le territoire doit être un UUID valide"),
   reportId: z.string().uuid("Le rapport doit être un UUID valide").nullable().optional(),
+  infrastructureId: z.string().uuid("L'infrastructure doit être un UUID valide").nullable().optional(),
   missionType: MissionTypeEnum,
   priorityLevel: PriorityEnum.optional(),
   title: z.string().min(1, 'Le titre est requis').max(255, 'Le titre ne doit pas dépasser 255 caractères'),
@@ -30,6 +31,7 @@ export const CreateMissionSchema = z.object({
 export const UpdateMissionSchema = z.object({
   title: z.string().min(1).max(255).optional(),
   description: z.string().max(2000).nullable().optional(),
+  infrastructureId: z.string().uuid("L'infrastructure doit être un UUID valide").nullable().optional(),
   missionType: MissionTypeEnum.optional(),
   priorityLevel: PriorityEnum.optional(),
   status: StatusEnum.optional(),

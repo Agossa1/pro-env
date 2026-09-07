@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useMissions } from '../hooks/useMissions';
 import { apiClient, type ApiResponse } from '../../../libs/api-client';
 import {
@@ -79,7 +80,7 @@ export const CreateMissionModal: React.FC<Props> = ({
   initialTitle = '',
   initialDescription = '',
 }) => {
-  const { addMission, isLoading } = useMissions();
+  const { addMission } = useMissions();
 
   // Territoires (cascade)
   const [departments, setDepartments] = useState<TerritoryItem[]>([]);
@@ -100,6 +101,12 @@ export const CreateMissionModal: React.FC<Props> = ({
 
   // Erreur globale
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Infrastructure liée
+  const [structures, setStructures] = useState<{ id: string; name: string; type: string }[]>([]);
+  const [loadingStructures, setLoadingStructures] = useState(false);
+  const [infrastructureId, setInfrastructureId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,6 +144,20 @@ export const CreateMissionModal: React.FC<Props> = ({
 
   const finalTerritoryId = initialTerritoryId || selectedArronId || selectedCommuneId || selectedDeptId;
 
+  // Chargement des infrastructures quand le territoire est connu
+  useEffect(() => {
+    if (!finalTerritoryId) { setStructures([]); return; }
+    setLoadingStructures(true);
+    apiClient.get<ApiResponse<any>>('/infrastructures', {
+      params: { territoryId: finalTerritoryId, limit: 200 },
+    }).then(res => {
+      const items = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+      setStructures(items);
+    }).catch(() => setStructures([]))
+      .finally(() => setLoadingStructures(false));
+  }, [finalTerritoryId]);
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
@@ -150,10 +171,12 @@ export const CreateMissionModal: React.FC<Props> = ({
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const payload: CreateMissionPayload = {
         territoryId: finalTerritoryId,
         reportId: initialReportId || null,
+        infrastructureId: infrastructureId || null,
         title: title.trim(),
         description: description.trim() || null,
         missionType,
@@ -163,9 +186,14 @@ export const CreateMissionModal: React.FC<Props> = ({
       };
 
       await addMission(payload);
+      toast.success('Mission créée avec succès !');
       onClose();
     } catch (err: any) {
-      setSubmitError(err.message || 'Erreur lors de la création de la mission.');
+      const msg = err.message || 'Erreur lors de la création de la mission.';
+      setSubmitError(msg);
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -321,6 +349,32 @@ export const CreateMissionModal: React.FC<Props> = ({
 
             <hr className="border-gray-100" />
 
+            {/* Infrastructure concernée */}
+            {finalTerritoryId && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-gray-900">Infrastructure concernée <span className="font-normal text-gray-400">(optionnel)</span></h3>
+                <select
+                  id="mission-infrastructure"
+                  disabled={loadingStructures}
+                  value={infrastructureId ?? ''}
+                  onChange={e => setInfrastructureId(e.target.value || null)}
+                  className={`${numInputClass} disabled:opacity-50 disabled:bg-gray-50`}
+                >
+                  <option value="">
+                    {loadingStructures ? 'Chargement...' : `— Aucune (${structures.length} disponibles) —`}
+                  </option>
+                  {structures.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.type})</option>
+                  ))}
+                </select>
+                {infrastructureId && (
+                  <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                    🏗 Infrastructure liée : <strong>{structures.find(s => s.id === infrastructureId)?.name}</strong>
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Planification */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-gray-900">Planification (Optionnel)</h3>
@@ -363,10 +417,10 @@ export const CreateMissionModal: React.FC<Props> = ({
           <button
             type="submit"
             form="create-mission-form"
-            disabled={isLoading}
+            disabled={isSubmitting}
             className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark border border-transparent shadow-sm transition-colors disabled:opacity-70 flex items-center gap-2"
           >
-            {isLoading && (
+            {isSubmitting && (
               <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

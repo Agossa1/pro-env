@@ -58,6 +58,7 @@ exports.UpdateReportSchema = zod_1.z.object({
     resolvedAt: zod_1.z.coerce.date().nullable().optional(),
     latitude: zod_1.z.number().min(-90).max(90).nullable().optional(),
     longitude: zod_1.z.number().min(-180).max(180).nullable().optional(),
+    infrastructureId: zod_1.z.string().uuid("L'infrastructure doit être un UUID valide").nullable().optional(),
 });
 exports.IdParamSchema = zod_1.z.object({
     id: zod_1.z.string().uuid("L'identifiant doit être un UUID valide"),

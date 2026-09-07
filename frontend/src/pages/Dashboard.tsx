@@ -34,12 +34,12 @@ function Dashboard() {
     <div className="space-y-4 sm:space-y-6">
       {/* En-tête */}
       <div>
-        <h1 className="text-xl sm:text-[22px] font-semibold text-[#4B5563] tracking-tight">Dashboard</h1>
-        <p className="text-[13px] text-gray-400 mt-0.5">Vue d'ensemble de la plateforme</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Vue d'ensemble</h1>
+        <p className="text-sm sm:text-base text-gray-500 font-medium mt-1">Récapitulatif de la plateforme et statistiques clés</p>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm border border-red-200">
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm border border-red-200 font-medium">
           {error}
         </div>
       )}

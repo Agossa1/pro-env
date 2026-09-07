@@ -98,11 +98,11 @@ export const StructuresPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Structures</h1>
-          <p className="text-lg text-gray-600">Équipements physiques urbains : caniveaux, routes, ponts, éclairage...</p>
+          <p className="text-sm text-gray-600">Équipements physiques urbains : caniveaux, routes, ponts, éclairage...</p>
         </div>
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-lg text-lg font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
+          className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
         >
           + Nouvelle structure
         </button>
@@ -116,12 +116,12 @@ export const StructuresPage: React.FC = () => {
             placeholder="Rechercher par nom ou code..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:max-w-xs pl-4 pr-4 py-2 rounded-lg border border-gray-300 text-lg focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
+            className="w-full sm:max-w-xs pl-4 pr-4 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
           />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-lg focus:ring-2 focus:ring-benin-green/20"
+            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20"
           >
             <option value="">Tous les types</option>
             {Object.entries(TYPE_LABELS).map(([val, label]) => (
@@ -131,7 +131,7 @@ export const StructuresPage: React.FC = () => {
           <select
             value={filterCondition}
             onChange={(e) => setFilterCondition(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-lg focus:ring-2 focus:ring-benin-green/20"
+            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20"
           >
             <option value="">Toutes les conditions</option>
             {Object.entries(CONDITION_LABELS).map(([val, label]) => (
@@ -141,7 +141,7 @@ export const StructuresPage: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-lg focus:ring-2 focus:ring-benin-green/20"
+            className="w-full sm:w-auto px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-benin-green/20"
           >
             <option value="">Tous les statuts</option>
             {Object.entries(STATUS_LABELS).map(([val, label]) => (
@@ -173,7 +173,7 @@ export const StructuresPage: React.FC = () => {
       {viewMode === 'table' ? (
         <div className="bg-white rounded-xl border border-gray-200  overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-lg whitespace-nowrap">
+            <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-6 py-4 font-semibold text-gray-700">Nom</th>
@@ -194,7 +194,7 @@ export const StructuresPage: React.FC = () => {
 
               {!isLoading && filteredStructures.length === 0 && (
                 <tbody className="divide-y divide-gray-100">
-                  <tr><td colSpan={7} className="px-6 py-12 text-center text-lg text-gray-500">Aucune structure trouvée.</td></tr>
+                  <tr><td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">Aucune structure trouvée.</td></tr>
                 </tbody>
               )}
 
@@ -242,9 +242,9 @@ export const StructuresPage: React.FC = () => {
             <div className="col-span-full py-12 text-center text-lg text-gray-500">Aucune structure trouvée.</div>
           ) : (
             filteredStructures.map((s) => (
-              <div key={s.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col cursor-pointer" onClick={() => setSelectedStructureId(s.id)}>
+              <div key={s.id} className="bg-white p-5 rounded-xl border border-gray-200   hover:shadow-md transition-shadow flex flex-col cursor-pointer" onClick={() => setSelectedStructureId(s.id)}>
                 <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-benin-green-light text-benin-green">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[13px] font-bold bg-benin-green-light text-benin-green">
                     {TYPE_LABELS[s.type] || s.type}
                   </span>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${CONDITION_COLORS[s.condition] || 'bg-gray-100 border-gray-200 text-gray-700'}`}>
@@ -256,7 +256,7 @@ export const StructuresPage: React.FC = () => {
                 <p className="text-lg text-gray-500 flex-1 line-clamp-3 mb-4">{s.description || 'Aucune description fournie.'}</p>
                 <div className="pt-4 border-t border-gray-100 mt-auto">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">{s.territoryName || territoryMap[s.territoryId] || '—'}</span>
+                    <span className="text-sm text-gray-500">{s.territoryName || territoryMap[s.territoryId] || '—'}</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${STATUS_COLORS[s.status] || 'bg-gray-100 border-gray-200 text-gray-700'}`}>
                       {STATUS_LABELS[s.status] || s.status}
                     </span>

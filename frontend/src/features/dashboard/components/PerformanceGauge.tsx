@@ -55,7 +55,7 @@ export function PerformanceGauge({ rate, rateChange, isLoading }: PerformanceGau
 
   return (
     <div className="bg-white p-5 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-100 h-full flex flex-col justify-between">
-      <h2 className="text-[15px] font-semibold text-[#4B5563]">Performance globale</h2>
+      <h2 className="text-lg font-bold text-gray-900">Performance globale</h2>
       
       <div className="flex-1 relative flex items-center justify-center mt-8">
         <div className="w-full h-[180px] relative">
@@ -65,14 +65,14 @@ export function PerformanceGauge({ rate, rateChange, isLoading }: PerformanceGau
           
           {/* Center Text */}
           <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center pointer-events-none">
-            <span className="text-3xl font-bold text-gray-900">{rate}%</span>
-            <span className="text-xs font-semibold text-gray-900 mt-1">Résolus</span>
+            <span className="text-xl font-bold text-gray-900">{rate}%</span>
+            <span className="text-md font-semibold text-gray-900 mt-1">Résolus</span>
           </div>
         </div>
       </div>
 
       <div className="text-center mt-6">
-        <p className="text-[13px] text-[#4B5563]">
+        <p className="text-sm text-[#4B5563]">
           {rateChange >= 0 ? '+' : ''}{rateChange}% d'évolution par rapport au mois dernier.
         </p>
       </div>
@@ -83,15 +83,15 @@ export function PerformanceGauge({ rate, rateChange, isLoading }: PerformanceGau
             <FiDollarSign className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] text-gray-400 font-medium">Ce mois</span>
-            <span className="text-[13px] font-bold text-gray-800">{rate}%</span>
+            <span className="text-md text-gray-500 font-medium">Ce mois</span>
+            <span className="text-sm font-bold text-gray-800">{rate}%</span>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
           <div className="flex flex-col items-end">
-            <span className="text-[10px] text-gray-400 font-medium">Mois prec.</span>
-            <span className="text-[13px] font-bold text-gray-800">{Math.max(0, rate - rateChange)}%</span>
+            <span className="text-md text-gray-500 font-medium">Mois prec.</span>
+            <span className="text-sm font-bold text-gray-800">{Math.max(0, rate - rateChange)}%</span>
           </div>
           <div className="w-8 h-8 rounded bg-[#E8F5E9] text-[#43A047] flex items-center justify-center">
             <FiPieChart className="w-4 h-4" />

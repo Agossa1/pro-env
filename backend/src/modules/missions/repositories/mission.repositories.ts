@@ -38,6 +38,7 @@ export class MissionRepository {
       m.territory_id             AS "territoryId",
       t.name                     AS "territoryName",
       m.report_id                AS "reportId",
+      m.infrastructure_id        AS "infrastructureId",
       m.mission_type             AS "missionType",
       m.priority_level           AS "priorityLevel",
       m.title,
@@ -153,15 +154,16 @@ export class MissionRepository {
 
       const res = await client.query(
         `INSERT INTO missions (
-           territory_id, report_id, mission_type, priority_level,
+           territory_id, report_id, infrastructure_id, mission_type, priority_level,
            title, description, status, assigned_organization_id,
            scheduled_at, due_date, estimated_hours, created_by
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING id, status`,
         [
           payload.territoryId,
           payload.reportId ?? null,
+          payload.infrastructureId ?? null,
           payload.missionType,
           payload.priorityLevel ?? 'medium',
           payload.title,
@@ -213,8 +215,9 @@ export class MissionRepository {
              due_date = COALESCE($10, due_date),
              completed_at = COALESCE($11, completed_at),
              estimated_hours = COALESCE($12, estimated_hours),
-             actual_hours = COALESCE($13, actual_hours)
-         WHERE id = $14
+             actual_hours = COALESCE($13, actual_hours),
+             infrastructure_id = COALESCE($14, infrastructure_id)
+         WHERE id = $15
            AND deleted_at IS NULL
          RETURNING id`,
         [
@@ -231,6 +234,7 @@ export class MissionRepository {
           payload.completedAt ?? null,
           payload.estimatedHours ?? null,
           payload.actualHours ?? null,
+          payload.infrastructureId ?? null,
           id,
         ]
       );

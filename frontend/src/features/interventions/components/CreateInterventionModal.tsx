@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useInterventions } from '../hooks/useInterventions';
 import { apiClient, type ApiResponse } from '../../../libs/api-client';
 import { MissionType } from '../../missions/services/missions.types';
@@ -77,33 +78,41 @@ export const CreateInterventionModal: React.FC<Props> = ({ missionId, missionTyp
         vehicleNotes: vehicleNotes || null,
         equipmentNotes: equipmentNotes || null,
       }).unwrap();
+      toast.success('Intervention créée avec succès !');
       onClose();
     } catch (err: any) {
-      setError(err || "Une erreur est survenue lors de la création.");
+      const msg = err || "Une erreur est survenue lors de la création.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 lg:p-6" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-full">
+      <div className="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden">
+
+        {/* Drag indicator (mobile) */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden shrink-0">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Nouvelle Intervention</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900">Nouvelle Intervention</h2>
             <p className="text-sm text-gray-500">Planifier l'exécution sur le terrain</p>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600 rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600 rounded-full transition-colors" aria-label="Fermer">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
         {/* Body */}
         <form onSubmit={handleSubmit} className="overflow-y-auto flex-1">
-          <div className="p-6 space-y-6">
+          <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
             
             {error && (
               <div className="p-4 bg-red-50 text-red-700 text-sm rounded-xl border border-red-100">
@@ -171,18 +180,18 @@ export const CreateInterventionModal: React.FC<Props> = ({ missionId, missionTyp
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 text-sm font-medium text-white bg-benin-green rounded-lg hover:bg-benin-green-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white bg-benin-green rounded-lg hover:bg-benin-green-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>

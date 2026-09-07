@@ -46,14 +46,14 @@ export function LatestTransactions({ interventions, isLoading }: LatestTransacti
 
   return (
     <div className="bg-white p-5 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-100 h-full overflow-hidden flex flex-col">
-      <h2 className="text-[15px] font-semibold text-[#4B5563] mb-5">Dernières Interventions</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-5">Dernières Interventions</h2>
       
       <div className="flex-1 overflow-y-auto pr-1 space-y-4">
         {interventions.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">Aucune intervention</p>
+          <p className="text-sm text-gray-500 font-medium text-center py-4">Aucune intervention</p>
         ) : (
           interventions.map((intervention, i) => {
-            const config = STATUS_CONFIG[intervention.status] || { label: intervention.status, style: 'bg-gray-100 text-gray-600' };
+            const config = STATUS_CONFIG[intervention.status] || { label: intervention.status, style: 'bg-gray-100 text-gray-500' };
             
             return (
               <div key={intervention.id} className={`flex items-center justify-between pb-4 ${i !== interventions.length - 1 ? 'border-b border-gray-50' : ''}`}>
@@ -65,24 +65,24 @@ export function LatestTransactions({ interventions, isLoading }: LatestTransacti
                   
                   {/* Text */}
                   <div className="min-w-0">
-                    <h3 className="text-[13px] font-semibold text-gray-800 truncate">{intervention.title}</h3>
-                    <p className="text-[11px] text-gray-400 truncate">{intervention.societeName || 'Non assigné'}</p>
+                    <h3 className="text-lg  text-gray-900 truncate">{intervention.title}</h3>
+                    <p className="text-sm text-gray-600">{intervention.societeName || 'Non assigné'}</p>
                   </div>
                 </div>
 
                 {/* Right side (Status + Details) */}
                 <div className="flex items-center gap-6 ml-2">
-                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${config.style}`}>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${config.style}`}>
                     {config.label}
                   </span>
                   
                   <div className="text-right flex-shrink-0 hidden sm:block">
                     {/* Amount mock - we don't have amounts, maybe show territory or just Date prominently */}
-                    <div className="text-[13px] font-semibold text-gray-800">
+                    <div className="text-sm font-semibold text-gray-800">
                       {/* Fake amount to match design, or empty */}
                       $0.00 USD
                     </div>
-                    <div className="text-[11px] text-gray-400">
+                    <div className="text-xs text-gray-500 font-medium">
                       {formatDate(intervention.createdAt)}
                     </div>
                   </div>

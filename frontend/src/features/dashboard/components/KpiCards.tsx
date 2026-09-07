@@ -52,7 +52,7 @@ export function KpiCards({ kpis, isLoading }: KpiCardsProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         {[...Array(5)].map((_, i) => (
           <div key={i} className="bg-white p-4 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-100 h-28 animate-pulse">
             <div className="flex gap-3 items-center">
@@ -67,7 +67,7 @@ export function KpiCards({ kpis, isLoading }: KpiCardsProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
       {cards.map((card, i) => {
         const Icon = card.icon;
         const isPositive = card.change > 0;
@@ -80,22 +80,22 @@ export function KpiCards({ kpis, isLoading }: KpiCardsProps) {
               <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${card.iconBg}`}>
                 <Icon className={`w-5 h-5 ${card.iconColor}`} />
               </div>
-              <span className="text-[13px] font-medium text-gray-500 leading-tight">{card.title}</span>
+              <span className="text-sm font-medium text-gray-700 leading-tight break-words">{card.title}</span>
             </div>
 
             {/* Bottom row: value + trend */}
             <div className="mt-5 flex items-end justify-between">
-              <span className="text-[22px] font-bold text-gray-900 leading-none">
+              <span className="text-2xl sm:text-3xl font-bold text-gray-900 leading-none tracking-tight">
                 {card.value}
               </span>
 
               <div className="flex flex-col items-end">
-                <div className={`flex items-center gap-1 text-[11px] font-semibold ${isPositive ? 'text-[#43A047]' : isNegative ? 'text-[#E53935]' : 'text-gray-400'}`}>
+                <div className={`flex items-center gap-1 text-xs font-semibold ${isPositive ? 'text-[#43A047]' : isNegative ? 'text-[#E53935]' : 'text-gray-500'}`}>
                   {isPositive && <FiTrendingUp className="w-3 h-3" />}
                   {isNegative && <FiTrendingDown className="w-3 h-3" />}
                   {isPositive ? '+' : ''}{card.change}%
                 </div>
-                <span className="text-[10px] text-gray-400 mt-0.5">Last 7 days</span>
+                <span className="text-sm text-gray-500 font-medium mt-0.5">Last 7 days</span>
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { useReports } from '../hooks/useReports';
 import { reportsApi } from '../services/reports.api';
 import { apiClient, type ApiResponse } from '../../../libs/api-client';
@@ -11,6 +12,12 @@ import {
   type CreateReportPayload,
   type ReportDetailsPayload,
 } from '../services/reports.types';
+
+interface StructureItem {
+  id: string;
+  name: string;
+  type: string;
+}
 
 interface Props {
   onClose: () => void;
@@ -93,7 +100,7 @@ async function fetchDepartments(): Promise<TerritoryItem[]> {
 const selectClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
 
 export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
-  const { addReport, isLoading } = useReports();
+  const { addReport } = useReports();
   const [error, setError] = useState<string | null>(null);
 
   // Listes de territoires par niveau
@@ -123,12 +130,35 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
     riskLevel: RiskLevel.LOW,
     latitude: null,
     longitude: null,
+    infrastructureId: null,
     details: {},
   });
+
+  // Sélection hiérarchique : on prend le niveau le plus fin disponible
+  const resolvedTerritoryId = selectedQuartier || selectedArr || selectedCommune || selectedDept;
+
+  // Infrastructure liée
+  const [structures, setStructures] = useState<StructureItem[]>([]);
+  const [loadingStructures, setLoadingStructures] = useState(false);
+
+  // Chargement des infrastructures quand le territoire change
+  useEffect(() => {
+    if (!resolvedTerritoryId) { setStructures([]); return; }
+    setLoadingStructures(true);
+    apiClient.get<ApiResponse<any>>('/infrastructures', {
+      params: { territoryId: resolvedTerritoryId, limit: 200 },
+    }).then(res => {
+      const items = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+      setStructures(items);
+    }).catch(() => setStructures([]))
+      .finally(() => setLoadingStructures(false));
+  }, [resolvedTerritoryId]);
+
 
   // Médias (pièces jointes)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Chargement initial des départements
@@ -176,7 +206,6 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
   }, [selectedArr]);
 
   // Le territoire le plus précis sélectionné
-  const resolvedTerritoryId = selectedQuartier || selectedArr || selectedCommune || selectedDept;
   const resolvedName =
     quartiers.find(t => t.id === selectedQuartier)?.name ||
     arrondissements.find(t => t.id === selectedArr)?.name ||
@@ -235,6 +264,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const created = await addReport({
         ...form,
@@ -255,24 +285,34 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
         }
       }
 
+      toast.success('Signalement créé avec succès !');
       onClose();
     } catch (err: any) {
-      setError(err?.message || 'Une erreur est survenue lors de la création.');
+      const errorMsg = err?.message || 'Une erreur est survenue lors de la création.';
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 lg:p-6">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+      <div className="relative bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[90vh]">
+        {/* Drag indicator (mobile uniquement) */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden shrink-0">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
         {/* En-tête */}
-        <div className="px-8 pt-8 pb-6 border-b border-gray-200 flex items-start justify-between shrink-0">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Nouveau Signalement</h2>
-            <p className="text-sm text-gray-500 mt-1">Déclarez un incident ou une anomalie sur le territoire.</p>
+        <div className="px-4 sm:px-8 pt-4 sm:pt-8 pb-4 sm:pb-6 border-b border-gray-200 flex items-start justify-between gap-3 shrink-0">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-xl font-bold text-gray-900">Nouveau Signalement</h2>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">Déclarez un incident ou une anomalie sur le territoire.</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Fermer">
+          <button onClick={onClose} className="shrink-0 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Fermer">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -280,7 +320,7 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-y-auto">
-          <div className="px-8 py-6 space-y-6">
+          <div className="px-4 sm:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6">
 
             {/* Localisation en cascade */}
             <div>
@@ -365,6 +405,35 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
                 </p>
               )}
             </div>
+
+            {/* Infrastructure liée */}
+            {resolvedTerritoryId && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5" htmlFor="report-infrastructure">
+                  Infrastructure concernée{' '}
+                  <span className="text-gray-400 font-normal">(optionnel)</span>
+                </label>
+                <select
+                  id="report-infrastructure"
+                  disabled={loadingStructures}
+                  value={form.infrastructureId ?? ''}
+                  onChange={e => setForm(prev => ({ ...prev, infrastructureId: e.target.value || null }))}
+                  className={selectClass}
+                >
+                  <option value="">
+                    {loadingStructures ? 'Chargement...' : `— Aucune (${structures.length} disponibles) —`}
+                  </option>
+                  {structures.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.type})</option>
+                  ))}
+                </select>
+                {form.infrastructureId && (
+                  <p className="mt-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                    🏗 Infrastructure liée : <strong>{structures.find(s => s.id === form.infrastructureId)?.name}</strong>
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Titre */}
             <div>
@@ -755,14 +824,14 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
           </div>
 
           {/* Pied */}
-          <div className="px-8 py-5 border-t border-gray-200 bg-gray-50/50 flex items-center justify-end gap-3 shrink-0">
-            <button type="button" onClick={onClose} disabled={isLoading}
-              className="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
+          <div className="px-4 sm:px-8 py-4 sm:py-5 border-t border-gray-200 bg-gray-50/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 shrink-0">
+            <button type="button" onClick={onClose} disabled={isSubmitting || uploadingMedia}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-60">
               Annuler
             </button>
-            <button type="submit" disabled={isLoading}
-              className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-benin-green hover:bg-benin-green-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-              {isLoading ? 'Enregistrement...' : 'Créer le signalement'}
+            <button type="submit" disabled={isSubmitting || uploadingMedia}
+              className="w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-benin-green hover:bg-benin-green-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+              {isSubmitting || uploadingMedia ? 'Enregistrement...' : 'Créer le signalement'}
             </button>
           </div>
         </form>

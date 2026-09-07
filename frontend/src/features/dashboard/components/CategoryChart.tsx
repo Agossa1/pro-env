@@ -95,8 +95,8 @@ export function CategoryChart({ data, isLoading }: Props) {
     <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-base font-semibold text-gray-900">Par catégorie</h2>
-          <p className="text-xs text-gray-400 mt-0.5">6 derniers mois</p>
+          <h2 className="text-lg font-semibold text-gray-900">Par catégorie</h2>
+          <p className="text-sm text-gray-500 font-medium mt-0.5">6 derniers mois</p>
         </div>
       </div>
 
@@ -105,11 +105,11 @@ export function CategoryChart({ data, isLoading }: Props) {
           <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : formatted.length === 0 ? (
-        <div className="h-48 flex items-center justify-center text-sm text-gray-400">
+        <div className="h-48 flex items-center justify-center text-sm text-gray-500 font-medium">
           Aucune donnée disponible
         </div>
       ) : (
-        <div className="h-[190px] w-full relative">
+        <div className="text-md h-[190px] w-full relative">
           <Bar data={chartData} options={options} />
         </div>
       )}
