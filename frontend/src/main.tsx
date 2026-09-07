@@ -41,25 +41,35 @@ if (typeof Node === 'function' && Node.prototype) {
  * 1. Tente un refresh du token via le cookie HttpOnly
  * 2. Si succès → récupère le profil utilisateur
  * 3. Marque l'app comme initialisée (débloque les ProtectedRoutes)
+ *
+ * On attend que boot() se termine avant de rendre l'app
+ * pour éviter le flash de redirection vers /login.
  */
 async function boot() {
-  const restored = await initAuthSession();
-  if (restored) {
-    try {
-      await store.dispatch(fetchMeThunk());
-    } catch {
-      // Session invalide — l'utilisateur sera redirigé vers /login
+  try {
+    const restored = await initAuthSession();
+    if (restored) {
+      try {
+        await store.dispatch(fetchMeThunk());
+      } catch {
+        // Token refresh valide mais /me a échoué (compte désactivé etc.)
+      }
     }
+  } catch {
+    // Erreur réseau — on laisse l'app s'initialiser sans session
+  } finally {
+    // Toujours marquer comme initialisé pour débloquer les routes
+    store.dispatch(setInitialized());
   }
-  store.dispatch(setInitialized());
 }
 
-boot();
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
-  </StrictMode>,
-)
+// On attend le boot AVANT de rendre l'app pour éviter le flash /login
+boot().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </StrictMode>,
+  );
+});
