@@ -85,6 +85,7 @@ export const createServer = async (db: PostgresDatabase) => {
     const allowedOrigins = [
         ...frontendUrls,
         'https://frontend-chi-pied-25.vercel.app',
+        'https://pro-env-axpt.vercel.app',
         'http://localhost:5173',
         'http://localhost:5174',
         'http://localhost:4000',
@@ -102,9 +103,10 @@ export const createServer = async (db: PostgresDatabase) => {
                 return callback(null, true);
             }
 
-            // Autorise tout sous-domaine onrender.com en production (pour la flexibilité)
+            // Autorise tout sous-domaine onrender.com et vercel.app en production
             const isRenderOrigin = origin.endsWith('.onrender.com');
-            const isAllowed = allowedOrigins.includes(origin) || isRenderOrigin;
+            const isVercelOrigin = origin.endsWith('.vercel.app');
+            const isAllowed = allowedOrigins.includes(origin) || isRenderOrigin || isVercelOrigin;
 
             if (isAllowed) {
                 return callback(null, true);
