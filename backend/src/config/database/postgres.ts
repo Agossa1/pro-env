@@ -11,15 +11,16 @@ export default class PostgresDatabase implements Database {
 
   constructor() {
     this.pool = new Pool({
-      host: databaseConfig.host,
-      port: databaseConfig.port,
-      user: databaseConfig.user,
-      password: databaseConfig.password,
-      database: databaseConfig.database,
-      max: 20,                        // Maximum 20 connexions simultanées
-      idleTimeoutMillis: 30000,       // Fermer les connexions inactives après 30s
-      connectionTimeoutMillis: 5000,  // Timeout de connexion : 5 secondes
-    });
+  connectionString: databaseConfig.connectionString,
+
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
     this.pool.on("error", (error: any) => {
       const shortMsg = error.message || "Unknown pool error";

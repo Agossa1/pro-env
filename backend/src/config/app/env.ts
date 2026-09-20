@@ -11,11 +11,7 @@ const envSchema = z.object({
   PORT: z.string().transform(Number).default(() => 4000),
   
   // Database
-  DB_HOST: z.string().default('localhost'),
-  DB_PORT: z.string().transform(Number).default(() => 5432),
-  DB_USER: z.string(),
-  DB_PASSWORD: z.string(),
-  DB_NAME: z.string(),
+  DATABASE_URL: z.string().url(),
 
   // Cache
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
