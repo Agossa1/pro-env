@@ -3,6 +3,8 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': '@swc/jest',
   },
+  // Add this property to load the mock configuration globally
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
