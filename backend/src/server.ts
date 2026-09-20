@@ -84,6 +84,7 @@ export const createServer = async (db: PostgresDatabase) => {
 
     const allowedOrigins = [
         ...frontendUrls,
+        'https://frontend-chi-pied-25.vercel.app',
         'http://localhost:5173',
         'http://localhost:5174',
         'http://localhost:4000',
