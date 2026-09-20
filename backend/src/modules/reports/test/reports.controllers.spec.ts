@@ -136,7 +136,7 @@ describe('Report Controllers', () => {
     });
 
     it('doit retourner 400 si validation Zod échoue', async () => {
-      mockReq.body = { territoryId: 'uuid-invalide', title: '', issueCategory: 'invalide' };
+      mockReq.body = { municipalityId: 'uuid-invalide', title: '', issueCategory: 'invalide' };
 
       await controller.createReport(mockReq as Request, mockRes as Response, mockNext);
 
@@ -145,7 +145,7 @@ describe('Report Controllers', () => {
     });
 
     it('doit retourner 201 en cas de succès avec le créateur', async () => {
-      mockReq.body = { territoryId: VALID_UUID, title: 'Caniveau bouché', issueCategory: 'drainage' };
+      mockReq.body = { municipalityId: VALID_UUID, title: 'Caniveau bouché', issueCategory: 'drainage' };
       (mockReq as any).user = { userId: 'user-1' };
       const mockCreated = { id: 'new-uuid', title: 'Caniveau bouché', issueCategory: 'drainage' };
       service.createReport.mockResolvedValueOnce(mockCreated as any);

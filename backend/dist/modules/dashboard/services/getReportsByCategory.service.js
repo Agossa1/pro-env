@@ -6,9 +6,9 @@ class GetReportsByCategoryService {
         this.dashboardRepository = dashboardRepository;
         this.logger = logger;
     }
-    async getReportsByCategory() {
+    async getReportsByCategory(filters) {
         try {
-            return await this.dashboardRepository.getReportsByCategory();
+            return await this.dashboardRepository.getReportsByCategory(filters);
         }
         catch (error) {
             this.logger.error(`Erreur getReportsByCategory (service): ${error.message}`);

@@ -5,9 +5,9 @@
  * | Service métier de création d'une société.
  * | Vérifie l'unicité du n° d'enregistrement avant insertion et associe la
  * | société à un territoire (mairie/commune ou ministère) :
- * |   - Admin  : le territoryId est fourni dans le payload (association libre)
- * |   - Maire/Ministere : le territoryId est déduit du territoire de
- * |     l'utilisateur connecté (creator.territoryId)
+ * |   - Admin  : le municipalityId est fourni dans le payload (association libre)
+ * |   - Maire/Ministere : le municipalityId est déduit de la commune de
+ * |     l'utilisateur connecté (creator.municipalityId)
  * |--------------------------------------------------------------------------
  */
 
@@ -20,7 +20,7 @@ import { CreateSocieteAccountService } from './createSocieteAccount.service';
 /** Contexte de l'utilisateur connecté (req.user) */
 export interface CreateSocieteContext {
   userId?: string;
-  territoryId?: string | null;
+  municipalityId?: string | null;
 }
 
 export class CreateSocieteService {
@@ -60,17 +60,17 @@ export class CreateSocieteService {
       }
 
       // Les sociétés sont des prestataires pouvant travailler avec toutes les
-      // mairies : on ne leur associe PAS de territoire automatiquement.
-      // L'association n'est possible que si un territoire est fourni explicitement.
-      const territoryId = payload.territoryId ?? null;
+      // communes : on ne leur associe PAS de commune automatiquement.
+      // L'association n'est possible que si une commune est fournie explicitement.
+      const municipalityId = payload.municipalityId ?? null;
 
       const created = await this.societeRepository.createSociete({
         ...payload,
-        territoryId,
+        municipalityId,
       });
 
       this.logger.info(
-        `Société créée : ${created.name}${territoryId ? ` (associée au territoire ${territoryId})` : ''}`
+        `Société créée : ${created.name}${municipalityId ? ` (associée à la commune ${municipalityId})` : ''}`
       );
 
       // Création du compte de la société + envoi de l'email d'activation

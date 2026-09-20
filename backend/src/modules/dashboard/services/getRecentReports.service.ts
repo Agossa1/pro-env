@@ -1,6 +1,6 @@
 import type { Logger } from 'winston';
 import { DashboardRepository } from '../repositories/dashboard.repositories';
-import { RecentReportsResult } from '../types/dashboard.types';
+import { RecentReportsResult, DashboardFilters } from '../types/dashboard.types';
 
 export class GetRecentReportsService {
   constructor(
@@ -13,6 +13,7 @@ export class GetRecentReportsService {
     limit = 10,
     search = '',
     status = '',
+    filters?: DashboardFilters
   ): Promise<RecentReportsResult> {
     try {
       const offset = (page - 1) * limit;
@@ -21,6 +22,7 @@ export class GetRecentReportsService {
         limit,
         search,
         status,
+        filters
       );
 
       return {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTeams } from '../hooks/useTeams';
-import { useUsers } from '../../users/hooks/useUsers';
+import { useAuth } from '../../auth/hooks/useAuth';
 import { TeamMemberRole, TeamType } from '../services/teams.types';
 import type { FieldTeam } from '../services/teams.types';
 import { useSelector } from 'react-redux';
@@ -33,9 +33,11 @@ const TEAM_TYPE_LABELS: Record<TeamType, string> = {
 
 export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
   const { loadMembers, addMember, removeMember, update } = useTeams();
-  const { users, reload: loadUsers } = useUsers();
+  const { user: authUser } = useAuth();
   const members = useSelector(selectTeamMembers);
   const isLoading = useSelector(selectTeamsLoading);
+
+  const canManageMembers = ['societe', 'dst'].includes(authUser?.role?.code || '');
 
   const [activeTab, setActiveTab] = useState<'info' | 'members'>('info');
 
@@ -48,8 +50,7 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
 
   useEffect(() => {
     loadMembers(team.id);
-    loadUsers(1, 1000); // Load up to 1000 users for the dropdown
-  }, [team.id, loadMembers, loadUsers]);
+  }, [team.id, loadMembers]);
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,8 +75,8 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
       setNewPhone('');
       setNewRole(TeamMemberRole.OPS_OPERATOR);
       
-      // Refresh the users list so the newly created user is in the local cache
-      loadUsers(1, 1000);
+      // Refresh members list
+      await loadMembers(team.id);
     } catch (err: any) {
       toast.error(err?.message || "Erreur lors de l'ajout du membre.");
     } finally {
@@ -168,17 +169,17 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-1xl font-medium text-gray-500   mb-1">Type d'équipe</p>
+                  <p className="text-sm font-medium text-gray-500   mb-1">Type d'équipe</p>
                   <p className="text-lg font-semibold text-gray-700">{TEAM_TYPE_LABELS[team.teamType]}</p>
                 </div>
                 {team.organizationId && (
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-1xl font-medium text-gray-600   mb-1">Société rattachée</p>
-                    <p className="text-xl font-semibold text-gray-700"> {team.name }</p>
+                    <p className="text-sm font-medium text-gray-600   mb-1">Société rattachée</p>
+                    <p className="text-lg font-semibold text-gray-700"> {team.name }</p>
                   </div>
                 )}
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-1xl font-medium text-gray-600 mb-1">Créée le</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Créée le</p>
                   <p className="text-lg text-gray-700">{new Date(team.createdAt).toLocaleDateString('fr-FR')}</p>
                 </div>
               </div>
@@ -210,53 +211,55 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
           {activeTab === 'members' && (
             <div className="space-y-5">
               {/* Add member form */}
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                <p className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-3">Ajouter un membre</p>
-                <form onSubmit={handleAddMember} className="flex flex-col gap-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Nom complet"
-                      value={newFullName}
-                      onChange={(e) => setNewFullName(e.target.value)}
-                      className="px-3 py-2 text-sm rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
-                    />
-                    <input
-                      type="email"
-                      placeholder="Adresse email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      className="px-3 py-2 text-sm rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Numéro de téléphone (optionnel)"
-                      value={newPhone}
-                      onChange={(e) => setNewPhone(e.target.value)}
-                      className="px-3 py-2 text-sm rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
-                    />
-                    <select
-                      value={newRole}
-                      onChange={(e) => setNewRole(e.target.value as TeamMemberRole)}
-                      className="px-3 py-2 text-sm rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
+              {canManageMembers && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-3">Ajouter un membre</p>
+                  <form onSubmit={handleAddMember} className="flex flex-col gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Nom complet"
+                        value={newFullName}
+                        onChange={(e) => setNewFullName(e.target.value)}
+                        className="px-3 py-2 text-sm rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
+                      />
+                      <input
+                        type="email"
+                        placeholder="Adresse email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        className="px-3 py-2 text-sm rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Numéro de téléphone (optionnel)"
+                        value={newPhone}
+                        onChange={(e) => setNewPhone(e.target.value)}
+                        className="px-3 py-2 text-sm rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
+                      />
+                      <select
+                        value={newRole}
+                        onChange={(e) => setNewRole(e.target.value as TeamMemberRole)}
+                        className="px-3 py-2 text-sm rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green"
+                      >
+                        <option value={TeamMemberRole.OPS_OPERATOR}>Opérateur Terrain</option>
+                        <option value={TeamMemberRole.COMMAND_LEAD}>Chef de Mission</option>
+                        <option value={TeamMemberRole.LOG_OFFICER}>Chargé de Logistique</option>
+                        <option value={TeamMemberRole.SAFETY_OFFICER}>Référent Sécurité / HSE</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-end mt-1">
+                    <button
+                      type="submit"
+                      disabled={isAddingMember}
+                      className="px-4 py-2 text-sm font-medium text-white bg-benin-green rounded-lg hover:bg-benin-green-dark disabled:opacity-50 transition-colors whitespace-nowrap"
                     >
-                      <option value={TeamMemberRole.OPS_OPERATOR}>Opérateur Terrain</option>
-                      <option value={TeamMemberRole.COMMAND_LEAD}>Chef de Mission</option>
-                      <option value={TeamMemberRole.LOG_OFFICER}>Chargé de Logistique</option>
-                      <option value={TeamMemberRole.SAFETY_OFFICER}>Référent Sécurité / HSE</option>
-                    </select>
-                  </div>
-                  <div className="flex justify-end mt-1">
-                  <button
-                    type="submit"
-                    disabled={isAddingMember}
-                    className="px-4 py-2 text-sm font-medium text-white bg-benin-green rounded-lg hover:bg-benin-green-dark disabled:opacity-50 transition-colors whitespace-nowrap"
-                  >
-                    {isAddingMember ? 'Ajout...' : 'Ajouter'}
-                  </button>
-                  </div>
-                </form>
-              </div>
+                      {isAddingMember ? 'Ajout...' : 'Ajouter'}
+                    </button>
+                    </div>
+                  </form>
+                </div>
+              )}
 
               {/* Members list */}
               {isLoading ? (
@@ -271,7 +274,6 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
               ) : (
                 <div className="space-y-2">
                   {members.map((member) => {
-                    const user = users.find(u => u.id === member.userId);
                     return (
                     <div key={member.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors group gap-3">
                       <div className="flex items-center gap-3 min-w-0">
@@ -282,11 +284,11 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-bold text-gray-900 truncate">
-                            {user ? user.fullName : member.userId}
+                            {member.userFullName || member.userId}
                           </p>
-                          {user && (
+                          {(member.userEmail || member.userPhone) && (
                             <p className="text-xs text-gray-500 truncate mt-0.5">
-                              {user.email} {user.phone ? `• ${user.phone}` : ''}
+                              {member.userEmail || ''} {member.userPhone ? `• ${member.userPhone}` : ''}
                             </p>
                           )}
                         </div>
@@ -296,15 +298,17 @@ export const TeamDetailsModal: React.FC<Props> = ({ team, onClose }) => {
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${ROLE_COLORS[member.roleInTeam]}`}>
                           {ROLE_LABELS[member.roleInTeam]}
                         </span>
-                        <button
-                          onClick={() => handleRemoveMember(member.id)}
-                          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                          title="Retirer le membre"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                        {canManageMembers && (
+                          <button
+                            onClick={() => handleRemoveMember(member.id)}
+                            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                            title="Retirer le membre"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
                     </div>
                   )})}

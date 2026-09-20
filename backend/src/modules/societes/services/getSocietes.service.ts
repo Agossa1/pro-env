@@ -12,6 +12,7 @@ import type { AppSociete, PaginationQuery, PaginatedResult } from '../types/soci
 
 export interface GetAllSocietesQuery extends PaginationQuery {
   type?: string;
+  filters?: { forcedRegionId?: string; forcedMunicipalityId?: string; forcedDistrictId?: string; forcedNeighborhoodId?: string; forcedCreatedBy?: string; forcedUserIdForTeamScopes?: string };
 }
 
 export class GetSocietesService {

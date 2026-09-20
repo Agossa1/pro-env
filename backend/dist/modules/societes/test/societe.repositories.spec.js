@@ -117,7 +117,7 @@ describe('SocieteRepository', () => {
                 .mockResolvedValueOnce(undefined); // COMMIT
             const result = await societeRepository.createSociete({
                 ...payload,
-                territoryId: 'territory-uuid',
+                municipalityId: 'territory-uuid',
             });
             expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO organization_territories'), expect.any(Array));
             expect(redis_service_1.redisCache.invalidate).toHaveBeenCalledWith(`societes:territories:${mockSociete.id}`);
@@ -168,7 +168,7 @@ describe('SocieteRepository', () => {
     describe('getSocieteTerritories', () => {
         it('doit retourner les territoires de compétence', async () => {
             const mockTerritories = [
-                { id: 'ot-1', societeId: 'soc-1', territoryId: 'terr-1', isActive: true },
+                { id: 'ot-1', societeId: 'soc-1', municipalityId: 'terr-1', isActive: true },
             ];
             redis_service_1.redisCache.getOrSet.mockImplementation(async (_key, factory) => factory());
             mockDb.query.mockResolvedValueOnce({ rows: mockTerritories });

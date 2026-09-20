@@ -1,6 +1,6 @@
 import type { Logger } from 'winston';
 import { DashboardRepository } from '../repositories/dashboard.repositories';
-import { DashboardKpis } from '../types/dashboard.types';
+import { DashboardKpis, DashboardFilters } from '../types/dashboard.types';
 
 export class GetKpisService {
   constructor(
@@ -13,12 +13,12 @@ export class GetKpisService {
    * - "societe" : KPIs restreints à son organisation.
    * - autres     : KPIs globaux de la plateforme.
    */
-  public async getKpis(userRole: string, organizationId?: string): Promise<DashboardKpis> {
+  public async getKpis(userRole: string, organizationId?: string, filters?: DashboardFilters): Promise<DashboardKpis> {
     try {
       if (userRole === 'societe' && organizationId) {
         return this.getSocieteKpis(organizationId);
       }
-      return this.getPlatformKpis();
+      return this.getPlatformKpis(filters);
     } catch (error: any) {
       this.logger.error(`Erreur getKpis (service): ${error.message}`);
       throw error;
@@ -40,12 +40,12 @@ export class GetKpisService {
     };
   }
 
-  private async getPlatformKpis(): Promise<DashboardKpis> {
+  private async getPlatformKpis(filters?: DashboardFilters): Promise<DashboardKpis> {
     const now = new Date();
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-    const stats = await this.dashboardRepository.getAdminKpis(thisMonth, lastMonth);
+    const stats = await this.dashboardRepository.getAdminKpis(thisMonth, lastMonth, filters);
 
     const { thisMonthReports, lastMonthReports, currentRate, pastRate } = stats;
     const reportsChangePercent = lastMonthReports === 0

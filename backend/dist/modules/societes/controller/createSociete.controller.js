@@ -10,11 +10,11 @@ class CreateSocieteController {
             try {
                 const payload = societe_validations_1.CreateSocieteSchema.parse(req.body);
                 // Contexte de l'utilisateur connecté :
-                // - une mairie/ministère crée sa société → territoryId = req.user.territoryId
-                // - un admin fournit le territoryId dans le body (association libre)
+                // - une mairie/ministère crée sa société → municipalityId = req.user.municipalityId
+                // - un admin fournit le municipalityId dans le body (association libre)
                 const creator = {
                     userId: req.user?.userId ?? undefined,
-                    territoryId: req.user?.territoryId ?? null,
+                    municipalityId: req.user?.municipalityId ?? null,
                 };
                 const societe = await this.createSocieteService.createSociete(payload, creator);
                 res.status(201).json({

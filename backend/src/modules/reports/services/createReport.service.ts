@@ -32,7 +32,7 @@ export class CreateReportService {
     creator?: CreateReportContext
   ): Promise<Report> {
     try {
-      if (!payload.territoryId || !payload.title || !payload.issueCategory) {
+      if (!payload.municipalityId || !payload.title || !payload.issueCategory) {
         throw new BadRequestError(
           'Le territoire, le titre et la catégorie du rapport sont requis.'
         );
@@ -42,7 +42,7 @@ export class CreateReportService {
       const isDuplicate = await this.reportRepository.checkDuplicateReport(
         payload.title.trim(),
         payload.issueCategory,
-        payload.territoryId
+        payload.municipalityId, payload.districtId
       );
 
       if (isDuplicate) {

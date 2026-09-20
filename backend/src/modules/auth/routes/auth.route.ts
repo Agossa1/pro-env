@@ -8,6 +8,8 @@ import { ResendCodeController } from '../controller/resend-code.controller';
 import { MeController } from '../controller/me.controller';
 import { GetUsersController } from '../controller/getUsers.controller';
 import { ToggleUserActiveController } from '../controller/toggleUserActive.controller';
+import { UpdateUserController } from '../controller/updateUser.controller';
+import { DeleteUserController } from '../controller/deleteUser.controller';
 import { ForgotPasswordController } from '../controller/forgot-password.controller';
 import { ResetPasswordController } from '../controller/reset-password.controller';
 import { authMiddleware, requireRole } from '../../../shared/middlewares/auth.middleware';
@@ -25,6 +27,8 @@ export class AuthRoutes {
     private readonly meController: MeController,
     private readonly getUsersController: GetUsersController,
     private readonly toggleUserActiveController: ToggleUserActiveController,
+    private readonly updateUserController: UpdateUserController,
+    private readonly deleteUserController: DeleteUserController,
     private readonly forgotPasswordController: ForgotPasswordController,
     private readonly resetPasswordController: ResetPasswordController
   ) {
@@ -54,5 +58,11 @@ export class AuthRoutes {
 
     // PATCH /auth/users/:id/toggle-active — active/désactive un utilisateur
     this.router.patch('/users/:id/toggle-active', authMiddleware, requireRole('super_admin'), this.toggleUserActiveController.toggle);
+
+    // PUT /auth/users/:id — mise à jour d'un utilisateur
+    this.router.put('/users/:id', authMiddleware, requireRole('super_admin'), this.updateUserController.update);
+
+    // DELETE /auth/users/:id — suppression définitive d'un utilisateur
+    this.router.delete('/users/:id', authMiddleware, requireRole('super_admin'), this.deleteUserController.delete);
   }
 }

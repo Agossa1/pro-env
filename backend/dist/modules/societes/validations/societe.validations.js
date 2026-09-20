@@ -23,11 +23,11 @@ exports.CreateSocieteSchema = zod_1.z.object({
     contactEmail: zod_1.z.string().email('Email invalide'),
     contactPhone: zod_1.z.string().max(20, 'Le téléphone ne doit pas dépasser 20 caractères').nullable().optional(),
     isActive: zod_1.z.boolean().optional(),
-    // Territoire (mairie/commune ou ministère) auquel associer la société.
-    // Optionnel : si absent, on utilise le territoire de l'utilisateur connecté.
-    territoryId: zod_1.z
+    // Commune (zone de compétence) à laquelle associer la société.
+    // Optionnel : si absent, aucune association n'est créée.
+    municipalityId: zod_1.z
         .string()
-        .uuid("Le territoire d'association doit être un UUID valide")
+        .uuid("La commune d'association doit être un UUID valide")
         .nullable()
         .optional(),
 });

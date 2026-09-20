@@ -1,16 +1,18 @@
 import type { Request, Response, NextFunction } from 'express';
 import { GetRecentReportsService } from '../services/getRecentReports.service';
+import { getScopeFilters } from '../../../shared/helpers/scopeFilters.helper';
 
 export class GetRecentReportsController {
   constructor(private readonly getRecentReportsService: GetRecentReportsService) {}
 
   public getRecentReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const filters = getScopeFilters(req);
       const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
       const search = (req.query.search as string) || '';
       const status = (req.query.status as string) || '';
-      const result = await this.getRecentReportsService.getRecentReports(page, limit, search, status);
+      const result = await this.getRecentReportsService.getRecentReports(page, limit, search, status, filters);
       res.status(200).json({
         success: true,
         data: result.data,

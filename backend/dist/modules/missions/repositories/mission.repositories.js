@@ -21,8 +21,10 @@ class MissionRepository {
         this.missionSelect = `
     SELECT
       m.id,
-      m.territory_id             AS "territoryId",
-      t.name                     AS "territoryName",
+      m.municipality_id          AS "municipalityId",
+      mun.name                   AS "municipalityName",
+      mun.name                   AS "territoryName",
+      mun.name                   AS "territoryName",
       m.report_id                AS "reportId",
       m.infrastructure_id        AS "infrastructureId",
       m.mission_type             AS "missionType",
@@ -52,9 +54,13 @@ class MissionRepository {
             const offset = (page - 1) * limit;
             const conditions = [`m.deleted_at IS NULL`];
             const params = [];
-            if (query.territoryId) {
-                params.push(query.territoryId);
-                conditions.push(`m.territory_id = $${params.length}`);
+            if (query.regionId) {
+                params.push(query.regionId);
+                conditions.push(`mun.region_id = $${params.length}`);
+            }
+            if (query.municipalityId) {
+                params.push(query.municipalityId);
+                conditions.push(`m.municipality_id = $${params.length}`);
             }
             if (query.createdBy) {
                 params.push(query.createdBy);
@@ -72,15 +78,25 @@ class MissionRepository {
                 params.push(query.organizationId);
                 conditions.push(`m.assigned_organization_id = $${params.length}`);
             }
+            // Scoping technicien : uniquement les missions assignées à son équipe
+            if (query.memberUserId) {
+                params.push(query.memberUserId);
+                conditions.push(`EXISTS (
+          SELECT 1 FROM field_team_members ftm
+          WHERE ftm.team_id = m.assigned_team_id
+            AND ftm.user_id = $${params.length}
+            AND ftm.is_active = TRUE
+        )`);
+            }
             const where = conditions.join(' AND ');
-            const key = `missions:all:${page}:${limit}:${query.territoryId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.missionType ?? ''}:${query.organizationId ?? ''}`;
+            const key = `missions:all:${page}:${limit}:${query.municipalityId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.missionType ?? ''}:${query.organizationId ?? ''}`;
             return await redis_service_1.redisCache.getOrSet(key, async () => {
                 const countRes = await this.db.query(`SELECT COUNT(*)::int AS total FROM missions m WHERE ${where}`, params);
                 const total = countRes.rows[0].total;
                 params.push(limit, offset);
                 const res = await this.db.query(`${this.missionSelect}
            FROM missions m
-           LEFT JOIN territories t ON m.territory_id = t.id
+           LEFT JOIN municipalities mun ON m.municipality_id = mun.id
            WHERE ${where}
            ORDER BY m.created_at DESC
            LIMIT $${params.length - 1} OFFSET $${params.length}`, params);
@@ -105,7 +121,7 @@ class MissionRepository {
             return await redis_service_1.redisCache.getOrSet(key, async () => {
                 const res = await this.db.query(`${this.missionSelect}
            FROM missions m
-           LEFT JOIN territories t ON m.territory_id = t.id
+           LEFT JOIN municipalities mun ON m.municipality_id = mun.id
            WHERE m.id = $1
              AND m.deleted_at IS NULL
            LIMIT 1`, [id]);
@@ -123,13 +139,13 @@ class MissionRepository {
         try {
             await client.query('BEGIN');
             const res = await client.query(`INSERT INTO missions (
-           territory_id, report_id, infrastructure_id, mission_type, priority_level,
+           municipality_id, report_id, infrastructure_id, mission_type, priority_level,
            title, description, status, assigned_organization_id,
            scheduled_at, due_date, estimated_hours, created_by
          )
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING id, status`, [
-                payload.territoryId,
+                payload.municipalityId,
                 payload.reportId ?? null,
                 payload.infrastructureId ?? null,
                 payload.missionType,

@@ -29,7 +29,7 @@ describe('ReportRepository', () => {
     let mockClient;
     const mockReport = {
         id: 'report-1',
-        territoryId: 'terr-1',
+        municipalityId: 'terr-1',
         infrastructureId: null,
         mappedAreaId: null,
         title: 'Caniveau bouché',
@@ -82,7 +82,7 @@ describe('ReportRepository', () => {
                 .mockResolvedValueOnce({ rows: [{ total: 3 }] })
                 .mockResolvedValueOnce({ rows: [mockReport] });
             await reportRepository.getAllReports({
-                territoryId: 'terr-1',
+                municipalityId: 'terr-1',
                 status: 'submitted',
                 issueCategory: 'drainage',
             });
@@ -105,7 +105,7 @@ describe('ReportRepository', () => {
     });
     describe('createReport', () => {
         const payload = {
-            territoryId: 'terr-1',
+            municipalityId: 'terr-1',
             title: 'Caniveau bouché',
             issueCategory: 'drainage',
             createdBy: 'user-1',

@@ -36,7 +36,7 @@ export class ReportRepository {
   private readonly reportSelect = `
     SELECT
       r.id,
-      r.territory_id          AS "territoryId",
+      r.municipality_id AS "municipalityId", r.district_id AS "districtId",
       r.infrastructure_id     AS "infrastructureId",
       r.mapped_area_id        AS "mappedAreaId",
       r.title,
@@ -57,13 +57,16 @@ export class ReportRepository {
       r.deleted_at            AS "deletedAt",
       a.full_name             AS "createdByName",
       rol.name                AS "createdByRole",
-      t.name                  AS "territoryName"
+      COALESCE(d_join.name || ', ' || m_join.name, m_join.name) AS "territoryName",
+      m_join.name AS "municipalityName", d_join.name AS "districtName",
+      COALESCE(d_join.name, m_join.name) AS "territoryName"
   `;
 
   private readonly reportJoins = `
     LEFT JOIN auth a ON a.id = r.created_by
     LEFT JOIN roles rol ON rol.id = a.role_id
-    LEFT JOIN territories t ON t.id = r.territory_id
+    LEFT JOIN municipalities m_join ON m_join.id = r.municipality_id
+    LEFT JOIN districts d_join ON d_join.id = r.district_id
   `;
 
   /**
@@ -71,7 +74,7 @@ export class ReportRepository {
    * défauts 1 et 50). Filtres optionnels : territoire, statut, catégorie.
    */
   public async getAllReports(
-    query: PaginationQuery & { territoryId?: string; createdBy?: string; status?: string; issueCategory?: string } = {}
+    query: PaginationQuery & { regionId?: string; municipalityId?: string; districtId?: string; neighborhoodId?: string; createdBy?: string; status?: string; issueCategory?: string } = {}
   ): Promise<PaginatedResult<Report>> {
     try {
       const page = Math.max(1, query.page ?? 1);
@@ -80,9 +83,20 @@ export class ReportRepository {
 
       const conditions: string[] = [`r.deleted_at IS NULL`];
       const params: any[] = [];
-      if (query.territoryId) {
-        params.push(query.territoryId);
-        conditions.push(`r.territory_id = $${params.length}`);
+      // Track if we need the municipality JOIN for filtering
+      let needsMunicipalityJoin = false;
+      if (query.regionId) {
+        params.push(query.regionId);
+        conditions.push(`m_join.region_id = $${params.length}`);
+        needsMunicipalityJoin = true;
+      }
+      if (query.municipalityId) {
+        params.push(query.municipalityId);
+        conditions.push(`r.municipality_id = $${params.length}`);
+      }
+      if (query.districtId) {
+        params.push(query.districtId);
+        conditions.push(`r.district_id = $${params.length}`);
       }
       if (query.createdBy) {
         params.push(query.createdBy);
@@ -97,11 +111,15 @@ export class ReportRepository {
         conditions.push(`r.issue_category = $${params.length}`);
       }
       const where = conditions.join(' AND ');
+      // Include municipality JOIN in COUNT only when filtering by regionId
+      const countJoin = needsMunicipalityJoin
+        ? `LEFT JOIN municipalities m_join ON m_join.id = r.municipality_id`
+        : ``;
 
-      const key = `reports:all:${page}:${limit}:${query.territoryId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.issueCategory ?? ''}`;
+      const key = `reports:all:${page}:${limit}:${query.regionId ?? ''}:${query.municipalityId ?? ''}:${query.districtId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.issueCategory ?? ''}`;
       return await redisCache.getOrSet(key, async () => {
         const countRes = await this.db.query(
-          `SELECT COUNT(*)::int AS total FROM reports r WHERE ${where}`,
+          `SELECT COUNT(*)::int AS total FROM reports r ${countJoin} WHERE ${where}`,
           params
         );
         const total = countRes.rows[0].total as number;
@@ -157,16 +175,16 @@ export class ReportRepository {
    * Vérifie si un signalement similaire existe déjà (même titre, catégorie et territoire)
    * pour éviter les doublons.
    */
-  public async checkDuplicateReport(title: string, category: IssueCategory, territoryId: string): Promise<boolean> {
+  public async checkDuplicateReport(title: string, category: IssueCategory, municipalityId: string, districtId?: string | null): Promise<boolean> {
     try {
       const res = await this.db.query(
         `SELECT 1 FROM reports
          WHERE LOWER(title) = LOWER($1)
            AND issue_category = $2
-           AND territory_id = $3
+           AND municipality_id = $3 AND (district_id = $4 OR ($4 IS NULL AND district_id IS NULL))
            AND deleted_at IS NULL
          LIMIT 1`,
-        [title, category, territoryId]
+        [title, category, municipalityId, districtId ?? null]
       );
       return (res.rowCount ?? 0) > 0;
     } catch (error: any) {
@@ -187,13 +205,13 @@ export class ReportRepository {
 
       const res = await client.query(
         `INSERT INTO reports (
-           territory_id, infrastructure_id, mapped_area_id,
+           municipality_id, district_id, infrastructure_id, mapped_area_id,
            title, description, issue_category, priority, risk_level,
            status, latitude, longitude, created_by, sla_hours
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
          RETURNING
-           id, territory_id AS "territoryId",
+           id, municipality_id AS "municipalityId", district_id AS "districtId",
            infrastructure_id AS "infrastructureId",
            mapped_area_id AS "mappedAreaId",
            title, description,
@@ -209,7 +227,8 @@ export class ReportRepository {
            updated_at AS "updatedAt",
            deleted_at AS "deletedAt"`,
         [
-          payload.territoryId,
+          payload.municipalityId,
+          payload.districtId ?? null,
           payload.infrastructureId ?? null,
           payload.mappedAreaId ?? null,
           payload.title,
@@ -271,7 +290,7 @@ export class ReportRepository {
          WHERE id = $11
            AND deleted_at IS NULL
          RETURNING
-           id, territory_id AS "territoryId",
+           id, municipality_id AS "municipalityId", district_id AS "districtId",
            infrastructure_id AS "infrastructureId",
            mapped_area_id AS "mappedAreaId",
            title, description,

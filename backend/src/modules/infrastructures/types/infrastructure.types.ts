@@ -16,7 +16,9 @@ import { InfrastructureType, InfrastructureCondition, InfrastructureStatus } fro
 
 export interface InfrastructureRow {
   id: string;
-  territory_id: string;
+  municipality_id: string;
+  district_id: string | null;
+  neighborhood_id: string | null;
   mapped_area_id: string | null;
   name: string;
   reference_code: string | null;
@@ -45,7 +47,9 @@ export interface InfrastructureRow {
 
 export interface Infrastructure {
   id: string;
-  territoryId: string;
+  municipalityId: string;
+  districtId: string | null;
+  neighborhoodId: string | null;
   territoryName?: string;
   mappedAreaId: string | null;
   name: string;
@@ -91,7 +95,9 @@ export interface PaginatedResult<T> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface CreateInfrastructurePayload {
-  territoryId: string;
+  municipalityId: string;
+  districtId?: string | null;
+  neighborhoodId?: string | null;
   mappedAreaId?: string | null;
   name: string;
   referenceCode?: string | null;

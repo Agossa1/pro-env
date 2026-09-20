@@ -21,7 +21,10 @@ class RegisterController {
                     email: '',
                     roleCode: 'citoyen',
                     roleTier: null,
-                    territoryId: null,
+                    regionId: null,
+                    municipalityId: null,
+                    districtId: null,
+                    neighborhoodId: null,
                     organizationId: null,
                     roles: [],
                 };

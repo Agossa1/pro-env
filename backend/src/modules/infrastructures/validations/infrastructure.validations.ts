@@ -18,7 +18,9 @@ const ConditionEnum = z.enum(Object.values(InfrastructureCondition) as [string, 
 const StatusEnum = z.enum(Object.values(InfrastructureStatus) as [string, ...string[]]);
 
 export const CreateInfrastructureSchema = z.object({
-  territoryId: z.string().uuid("Le territoire doit être un UUID valide"),
+  municipalityId: z.string().uuid("Le territoire doit être un UUID valide"),
+  districtId: z.string().uuid("L'arrondissement doit être un UUID valide").nullable().optional(),
+  neighborhoodId: z.string().uuid("Le quartier doit être un UUID valide").nullable().optional(),
   mappedAreaId: z.string().uuid("La zone cartographiée doit être un UUID valide").nullable().optional(),
   name: z.string().min(1, 'Le nom est requis').max(255),
   referenceCode: z.string().max(100).nullable().optional(),

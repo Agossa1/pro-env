@@ -42,7 +42,10 @@ export interface AuthUser {
   fullName: string;
   email: string;
   phone: string | null;
-  territoryId: string | null;
+  regionId: string | null;
+  municipalityId: string | null;
+  districtId: string | null;
+  neighborhoodId: string | null;
   organizationId: string | null;
   isActive: boolean;
   isVerified: boolean;
@@ -64,7 +67,10 @@ export interface RegisterDto {
   phone?: string;
   password?: string;
   roleCode: string;
-  territoryId?: string;
+  regionId?: string;
+  municipalityId?: string;
+  districtId?: string;
+  neighborhoodId?: string;
   organizationId?: string;
 }
 

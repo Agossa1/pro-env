@@ -69,3 +69,11 @@ export interface ResolutionRateStats {
   currentRate: number;
   pastRate: number;
 }
+export interface DashboardFilters {
+  forcedRegionId?: string;
+  forcedMunicipalityId?: string;
+  forcedDistrictId?: string;
+  forcedNeighborhoodId?: string;
+  forcedCreatedBy?: string;
+  forcedUserIdForTeamScopes?: string;
+}

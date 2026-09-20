@@ -22,7 +22,8 @@ import {
 
 export interface ReportRow {
   id: string;
-  territory_id: string;
+  municipality_id: string;
+  district_id: string | null;
   infrastructure_id: string | null;
   mapped_area_id: string | null;
   title: string;
@@ -97,7 +98,8 @@ export interface ReportStatusHistoryRow {
 
 export interface Report {
   id: string;
-  territoryId: string;
+  municipalityId: string;
+  districtId: string | null;
   infrastructureId: string | null;
   mappedAreaId: string | null;
   title: string;
@@ -120,8 +122,9 @@ export interface Report {
   createdByName?: string | null;
   /** Nom du rôle du créateur (JOIN roles) */
   createdByRole?: string | null;
-  /** Nom du territoire (JOIN territories) */
-  territoryName?: string | null;
+  /** Nom de la commune et de l'arrondissement */
+  municipalityName?: string | null;
+  districtName?: string | null;
 }
 
 /** Détails spécifiques par catégorie (1:1) */
@@ -163,7 +166,8 @@ export interface PaginatedResult<T> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface CreateReportPayload {
-  territoryId: string;
+  municipalityId: string;
+  districtId?: string | null;
   infrastructureId?: string | null;
   mappedAreaId?: string | null;
   title: string;

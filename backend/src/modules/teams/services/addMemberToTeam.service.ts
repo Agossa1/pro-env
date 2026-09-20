@@ -42,39 +42,42 @@ export class AddMemberToTeamService {
 
       const role = params.role ?? TeamMemberRole.OPS_OPERATOR;
 
-      // 1. Vérifier que l'email n'est pas déjà utilisé
-      const existenceCheck = await this.authRepository.checkUserExistence(params.email);
-      if (existenceCheck.exists) {
-        throw new BadRequestError(existenceCheck.reason ?? 'Un compte existe déjà avec cet email.');
+      // 1. Vérifier si l'utilisateur existe déjà
+      const existingUser = await this.authRepository.findAuthByEmail(params.email);
+      let userId: string;
+
+      if (existingUser) {
+        // Si l'utilisateur existe, on utilise son ID
+        userId = existingUser.id;
+      } else {
+        // Sinon on crée le compte technicien
+        const technicienRole = await this.authRepository.getRoleByCode('technicien');
+        if (!technicienRole) {
+          throw new BadRequestError("Le rôle 'technicien' n'existe pas. Lancez le seed des rôles.");
+        }
+
+        const rawPassword = this.password.generateRandomPassword();
+        const passwordHash = await this.password.hashPassword(rawPassword);
+
+        const createdUser = await this.authRepository.createUser({
+          fullName: params.fullName,
+          email: params.email.toLowerCase(),
+          phone: params.phone ?? undefined,
+          passwordHash,
+          roleId: technicienRole.id,
+          regionId: null, municipalityId: null, districtId: null, neighborhoodId: null,
+          organizationId: params.organizationId ?? null,
+          createdBy: undefined,
+        });
+        
+        userId = createdUser.id;
       }
-
-      // 2. Récupérer le rôle 'technicien'
-      const technicienRole = await this.authRepository.getRoleByCode('technicien');
-      if (!technicienRole) {
-        throw new BadRequestError("Le rôle 'technicien' n'existe pas. Lancez le seed des rôles.");
-      }
-
-      // 3. Mot de passe aléatoire (le compte sera activé via lien d'activation)
-      const rawPassword = this.password.generateRandomPassword();
-      const passwordHash = await this.password.hashPassword(rawPassword);
-
-      // 4. Création du compte auth (rôle technicien)
-      const createdUser = await this.authRepository.createUser({
-        fullName: params.fullName,
-        email: params.email.toLowerCase(),
-        phone: params.phone ?? undefined,
-        passwordHash,
-        roleId: technicienRole.id,
-        territoryId: null,
-        organizationId: params.organizationId ?? null,
-        createdBy: undefined,
-      });
 
       // 5. Ajout du membre à l'équipe
-      const member = await this.teamRepository.addMemberToTeam(teamId, createdUser.id, role);
+      const member = await this.teamRepository.addMemberToTeam(teamId, userId, role);
 
       this.logger.info(
-        `Utilisateur ${createdUser.id} ajouté à l'équipe ${teamId} (${role})`
+        `Utilisateur ${userId} ajouté à l'équipe ${teamId} (${role})`
       );
       return member;
     } catch (error: any) {

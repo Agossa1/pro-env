@@ -63,7 +63,7 @@ function RolesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-200 text-lg   text-gray-700">
+              <tr className="bg-gray-50/50 border-b border-gray-200 text-sm   text-gray-700">
                 <th className="px-6 py-4">Code</th>
                 <th className="px-6 py-4">Nom du Rôle</th>
                 <th className="px-6 py-4">Niveau (Tier)</th>
@@ -74,13 +74,13 @@ function RolesPage() {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-base text-gray-700">
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-700">
                     Chargement des rôles...
                   </td>
                 </tr>
               ) : roles.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-base text-gray-700">
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-700">
                     Aucun rôle trouvé.
                   </td>
                 </tr>
@@ -88,28 +88,28 @@ function RolesPage() {
                 roles.map((role) => (
                   <tr key={role.id} className="hover:bg-benin-green-light/30 transition-colors group">
                     <td className="px-6 py-4">
-                      <span className="text-lg font-medium text-gray-900 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-md">
+                      <span className="text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-md">
                         {role.code}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-gray-900">{role.name}</div>
                       {role.description && (
-                        <div className="text-base text-gray-500 mt-1 line-clamp-1">
+                        <div className="text-sm text-gray-500 mt-1 line-clamp-1">
                           {role.description}
                         </div>
                       )}
                     </td>
                     <td className="px-6 py-4">
                       {role.tier ? (
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md border text-base font-medium ${TIER_COLORS[role.tier]}`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md border text-sm font-medium ${TIER_COLORS[role.tier]}`}>
                           {TIER_LABELS[role.tier]}
                         </span>
                       ) : (
                         <span className="text-gray-400 text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-base font-medium text-gray-600">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-600">
                       {role.pageIds.length} page(s)
                     </td>
                     <td className="px-6 py-4 text-right">

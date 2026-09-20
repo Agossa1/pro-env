@@ -139,7 +139,10 @@ export const MissionDetailsModal: React.FC<Props> = ({ mission, onClose }) => {
     };
   }, [mission.id, getChecklist, getStatusHistory]);
 
-  const territoryName = territories.find((t) => t.id === mission.territoryId)?.name ?? '—';
+  const territoryName = mission.territoryName
+    ?? mission.municipalityName
+    ?? territories.find((t) => t.id === mission.municipalityId)?.name
+    ?? '—';
   const transitions = STATUS_TRANSITIONS[mission.status] ?? [];
   const missionInterventions = interventionList.filter((i) => i.missionId === mission.id);
 

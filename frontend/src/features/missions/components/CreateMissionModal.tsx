@@ -144,13 +144,20 @@ export const CreateMissionModal: React.FC<Props> = ({
 
   const finalTerritoryId = initialTerritoryId || selectedArronId || selectedCommuneId || selectedDeptId;
 
+  // Le backend stocke la commune d'intervention (municipality_id) : elle est
+  // obligatoire, et peut être héritée du signalement d'origine.
+  const municipalityIdForSubmit = selectedCommuneId || initialTerritoryId || '';
+
   // Chargement des infrastructures quand le territoire est connu
   useEffect(() => {
     if (!finalTerritoryId) { setStructures([]); return; }
     setLoadingStructures(true);
-    apiClient.get<ApiResponse<any>>('/infrastructures', {
-      params: { territoryId: finalTerritoryId, limit: 200 },
-    }).then(res => {
+    const params: Record<string, any> = { limit: 200 };
+    if (selectedCommuneId)    params.municipalityId = selectedCommuneId;
+    else if (selectedArronId) params.districtId     = selectedArronId;
+    else if (selectedDeptId)  params.regionId       = selectedDeptId;
+
+    apiClient.get<ApiResponse<any>>('/infrastructures', { params }).then(res => {
       const items = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
       setStructures(items);
     }).catch(() => setStructures([]))
@@ -166,6 +173,10 @@ export const CreateMissionModal: React.FC<Props> = ({
       setSubmitError('Veuillez sélectionner au moins un territoire (ex: Commune).');
       return;
     }
+    if (!municipalityIdForSubmit) {
+      setSubmitError('Veuillez sélectionner une commune : elle est obligatoire pour la mission.');
+      return;
+    }
     if (!title.trim()) {
       setSubmitError('Le titre est requis.');
       return;
@@ -174,7 +185,7 @@ export const CreateMissionModal: React.FC<Props> = ({
     setIsSubmitting(true);
     try {
       const payload: CreateMissionPayload = {
-        territoryId: finalTerritoryId,
+        municipalityId: municipalityIdForSubmit, // le backend exige une commune
         reportId: initialReportId || null,
         infrastructureId: infrastructureId || null,
         title: title.trim(),

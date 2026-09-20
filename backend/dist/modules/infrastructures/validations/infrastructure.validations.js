@@ -14,7 +14,7 @@ const TypeEnum = zod_1.z.enum(Object.values(infrastructure_enums_1.Infrastructur
 const ConditionEnum = zod_1.z.enum(Object.values(infrastructure_enums_1.InfrastructureCondition));
 const StatusEnum = zod_1.z.enum(Object.values(infrastructure_enums_1.InfrastructureStatus));
 exports.CreateInfrastructureSchema = zod_1.z.object({
-    territoryId: zod_1.z.string().uuid("Le territoire doit être un UUID valide"),
+    municipalityId: zod_1.z.string().uuid("Le territoire doit être un UUID valide"),
     mappedAreaId: zod_1.z.string().uuid("La zone cartographiée doit être un UUID valide").nullable().optional(),
     name: zod_1.z.string().min(1, 'Le nom est requis').max(255),
     referenceCode: zod_1.z.string().max(100).nullable().optional(),

@@ -8,7 +8,7 @@ export const fetchTeams = createAsyncThunk(
     try {
       return await teamsApi.getAll(params);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Erreur lors du chargement des équipes');
+      return rejectWithValue(error.message || 'Erreur lors du chargement des équipes');
     }
   }
 );
@@ -19,7 +19,7 @@ export const fetchTeamById = createAsyncThunk(
     try {
       return await teamsApi.getById(id);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Erreur lors du chargement de l'équipe");
+      return rejectWithValue(error.message || "Erreur lors du chargement de l'équipe");
     }
   }
 );
@@ -30,7 +30,7 @@ export const createTeam = createAsyncThunk(
     try {
       return await teamsApi.create(payload);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Erreur lors de la création de l'équipe");
+      return rejectWithValue(error.message || "Erreur lors de la création de l'équipe");
     }
   }
 );
@@ -41,7 +41,7 @@ export const updateTeam = createAsyncThunk(
     try {
       return await teamsApi.update(id, payload);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Erreur lors de la mise à jour de l'équipe");
+      return rejectWithValue(error.message || "Erreur lors de la mise à jour de l'équipe");
     }
   }
 );
@@ -53,7 +53,7 @@ export const deleteTeam = createAsyncThunk(
       await teamsApi.delete(id);
       return id;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Erreur lors de la suppression de l'équipe");
+      return rejectWithValue(error.message || "Erreur lors de la suppression de l'équipe");
     }
   }
 );
@@ -64,7 +64,7 @@ export const fetchTeamMembers = createAsyncThunk(
     try {
       return await teamsApi.getMembers(id);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Erreur lors du chargement des membres');
+      return rejectWithValue(error.message || 'Erreur lors du chargement des membres');
     }
   }
 );
@@ -75,7 +75,7 @@ export const addTeamMember = createAsyncThunk(
     try {
       return await teamsApi.addMember(id, payload);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Erreur lors de l'ajout du membre");
+      return rejectWithValue(error.message || "Erreur lors de l'ajout du membre");
     }
   }
 );
@@ -87,7 +87,7 @@ export const removeTeamMember = createAsyncThunk(
       await teamsApi.removeMember(id, memberId);
       return memberId;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Erreur lors de la suppression du membre');
+      return rejectWithValue(error.message || 'Erreur lors de la suppression du membre');
     }
   }
 );

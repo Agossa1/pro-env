@@ -44,7 +44,10 @@ export class LoginService {
       email: user.email,
       roleCode: user.roleCode,
       roleTier: user.roleTier,
-      territoryId: user.territoryId,
+      regionId: user.regionId,
+      municipalityId: user.municipalityId,
+      districtId: user.districtId,
+      neighborhoodId: user.neighborhoodId,
       organizationId: user.organizationId,
       roles: [user.roleCode]
     };

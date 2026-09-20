@@ -6,9 +6,9 @@ class GetReportsByStatusService {
         this.dashboardRepository = dashboardRepository;
         this.logger = logger;
     }
-    async getReportsByStatus() {
+    async getReportsByStatus(filters) {
         try {
-            return await this.dashboardRepository.getReportsByStatus();
+            return await this.dashboardRepository.getReportsByStatus(filters);
         }
         catch (error) {
             this.logger.error(`Erreur getReportsByStatus (service): ${error.message}`);

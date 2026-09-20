@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { GetSocietesService } from '../services/getSocietes.service';
+import { getScopeFilters } from '../../../shared/helpers/scopeFilters.helper';
 
 export class GetSocietesController {
   constructor(private readonly getSocietesService: GetSocietesService) {}
@@ -10,10 +11,12 @@ export class GetSocietesController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      const filters = getScopeFilters(req);
       const query = {
         page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
         type: req.query.type as string | undefined,
+        filters,
       };
 
       const result = await this.getSocietesService.getSocietes(query);

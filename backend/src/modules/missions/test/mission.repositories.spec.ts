@@ -30,7 +30,7 @@ describe('MissionRepository', () => {
 
   const mockMission = {
     id: 'mission-1',
-    territoryId: 'terr-1',
+    municipalityId: 'terr-1',
     reportId: null,
     missionType: 'repair',
     priorityLevel: 'high',
@@ -95,13 +95,13 @@ describe('MissionRepository', () => {
         .mockResolvedValueOnce({ rows: [mockMission] });
 
       await missionRepository.getAllMissions({
-        territoryId: 'terr-1',
+        municipalityId: 'terr-1',
         status: 'draft',
         missionType: 'repair',
       });
 
       expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('m.territory_id = $1'),
+        expect.stringContaining('m.municipality_id = $1'),
         expect.arrayContaining(['terr-1'])
       );
     });
@@ -129,7 +129,7 @@ describe('MissionRepository', () => {
 
   describe('createMission', () => {
     const payload = {
-      territoryId: 'terr-1',
+      municipalityId: 'terr-1',
       title: 'Réparation caniveau',
       missionType: 'repair' as any,
       createdBy: 'user-1',

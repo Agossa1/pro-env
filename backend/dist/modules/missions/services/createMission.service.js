@@ -22,7 +22,7 @@ class CreateMissionService {
      */
     async createMission(payload, creator) {
         try {
-            if (!payload.territoryId || !payload.title || !payload.missionType) {
+            if (!payload.municipalityId || !payload.title || !payload.missionType) {
                 throw new appErrors_1.BadRequestError('Le territoire, le titre et le type de la mission sont requis.');
             }
             const created = await this.missionRepository.createMission({

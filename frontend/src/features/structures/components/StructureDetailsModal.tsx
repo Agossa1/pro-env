@@ -30,8 +30,9 @@ export const StructureDetailsModal: React.FC<Props> = ({ structure, onClose }) =
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  const territoryName = territories.find((t) => t.id === structure.territoryId)?.name
-    ?? structure.territoryName
+  const territoryName = structure.territoryName
+    ?? structure.municipalityName
+    ?? territories.find((t) => t.id === structure.municipalityId)?.name
     ?? '—';
 
   // Charger les photos au montage

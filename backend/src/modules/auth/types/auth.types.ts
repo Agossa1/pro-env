@@ -16,7 +16,10 @@ export interface TokenPayload {
   email: string;
   roleCode: string;
   roleTier: RoleTier | null;
-  territoryId: string | null;
+  regionId: string | null;
+  municipalityId: string | null;
+  districtId: string | null;
+  neighborhoodId: string | null;
   organizationId: string | null;
   roles?: string[];
 }
@@ -31,7 +34,10 @@ export interface AuthRow {
   email: string;
   phone: string | null;
   role_id: string;
-  territory_id: string | null;
+  region_id: string | null;
+  municipality_id: string | null;
+  district_id: string | null;
+  neighborhood_id: string | null;
   organization_id: string | null;
   created_at: Date;
   updated_at: Date;
@@ -69,7 +75,10 @@ export interface AuthUser {
   fullName: string;
   email: string;
   phone: string | null;
-  territoryId: string | null;
+  regionId: string | null;
+  municipalityId: string | null;
+  districtId: string | null;
+  neighborhoodId: string | null;
   organizationId: string | null;
   isActive: boolean;
   isVerified: boolean;
@@ -88,7 +97,10 @@ export interface CreateUserPayload {
   phone?: string;
   passwordHash: string;
   roleId: string;
-  territoryId?: string | null;
+  regionId?: string | null;
+  municipalityId?: string | null;
+  districtId?: string | null;
+  neighborhoodId?: string | null;
   organizationId?: string | null;
   createdBy?: string;
 }
@@ -105,7 +117,10 @@ export interface RegisterUserDTO {
   phone?: string;
   password?: string; // Optionnel (généré automatiquement s'il est vide)
   roleCode: string;
-  territoryId?: string;
+  regionId?: string;
+  municipalityId?: string;
+  districtId?: string;
+  neighborhoodId?: string;
   organizationId?: string;
 }
 

@@ -12,6 +12,20 @@ import {
 import type { Report } from '../services/reports.types';
 import { CreateMissionModal } from '../../missions/components/CreateMissionModal';
 
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
 interface Props {
   report: Report;
   onClose: () => void;
@@ -158,7 +172,9 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
     };
   }, [report.id]);
 
-  const territoryName = territories.find((t) => t.id === report.territoryId)?.name ?? '—';
+  const territoryName = report.territoryName
+    ?? territories.find((t) => t.id === report.municipalityId)?.name
+    ?? '—';
   const transitions = STATUS_TRANSITIONS[report.status] ?? [];
 
   const handleStatusChange = async (newStatus: ReportStatus) => {
@@ -319,6 +335,27 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
               </div>
             </div>
 
+            {/* Localisation sur la carte */}
+            {report.latitude && report.longitude && (
+              <div>
+                <p className="text-xs font-medium text-gray-400 mb-2">Localisation</p>
+                <div className="h-48 w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner relative z-0">
+                  <MapContainer 
+                    center={[report.latitude, report.longitude]} 
+                    zoom={15} 
+                    scrollWheelZoom={false}
+                    className="h-full w-full z-0"
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; OpenStreetMap contributors'
+                    />
+                    <Marker position={[report.latitude, report.longitude]} />
+                  </MapContainer>
+                </div>
+              </div>
+            )}
+
             {/* Détails spécifiques à la catégorie */}
             {report.issueCategory !== IssueCategory.OTHER && (
               <div>
@@ -463,7 +500,7 @@ export const ReportDetailsModal: React.FC<Props> = ({ report, onClose }) => {
         <CreateMissionModal
           onClose={() => setIsCreateMissionModalOpen(false)}
           initialReportId={report.id}
-          initialTerritoryId={report.territoryId}
+          initialTerritoryId={report.municipalityId ?? report.districtId ?? undefined}
           initialTerritoryName={report.territoryName || (territoryName !== '—' ? territoryName : 'Territoire lié au signalement')}
           initialTitle={`Mission: ${report.title}`}
           initialDescription={report.description || ''}

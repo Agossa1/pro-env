@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useMissions } from '../hooks/useMissions';
-import { useTerritory } from '../../territory/hooks/useTerritory';
 import { MissionType, MissionStatus, PriorityLevel } from '../services/missions.types';
 import { MissionDetailsModal } from './MissionDetailsModal';
+import { useAuth } from '../../auth/hooks/useAuth';
+import { UserRoleCode } from '../../auth/services/auth.types';
 
 // Icons
 const GridIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>;
@@ -74,7 +75,7 @@ export const PRIORITY_COLORS: Record<PriorityLevel, string> = {
 
 export const MissionsPage: React.FC = () => {
   const { missions, isLoading, error, load } = useMissions();
-  const { territories, loadForForm } = useTerritory();
+  const { user } = useAuth();
 
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
@@ -86,14 +87,18 @@ export const MissionsPage: React.FC = () => {
   const [search, setSearch] = useState<string>('');
 
   useEffect(() => {
-    load();
-    loadForForm();
-  }, [load, loadForForm]);
-
-  const territoryMap = territories.reduce((acc, curr) => {
-    acc[curr.id] = curr.name;
-    return acc;
-  }, {} as Record<string, string>);
+    const filters: Record<string, any> = {};
+    if (user) {
+      if (user.role?.code === UserRoleCode.admin_mairie && user.municipalityId) {
+        filters.municipalityId = user.municipalityId;
+      } else if (user.role?.code === UserRoleCode.prefecture && user.regionId) {
+        filters.regionId = user.regionId;
+      } else if (user.role?.code === UserRoleCode.technicien) {
+        filters.assignedTo = user.id; // Or team id
+      }
+    }
+    load(filters);
+  }, [load, user]);
 
   const filteredMissions = missions.filter((m) => {
     const matchStatus = filterStatus === '' || m.status === filterStatus;
@@ -217,7 +222,7 @@ export const MissionsPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-600">
-                        {mission.territoryName || territoryMap[mission.territoryId] || '—'}
+                        {mission.territoryName || '—'}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_COLORS[mission.status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
@@ -267,8 +272,8 @@ export const MissionsPage: React.FC = () => {
                 <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">{mission.title}</h3>
                 <p className="text-sm text-gray-500 flex-1 line-clamp-3 mb-4">{mission.description || 'Aucune description fournie.'}</p>
                 <div className="pt-4 border-t border-gray-100 space-y-1.5 mt-auto">
-                  <p className="text-xs text-gray-500 truncate" title={mission.territoryName || territoryMap[mission.territoryId] || 'Territoire inconnu'}>
-                    {mission.territoryName || territoryMap[mission.territoryId] || '—'}
+                  <p className="text-xs text-gray-500 truncate" title={mission.territoryName || 'Territoire inconnu'}>
+                    {mission.territoryName || '—'}
                   </p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">

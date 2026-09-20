@@ -18,8 +18,8 @@ class InfrastructureRepository {
         this.infrastructureSelect = `
     SELECT
       i.id,
-      i.territory_id          AS "territoryId",
-      t.name                  AS "territoryName",
+      i.municipality_id          AS "municipalityId",
+      COALESCE(m.name, 'Territoire Inconnu') AS "territoryName",
       i.mapped_area_id        AS "mappedAreaId",
       i.name,
       i.reference_code        AS "referenceCode",
@@ -42,9 +42,10 @@ class InfrastructureRepository {
       i.deleted_at            AS "deletedAt"
   `;
         this.joinFrom = `
-    FROM infrastructures i
-    LEFT JOIN territories t ON t.id = i.territory_id
-  `;
+  FROM infrastructures i
+  LEFT JOIN municipalities m  ON m.id  = i.municipality_id
+  LEFT JOIN regions rg        ON rg.id = m.region_id
+`;
     }
     /** Récupère les infrastructures avec pagination + filtres + recherche */
     async getAllInfrastructures(query = {}) {
@@ -54,10 +55,16 @@ class InfrastructureRepository {
             const offset = (page - 1) * limit;
             const conditions = [`i.deleted_at IS NULL`];
             const params = [];
-            if (query.territoryId) {
-                params.push(query.territoryId);
-                conditions.push(`i.territory_id = $${params.length}`);
+            if (query.regionId) {
+                params.push(query.regionId);
+                // Filtrer par région via la commune
+                conditions.push(`m.region_id = $${params.length}`);
             }
+            if (query.municipalityId) {
+                params.push(query.municipalityId);
+                conditions.push(`i.municipality_id = $${params.length}`);
+            }
+            // districtId ignoré : la table infrastructures ne stocke pas district_id
             if (query.type) {
                 params.push(query.type);
                 conditions.push(`i.type = $${params.length}`);
@@ -74,10 +81,25 @@ class InfrastructureRepository {
                 params.push(`%${query.search}%`);
                 conditions.push(`(i.name ILIKE $${params.length} OR i.reference_code ILIKE $${params.length})`);
             }
+            // Scoping technicien : uniquement les structures liées à ses missions (via équipes)
+            if (query.memberUserId) {
+                params.push(query.memberUserId);
+                conditions.push(`EXISTS (
+          SELECT 1 FROM interventions inv
+          INNER JOIN missions ms ON ms.id = inv.mission_id
+          INNER JOIN field_team_members ftm ON ftm.team_id = ms.assigned_team_id
+          WHERE inv.mission_id IN (
+            SELECT m2.id FROM missions m2
+            INNER JOIN field_team_members ftm2 ON ftm2.team_id = m2.assigned_team_id
+            WHERE ftm2.user_id = $${params.length} AND ftm2.is_active = TRUE
+          )
+          AND i.id = inv.mission_id
+        ) OR i.created_by = $${params.length}`);
+            }
             const where = conditions.join(' AND ');
-            const key = `infrastructures:all:${page}:${limit}:${query.territoryId ?? ''}:${query.type ?? ''}:${query.status ?? ''}:${query.condition ?? ''}:${query.search ?? ''}`;
+            const key = `infrastructures:all:${page}:${limit}:${query.regionId ?? ''}:${query.municipalityId ?? ''}:${query.type ?? ''}:${query.status ?? ''}:${query.condition ?? ''}:${query.search ?? ''}`;
             return await redis_service_1.redisCache.getOrSet(key, async () => {
-                const countRes = await this.db.query(`SELECT COUNT(*)::int AS total FROM infrastructures i WHERE ${where}`, params);
+                const countRes = await this.db.query(`SELECT COUNT(*)::int AS total ${this.joinFrom} WHERE ${where}`, params);
                 const total = countRes.rows[0].total;
                 params.push(limit, offset);
                 const res = await this.db.query(`${this.infrastructureSelect}
@@ -121,14 +143,14 @@ class InfrastructureRepository {
     async createInfrastructure(payload) {
         try {
             const res = await this.db.query(`INSERT INTO infrastructures (
-                    territory_id, mapped_area_id, name, reference_code,
+                    municipality_id, mapped_area_id, name, reference_code,
                     type, condition, status, description, material,
                     dimensions, installation_date, last_maintained_at,
                     location, geometry, latitude, longitude, metadata, created_by
                 )
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
                      RETURNING id`, [
-                payload.territoryId,
+                payload.municipalityId,
                 payload.mappedAreaId ?? null,
                 payload.name,
                 payload.referenceCode ?? null,

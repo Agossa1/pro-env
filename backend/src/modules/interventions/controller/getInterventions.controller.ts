@@ -11,7 +11,7 @@ export class GetInterventionsController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { forcedTerritoryId, forcedCreatedBy } = getScopeFilters(req);
+      const { forcedRegionId, forcedMunicipalityId, forcedDistrictId, forcedNeighborhoodId, forcedCreatedBy, forcedUserIdForTeamScopes } = getScopeFilters(req);
 
       const query = {
         page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
@@ -19,8 +19,13 @@ export class GetInterventionsController {
         missionId: req.query.missionId as string | undefined,
         teamId: req.query.teamId as string | undefined,
         status: req.query.status as string | undefined,
-        territoryId: forcedTerritoryId ?? (req.query.territoryId as string | undefined),
+        regionId: forcedRegionId ?? (req.query.regionId as string | undefined),
+        municipalityId: forcedMunicipalityId ?? (req.query.municipalityId as string | undefined),
+        districtId: forcedDistrictId ?? (req.query.districtId as string | undefined),
+        neighborhoodId: forcedNeighborhoodId ?? (req.query.neighborhoodId as string | undefined),
         createdBy: forcedCreatedBy ?? (req.query.createdBy as string | undefined),
+        // Pour le technicien : uniquement les interventions où il est membre d'équipe assignée
+        memberUserId: forcedUserIdForTeamScopes,
       };
 
       const result = await this.getInterventionsService.getInterventions(query);

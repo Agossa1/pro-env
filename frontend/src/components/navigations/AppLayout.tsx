@@ -76,7 +76,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Signalements',    to: '/reports',      icon: <AlertIcon />,     section: 'Terrain', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture', 'technicien', 'citoyen'] },
   { label: 'Missions',        to: '/missions',     icon: <BriefcaseIcon />, section: 'Terrain', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture', 'technicien'] },
   { label: 'Interventions',   to: '/interventions',icon: <ToolIcon />,      section: 'Terrain' },
-  { label: 'Structures',      to: '/structures',   icon: <BuildingsIcon />, section: 'Terrain' },
+  { label: 'Infrastructures',  to: '/structures',   icon: <BuildingsIcon />, section: 'Terrain' },
   { label: 'Sociétés',        to: '/societes',     icon: <BriefcaseIcon />, section: 'Terrain', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture'] },
   { label: 'Équipes',          to: '/teams',        icon: <TeamsIcon />,    section: 'Terrain' },
   { label: 'Utilisateurs',    to: '/users',        icon: <UsersIcon />,     section: 'Administration', roles: ['super_admin', 'admin_ministere', 'admin_mairie', 'prefecture'] },

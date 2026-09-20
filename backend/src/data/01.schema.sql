@@ -129,57 +129,50 @@ COMMENT ON TABLE organizations IS 'Prestataires exécutant missions/intervention
 -- Territoire — Hiérarchie administrative récursive du Bénin
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS territory_types (
+-- Régions (les 12 départements du Bénin)
+CREATE TABLE IF NOT EXISTS regions (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code       VARCHAR(50) UNIQUE,
+    name       VARCHAR(255) NOT NULL UNIQUE,
+    geometry   GEOMETRY(MULTIPOLYGON, 4326),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+COMMENT ON TABLE regions IS 'Les 12 départements du Bénin';
+
+-- Municipalités / Communes
+CREATE TABLE IF NOT EXISTS municipalities (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code            VARCHAR(50) NOT NULL UNIQUE,
+    region_id       UUID NOT NULL REFERENCES regions(id) ON DELETE CASCADE,
+    organization_id UUID REFERENCES organizations(id) ON DELETE SET NULL,
+    code            VARCHAR(50) UNIQUE,
     name            VARCHAR(255) NOT NULL,
-    hierarchy_level INTEGER NOT NULL CHECK (hierarchy_level >= 0),
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    geometry        GEOMETRY(MULTIPOLYGON, 4326),
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
-COMMENT ON TABLE territory_types IS '7 niveaux territoriaux seedés — extensible sans migration de schéma';
+COMMENT ON TABLE municipalities IS '77 communes du Bénin';
 
-CREATE TABLE IF NOT EXISTS territories (
-    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    territory_type_id   UUID NOT NULL,
-    parent_territory_id UUID,
-    organization_id     UUID,
-    code                VARCHAR(50) UNIQUE,
-    name                VARCHAR(255) NOT NULL CHECK (length(trim(name)) > 0),
-    geometry            GEOMETRY(MultiPolygon, 4326),
-    centroid            GEOMETRY(Point, 4326),
-    bbox                GEOMETRY(Polygon, 4326),
-    status              enum_status NOT NULL DEFAULT 'ACTIVE',
-    metadata            JSONB NOT NULL DEFAULT '{}'::jsonb,
-    created_by          UUID,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at          TIMESTAMPTZ,
-
-    CONSTRAINT fk_territory_type FOREIGN KEY (territory_type_id)
-        REFERENCES territory_types(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT fk_territory_parent FOREIGN KEY (parent_territory_id)
-        REFERENCES territories(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT fk_territory_organization FOREIGN KEY (organization_id)
-        REFERENCES organizations(id) ON UPDATE CASCADE ON DELETE SET NULL,
-    CONSTRAINT chk_territory_not_self_parent CHECK (id IS DISTINCT FROM parent_territory_id)
-);
-COMMENT ON TABLE territories IS 'Modèle récursif : Département → Commune → Arrondissement → Quartier/Village';
-COMMENT ON COLUMN territories.parent_territory_id IS 'NULL pour le niveau racine (Département)';
-
-CREATE TABLE IF NOT EXISTS territory_sectors (
+-- Arrondissements
+CREATE TABLE IF NOT EXISTS districts (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    territory_id    UUID NOT NULL,
-    name            VARCHAR(255) NOT NULL CHECK (length(trim(name)) > 0),
-    geometry        GEOMETRY(MultiPolygon, 4326),
-    centroid        GEOMETRY(Point, 4326),
-    status          enum_status NOT NULL DEFAULT 'ACTIVE',
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at      TIMESTAMPTZ,
+    municipality_id UUID NOT NULL REFERENCES municipalities(id) ON DELETE CASCADE,
+    code            VARCHAR(50),
+    name            VARCHAR(255) NOT NULL,
+    geometry        GEOMETRY(MULTIPOLYGON, 4326),
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
 
-    CONSTRAINT fk_sector_territory FOREIGN KEY (territory_id)
-        REFERENCES territories(id) ON UPDATE CASCADE ON DELETE RESTRICT
+-- Quartiers / Villages
+CREATE TABLE IF NOT EXISTS neighborhoods (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    district_id UUID NOT NULL REFERENCES districts(id) ON DELETE CASCADE,
+    code        VARCHAR(50),
+    name        VARCHAR(255) NOT NULL,
+    geometry    GEOMETRY(MULTIPOLYGON, 4326),
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
 
@@ -192,18 +185,21 @@ CREATE TABLE IF NOT EXISTS auth (
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(20) NULL UNIQUE,
     role_id UUID NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
-    territory_id UUID NULL REFERENCES territories(id) ON DELETE SET NULL,
+    region_id UUID NULL REFERENCES regions(id) ON DELETE SET NULL,
+    municipality_id UUID NULL REFERENCES municipalities(id) ON DELETE SET NULL,
+    district_id UUID NULL REFERENCES districts(id) ON DELETE SET NULL,
+    neighborhood_id UUID NULL REFERENCES neighborhoods(id) ON DELETE SET NULL,
     organization_id UUID NULL REFERENCES organizations(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-COMMENT ON COLUMN auth.territory_id IS 'Renseigné pour les rôles territoriaux (admin_mairie → commune, prefecture → département). NULL sinon';
+COMMENT ON COLUMN auth.region_id IS 'Requis pour: prefecture, admin_mairie, technicien';
+COMMENT ON COLUMN auth.municipality_id IS 'Requis pour: admin_mairie, technicien';
+COMMENT ON COLUMN auth.district_id IS 'Optionnel pour: technicien';
+COMMENT ON COLUMN auth.neighborhood_id IS 'Optionnel pour: technicien';
 COMMENT ON COLUMN auth.organization_id IS 'Renseigné uniquement pour les techniciens rattachés à un prestataire';
 
--- Ajout FK différée (auth référence territories qui référence auth via created_by)
-ALTER TABLE territories
-    ADD CONSTRAINT fk_territory_created_by FOREIGN KEY (created_by)
-        REFERENCES auth(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
 
 
 -- ============================================================================
@@ -283,19 +279,19 @@ CREATE TABLE IF NOT EXISTS otp_codes (
 -- ============================================================================
 
 -- Territories
-CREATE INDEX IF NOT EXISTS idx_territories_type       ON territories(territory_type_id);
-CREATE INDEX IF NOT EXISTS idx_territories_parent     ON territories(parent_territory_id);
-CREATE INDEX IF NOT EXISTS idx_territories_organization ON territories(organization_id);
-CREATE INDEX IF NOT EXISTS idx_territories_geometry   ON territories USING GIST (geometry);
-CREATE INDEX IF NOT EXISTS idx_territories_centroid   ON territories USING GIST (centroid);
-CREATE INDEX IF NOT EXISTS idx_territories_deleted_at ON territories(deleted_at) WHERE deleted_at IS NULL;
-
-CREATE INDEX IF NOT EXISTS idx_sectors_territory ON territory_sectors(territory_id);
-CREATE INDEX IF NOT EXISTS idx_sectors_geometry  ON territory_sectors USING GIST (geometry);
+CREATE INDEX IF NOT EXISTS idx_regions_code           ON regions(code);
+CREATE INDEX IF NOT EXISTS idx_regions_geometry       ON regions USING GIST (geometry);
+CREATE INDEX IF NOT EXISTS idx_municipalities_region  ON municipalities(region_id);
+CREATE INDEX IF NOT EXISTS idx_municipalities_code    ON municipalities(code);
+CREATE INDEX IF NOT EXISTS idx_municipalities_geometry ON municipalities USING GIST (geometry);
+CREATE INDEX IF NOT EXISTS idx_districts_municipality ON districts(municipality_id);
+CREATE INDEX IF NOT EXISTS idx_neighborhoods_district ON neighborhoods(district_id);
 
 -- Auth
 CREATE INDEX IF NOT EXISTS idx_auth_role                   ON auth(role_id);
-CREATE INDEX IF NOT EXISTS idx_auth_territory              ON auth(territory_id);
+CREATE INDEX IF NOT EXISTS idx_auth_region                 ON auth(region_id);
+CREATE INDEX IF NOT EXISTS idx_auth_municipality           ON auth(municipality_id);
+CREATE INDEX IF NOT EXISTS idx_auth_district               ON auth(district_id);
 CREATE INDEX IF NOT EXISTS idx_auth_organization           ON auth(organization_id);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_role       ON role_permissions(role_id);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_permission ON role_permissions(permission_id);
@@ -313,16 +309,20 @@ CREATE TRIGGER set_updated_at_organizations
     BEFORE UPDATE ON organizations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER set_updated_at_territory_types
-    BEFORE UPDATE ON territory_types
+CREATE TRIGGER set_updated_at_regions
+    BEFORE UPDATE ON regions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER set_updated_at_territories
-    BEFORE UPDATE ON territories
+CREATE TRIGGER set_updated_at_municipalities
+    BEFORE UPDATE ON municipalities
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER set_updated_at_territory_sectors
-    BEFORE UPDATE ON territory_sectors
+CREATE TRIGGER set_updated_at_districts
+    BEFORE UPDATE ON districts
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER set_updated_at_neighborhoods
+    BEFORE UPDATE ON neighborhoods
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER set_updated_at_auth
@@ -354,8 +354,8 @@ CREATE TRIGGER set_updated_at_otp_codes
 CREATE TABLE IF NOT EXISTS reports (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    -- Contexte territorial (modèle récursif unique — niveau le plus précis)
-    territory_id        UUID NOT NULL,
+    municipality_id     UUID NOT NULL,
+    district_id         UUID NULL,
 
     -- Références optionnelles
     infrastructure_id   UUID,
@@ -388,8 +388,10 @@ CREATE TABLE IF NOT EXISTS reports (
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at          TIMESTAMPTZ,
 
-    CONSTRAINT fk_report_territory FOREIGN KEY (territory_id)
-        REFERENCES territories(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_report_municipality FOREIGN KEY (municipality_id)
+        REFERENCES municipalities(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_report_district FOREIGN KEY (district_id)
+        REFERENCES districts(id) ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT fk_report_created_by FOREIGN KEY (created_by)
         REFERENCES auth(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_report_assigned_to FOREIGN KEY (assigned_to)
@@ -400,12 +402,12 @@ CREATE TABLE IF NOT EXISTS reports (
     CONSTRAINT chk_report_longitude CHECK (longitude IS NULL OR longitude BETWEEN -180 AND 180)
 );
 COMMENT ON TABLE reports IS 'Signalement terrain créé par un technicien (créateur toujours interne → origine vérifiable de facto)';
-COMMENT ON COLUMN reports.territory_id IS 'Pointe vers le niveau territorial le plus précis (quartier/village) ; la remontée Commune/Département se fait par requête récursive sur territories';
+
 
 -- ---------------------------------------------------------------------
 -- Index (FK + GIST obligatoires)
 -- ---------------------------------------------------------------------
-CREATE INDEX IF NOT EXISTS idx_reports_territory      ON reports(territory_id);
+CREATE INDEX IF NOT EXISTS idx_reports_municipality   ON reports(municipality_id);
 CREATE INDEX IF NOT EXISTS idx_reports_infrastructure ON reports(infrastructure_id);
 CREATE INDEX IF NOT EXISTS idx_reports_mapped_area    ON reports(mapped_area_id);
 CREATE INDEX IF NOT EXISTS idx_reports_created_by     ON reports(created_by);
@@ -482,8 +484,7 @@ CREATE INDEX IF NOT EXISTS idx_report_details_environment_sensor ON report_detai
 CREATE TABLE IF NOT EXISTS missions (
     id                       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    -- Contexte territorial (modèle récursif unique)
-    territory_id             UUID NOT NULL,
+    municipality_id          UUID NOT NULL,
 
     -- Lien vers le signalement d'origine (optionnel)
     report_id                UUID,
@@ -518,8 +519,8 @@ CREATE TABLE IF NOT EXISTS missions (
     updated_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at               TIMESTAMPTZ,
 
-    CONSTRAINT fk_mission_territory FOREIGN KEY (territory_id)
-        REFERENCES territories(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_mission_municipality FOREIGN KEY (municipality_id)
+        REFERENCES municipalities(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_mission_report FOREIGN KEY (report_id)
         REFERENCES reports(id) ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT fk_mission_organization FOREIGN KEY (assigned_organization_id)
@@ -542,7 +543,7 @@ CREATE TABLE IF NOT EXISTS missions (
 COMMENT ON TABLE missions IS 'Créée par l''administration (mairie/DST), assignée à un prestataire (organizations) pour intervention';
 COMMENT ON COLUMN missions.assigned_organization_id IS 'Prestataire retenu pour l''intervention. L''équipe précise (assigned_team_id) est choisie après acceptation par le prestataire';
 
-CREATE INDEX IF NOT EXISTS idx_missions_territory     ON missions(territory_id);
+CREATE INDEX IF NOT EXISTS idx_missions_municipality  ON missions(municipality_id);
 CREATE INDEX IF NOT EXISTS idx_missions_report        ON missions(report_id);
 CREATE INDEX IF NOT EXISTS idx_missions_organization  ON missions(assigned_organization_id);
 CREATE INDEX IF NOT EXISTS idx_missions_team          ON missions(assigned_team_id);
@@ -653,20 +654,20 @@ CREATE INDEX IF NOT EXISTS idx_mstatus_mission ON mission_status_history(mission
 CREATE TABLE IF NOT EXISTS organization_territories (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL,
-    territory_id    UUID NOT NULL,
+    municipality_id UUID NOT NULL,
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_orgterr_organization FOREIGN KEY (organization_id)
         REFERENCES organizations(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT fk_orgterr_territory FOREIGN KEY (territory_id)
-        REFERENCES territories(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT uq_org_territory UNIQUE (organization_id, territory_id)
+    CONSTRAINT fk_orgterr_municipality FOREIGN KEY (municipality_id)
+        REFERENCES municipalities(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT uq_org_municipality UNIQUE (organization_id, municipality_id)
 );
-COMMENT ON TABLE organization_territories IS 'Communes (ou tout niveau territorial) sur lesquelles une organisation est autorisée à intervenir';
+COMMENT ON TABLE organization_territories IS 'Communes sur lesquelles une organisation est autorisée à intervenir';
 
 CREATE INDEX IF NOT EXISTS idx_orgterr_organization ON organization_territories(organization_id);
-CREATE INDEX IF NOT EXISTS idx_orgterr_territory    ON organization_territories(territory_id);
+CREATE INDEX IF NOT EXISTS idx_orgterr_municipality ON organization_territories(municipality_id);
 
 -- ---------------------------------------------------------------------
 -- Équipes terrain (hiérarchisées) au sein d'une organisation
@@ -705,7 +706,7 @@ CREATE TABLE IF NOT EXISTS field_team_members (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     team_id      UUID NOT NULL,
     user_id      UUID NOT NULL,
-    role_in_team team_member_role_enum NOT NULL DEFAULT 'member',
+    role_in_team team_member_role_enum NOT NULL DEFAULT 'OPS_OPERATOR',
     is_active    BOOLEAN NOT NULL DEFAULT TRUE,
     joined_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     left_at      TIMESTAMPTZ,
@@ -723,7 +724,7 @@ CREATE INDEX IF NOT EXISTS idx_teammembers_user ON field_team_members(user_id);
 -- Un seul chef actif par équipe
 CREATE UNIQUE INDEX IF NOT EXISTS uq_one_active_leader_per_team
     ON field_team_members(team_id)
-    WHERE role_in_team = 'leader' AND is_active = TRUE;
+    WHERE role_in_team = 'COMMAND_LEAD' AND is_active = TRUE;
 COMMENT ON INDEX uq_one_active_leader_per_team IS 'Garantit un seul chef actif par équipe';
 
 -- ---------------------------------------------------------------------
@@ -837,28 +838,25 @@ CREATE TRIGGER trg_fireport_author_in_team
 -- Une mission ne peut être assignée qu'à une organisation opérant sur
 -- le territoire de la mission ou un territoire ancêtre.
 -- ---------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION fn_mission_organization_territory_check()
+CREATE OR REPLACE FUNCTION fn_mission_organization_municipality_check()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.assigned_organization_id IS NULL THEN
         RETURN NEW;
     END IF;
 
+    IF NEW.municipality_id IS NULL THEN
+        RETURN NEW; -- Pas de vérification si pas de commune définie
+    END IF;
+
     IF NOT EXISTS (
-        WITH RECURSIVE territory_chain AS (
-            SELECT id, parent_territory_id FROM territories WHERE id = NEW.territory_id
-            UNION ALL
-            SELECT t.id, t.parent_territory_id
-            FROM territories t
-            JOIN territory_chain tc ON t.id = tc.parent_territory_id
-        )
         SELECT 1
         FROM organization_territories ot
-        JOIN territory_chain tc ON tc.id = ot.territory_id
         WHERE ot.organization_id = NEW.assigned_organization_id
+          AND ot.municipality_id = NEW.municipality_id
           AND ot.is_active = TRUE
     ) THEN
-        RAISE EXCEPTION 'L''organisation % n''est pas habilitée sur le territoire de cette mission',
+        RAISE EXCEPTION 'L''organisation % n''est pas habilitée sur la commune de cette mission',
             NEW.assigned_organization_id;
     END IF;
 
@@ -866,9 +864,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_mission_organization_territory_check
-    BEFORE INSERT OR UPDATE OF assigned_organization_id, territory_id ON missions
-    FOR EACH ROW EXECUTE FUNCTION fn_mission_organization_territory_check();
+CREATE TRIGGER trg_mission_organization_municipality_check
+    BEFORE INSERT OR UPDATE OF assigned_organization_id, municipality_id ON missions
+    FOR EACH ROW EXECUTE FUNCTION fn_mission_organization_municipality_check();
 
 -- ============================================================================
 -- SIGIE — 12_infrastructures.sql
@@ -911,7 +909,7 @@ CREATE TYPE infrastructure_condition_enum AS ENUM (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS mapped_areas (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    territory_id    UUID NOT NULL,
+    municipality_id UUID NOT NULL,
     name            VARCHAR(255) NOT NULL CHECK (length(trim(name)) > 0),
     area_type       VARCHAR(100),   -- ex: 'informal_settlement', 'watershed', 'commercial_zone'
     geometry        GEOMETRY(MultiPolygon, 4326),
@@ -923,14 +921,14 @@ CREATE TABLE IF NOT EXISTS mapped_areas (
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at      TIMESTAMPTZ,
 
-    CONSTRAINT fk_mappedarea_territory FOREIGN KEY (territory_id)
-        REFERENCES territories(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_mappedarea_municipality FOREIGN KEY (municipality_id)
+        REFERENCES municipalities(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_mappedarea_created_by FOREIGN KEY (created_by)
         REFERENCES auth(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 COMMENT ON TABLE mapped_areas IS 'Zones cartographiées hors hiérarchie administrative : bassins versants, quartiers informels, zones commerciales...';
 
-CREATE INDEX IF NOT EXISTS idx_mappedareas_territory ON mapped_areas(territory_id);
+CREATE INDEX IF NOT EXISTS idx_mappedareas_municipality ON mapped_areas(municipality_id);
 CREATE INDEX IF NOT EXISTS idx_mappedareas_geometry  ON mapped_areas USING GIST (geometry);
 CREATE INDEX IF NOT EXISTS idx_mappedareas_deleted_at ON mapped_areas(deleted_at) WHERE deleted_at IS NULL;
 
@@ -945,7 +943,7 @@ CREATE TABLE IF NOT EXISTS infrastructures (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     -- Localisation
-    territory_id      UUID NOT NULL,
+    municipality_id   UUID NOT NULL,
     mapped_area_id    UUID,              -- zone cartographiée optionnelle (ex: bassin versant)
 
     -- Identification
@@ -977,8 +975,8 @@ CREATE TABLE IF NOT EXISTS infrastructures (
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at        TIMESTAMPTZ,
 
-    CONSTRAINT fk_infra_territory FOREIGN KEY (territory_id)
-        REFERENCES territories(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_infra_municipality FOREIGN KEY (municipality_id)
+        REFERENCES municipalities(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_infra_mapped_area FOREIGN KEY (mapped_area_id)
         REFERENCES mapped_areas(id) ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT fk_infra_created_by FOREIGN KEY (created_by)
@@ -989,7 +987,7 @@ COMMENT ON COLUMN infrastructures.reference_code IS 'Code interne unique — ex:
 COMMENT ON COLUMN infrastructures.dimensions IS 'JSONB libre : length_m, width_m, depth_m, capacity_m3 selon le type';
 COMMENT ON COLUMN infrastructures.geometry IS 'Géométrie linéaire pour caniveaux et routes ; utiliser location (Point) pour équipements ponctuels';
 
-CREATE INDEX IF NOT EXISTS idx_infra_territory     ON infrastructures(territory_id);
+CREATE INDEX IF NOT EXISTS idx_infra_municipality  ON infrastructures(municipality_id);
 CREATE INDEX IF NOT EXISTS idx_infra_mapped_area   ON infrastructures(mapped_area_id);
 CREATE INDEX IF NOT EXISTS idx_infra_type          ON infrastructures(type);
 CREATE INDEX IF NOT EXISTS idx_infra_status        ON infrastructures(status);
@@ -1042,7 +1040,7 @@ CREATE TYPE sensor_type_enum AS ENUM (
 
 CREATE TABLE IF NOT EXISTS environmental_sensors (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    territory_id      UUID,
+    municipality_id   UUID,
     infrastructure_id UUID,               -- capteur rattaché à une infrastructure précise
     mapped_area_id    UUID,
 
@@ -1065,8 +1063,8 @@ CREATE TABLE IF NOT EXISTS environmental_sensors (
     created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT fk_sensor_territory FOREIGN KEY (territory_id)
-        REFERENCES territories(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_sensor_municipality FOREIGN KEY (municipality_id)
+        REFERENCES municipalities(id) ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT fk_sensor_infrastructure FOREIGN KEY (infrastructure_id)
         REFERENCES infrastructures(id) ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT fk_sensor_mapped_area FOREIGN KEY (mapped_area_id)
@@ -1074,13 +1072,13 @@ CREATE TABLE IF NOT EXISTS environmental_sensors (
     CONSTRAINT fk_sensor_created_by FOREIGN KEY (created_by)
         REFERENCES auth(id) ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT chk_sensor_has_location CHECK (
-        territory_id IS NOT NULL OR infrastructure_id IS NOT NULL OR mapped_area_id IS NOT NULL
+        municipality_id IS NOT NULL OR infrastructure_id IS NOT NULL OR mapped_area_id IS NOT NULL
     )
 );
 COMMENT ON TABLE environmental_sensors IS 'Capteurs IoT terrain : niveau d''eau, qualité air, débit caniveau...';
 COMMENT ON CONSTRAINT chk_sensor_has_location ON environmental_sensors IS 'Un capteur doit être rattaché à au moins une entité spatiale';
 
-CREATE INDEX IF NOT EXISTS idx_sensors_territory      ON environmental_sensors(territory_id);
+CREATE INDEX IF NOT EXISTS idx_sensors_municipality   ON environmental_sensors(municipality_id);
 CREATE INDEX IF NOT EXISTS idx_sensors_infrastructure ON environmental_sensors(infrastructure_id);
 CREATE INDEX IF NOT EXISTS idx_sensors_mapped_area    ON environmental_sensors(mapped_area_id);
 CREATE INDEX IF NOT EXISTS idx_sensors_type           ON environmental_sensors(type);

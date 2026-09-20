@@ -7,13 +7,18 @@ class GetMissionsController {
         this.getMissionsService = getMissionsService;
         this.getMissions = async (req, res, next) => {
             try {
-                const { forcedTerritoryId, forcedCreatedBy } = (0, scopeFilters_helper_1.getScopeFilters)(req);
+                const { forcedRegionId, forcedMunicipalityId, forcedDistrictId, forcedNeighborhoodId, forcedCreatedBy, forcedUserIdForTeamScopes } = (0, scopeFilters_helper_1.getScopeFilters)(req);
                 const query = {
                     page: req.query.page ? parseInt(req.query.page, 10) : undefined,
                     limit: req.query.limit ? parseInt(req.query.limit, 10) : undefined,
                     // Les restrictions de rôle écrasent les filtres passés en query string
-                    territoryId: forcedTerritoryId ?? req.query.territoryId,
+                    regionId: forcedRegionId ?? req.query.regionId,
+                    municipalityId: forcedMunicipalityId ?? req.query.municipalityId,
+                    districtId: forcedDistrictId ?? req.query.districtId,
+                    neighborhoodId: forcedNeighborhoodId ?? req.query.neighborhoodId,
                     createdBy: forcedCreatedBy ?? req.query.createdBy,
+                    // Pour le technicien : uniquement les missions assignées à son équipe
+                    memberUserId: forcedUserIdForTeamScopes,
                     status: req.query.status,
                     missionType: req.query.missionType,
                     organizationId: req.query.organizationId,

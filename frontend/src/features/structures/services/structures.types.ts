@@ -43,8 +43,14 @@ export type InfrastructureStatus = typeof InfrastructureStatus[keyof typeof Infr
 
 export interface Structure {
   id: string;
-  territoryId: string;
-  territoryName?: string;
+  /** Commune de rattachement (découpage administratif 4 niveaux) */
+  municipalityId: string | null;
+  districtId: string | null;
+  neighborhoodId: string | null;
+  /** Nom de la commune (JOIN municipalities) */
+  municipalityName?: string | null;
+  /** Libellé du territoire de rattachement */
+  territoryName?: string | null;
   mappedAreaId: string | null;
   name: string;
   referenceCode: string | null;
@@ -80,7 +86,10 @@ export interface PaginatedResult<T> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface CreateStructurePayload {
-  territoryId: string;
+  /** Commune de rattachement de la structure */
+  municipalityId: string;
+  districtId?: string | null;
+  neighborhoodId?: string | null;
   mappedAreaId?: string | null;
   name: string;
   referenceCode?: string | null;

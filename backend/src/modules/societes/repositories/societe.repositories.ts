@@ -37,22 +37,60 @@ export class SocieteRepository {
    * défauts 1 et 50). Filtre optionnel par type.
    */
   public async getAllSocietes(
-    query: PaginationQuery & { type?: string } = {}
+    query: PaginationQuery & { type?: string; filters?: { forcedRegionId?: string; forcedMunicipalityId?: string; forcedDistrictId?: string; forcedNeighborhoodId?: string; forcedCreatedBy?: string; forcedUserIdForTeamScopes?: string } } = {}
   ): Promise<PaginatedResult<AppSociete>> {
     try {
       const page = Math.max(1, query.page ?? 1);
       const limit = Math.min(100, Math.max(1, query.limit ?? 50));
       const offset = (page - 1) * limit;
 
+      const { filters } = query;
+
       const conditions: string[] = [];
       const params: any[] = [];
+      /** Conditions (AND) sur organization_territories.municipality_id */
+      const scopeConditions: string[] = [];
       if (query.type) {
         params.push(query.type);
         conditions.push(`type = $${params.length}`);
       }
+      if (filters?.forcedRegionId) {
+        params.push(filters.forcedRegionId);
+        scopeConditions.push(`municipality_id IN (
+          SELECT mun.id FROM municipalities mun WHERE mun.region_id = $${params.length}
+        )`);
+      }
+      if (filters?.forcedMunicipalityId) {
+        params.push(filters.forcedMunicipalityId);
+        scopeConditions.push(`municipality_id = $${params.length}`);
+      }
+      if (filters?.forcedDistrictId) {
+        params.push(filters.forcedDistrictId);
+        scopeConditions.push(`municipality_id IN (
+          SELECT d.municipality_id FROM districts d WHERE d.id = $${params.length}
+        )`);
+      }
+      if (filters?.forcedNeighborhoodId) {
+        params.push(filters.forcedNeighborhoodId);
+        scopeConditions.push(`municipality_id IN (
+          SELECT d2.municipality_id
+          FROM neighborhoods nb
+          INNER JOIN districts d2 ON d2.id = nb.district_id
+          WHERE nb.id = $${params.length}
+        )`);
+      }
+      // La société doit être habilitée sur au moins une commune du périmètre
+      if (scopeConditions.length > 0) {
+        conditions.push(`id IN (
+          SELECT organization_id
+          FROM organization_territories
+          WHERE ${scopeConditions.join(' AND ')}
+        )`);
+      }
+      
       const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-      const key = `societes:all:${page}:${limit}:${query.type ?? ''}`;
+      const key = `societes:all:${page}:${limit}:${query.type ?? ''}:${JSON.stringify(filters || {})}`;
       return await redisCache.getOrSet(key, async () => {
         const countRes = await this.db.query(
           `SELECT COUNT(*)::int AS total FROM organizations ${where}`,
@@ -175,21 +213,21 @@ export class SocieteRepository {
       const societe = res.rows[0] as AppSociete;
       const societeId = societe.id;
 
-      // Association optionnelle à un territoire (mairie/commune ou ministère) —
-      // table organization_territories (zone de compétence de la société)
-      if (payload.territoryId) {
+      // Association optionnelle à une commune (zone de compétence de la société)
+      // — table organization_territories
+      if (payload.municipalityId) {
         await client.query(
-          `INSERT INTO organization_territories (organization_id, territory_id, is_active)
+          `INSERT INTO organization_territories (organization_id, municipality_id, is_active)
            VALUES ($1, $2, TRUE)
-           ON CONFLICT (organization_id, territory_id) DO NOTHING`,
-          [societeId, payload.territoryId]
+           ON CONFLICT (organization_id, municipality_id) DO NOTHING`,
+          [societeId, payload.municipalityId]
         );
       }
 
       await client.query('COMMIT');
 
       await redisCache.invalidatePattern('societes:all:*');
-      if (payload.territoryId) {
+      if (payload.municipalityId) {
         await redisCache.invalidate(`societes:territories:${societeId}`);
       }
 
@@ -299,7 +337,7 @@ export class SocieteRepository {
         const res = await this.db.query(
           `SELECT ot.id,
              ot.organization_id AS "societeId",
-             ot.territory_id AS "territoryId",
+             ot.municipality_id AS "municipalityId",
              ot.is_active AS "isActive"
            FROM organization_territories ot
            WHERE ot.organization_id = $1

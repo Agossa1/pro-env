@@ -12,9 +12,11 @@ import { TerritoryRepository } from '../repositories/territory.repositories';
 import type { Territory, PaginationQuery, PaginatedResult } from '../types/territory.types';
 
 export interface GetAllTerritoriesQuery extends PaginationQuery {
+  search?: string;
   territoryTypeId?: string;
   territoryTypeCode?: string;
   parentTerritoryId?: string;
+  filters?: { forcedRegionId?: string; forcedMunicipalityId?: string; forcedDistrictId?: string; forcedNeighborhoodId?: string; forcedCreatedBy?: string; forcedUserIdForTeamScopes?: string };
 }
 
 export class GetAllTerritoriesService {

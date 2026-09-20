@@ -8,7 +8,10 @@ exports.RegisterSchema = zod_1.z.object({
     phone: zod_1.z.string().optional(),
     password: zod_1.z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères").optional(),
     roleCode: zod_1.z.string().min(1, "Le code du rôle est requis"),
-    territoryId: zod_1.z.string().uuid("L'identifiant du territoire doit être un UUID valide").optional(),
+    regionId: zod_1.z.string().uuid("L'identifiant de la région doit être un UUID valide").optional(),
+    municipalityId: zod_1.z.string().uuid("L'identifiant de la commune doit être un UUID valide").optional(),
+    districtId: zod_1.z.string().uuid("L'identifiant de l'arrondissement doit être un UUID valide").optional(),
+    neighborhoodId: zod_1.z.string().uuid("L'identifiant du quartier doit être un UUID valide").optional(),
     organizationId: zod_1.z.string().uuid("L'identifiant de l'organisation doit être un UUID valide").optional(),
 });
 exports.LoginSchema = zod_1.z.object({

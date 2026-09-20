@@ -103,12 +103,12 @@ describe('Mission Services', () => {
     });
 
     it('doit lever BadRequestError si champs requis absents', async () => {
-      await expect(service.createMission({ territoryId: '', title: '', missionType: '' as any }))
+      await expect(service.createMission({ municipalityId: '', title: '', missionType: '' as any }))
         .rejects.toThrow(BadRequestError);
     });
 
     it('doit créer la mission avec le créateur injecté', async () => {
-      const payload = { territoryId: 'terr-1', title: 'Réparation', missionType: 'repair' as any };
+      const payload = { municipalityId: 'terr-1', title: 'Réparation', missionType: 'repair' as any };
       const mockCreated = { id: 'new-uuid', title: 'Réparation' };
       missionRepository.createMission.mockResolvedValueOnce(mockCreated as any);
 

@@ -16,7 +16,10 @@ const PriorityEnum = zod_1.z.enum(Object.values(report_enums_1.PriorityLevel));
 const RiskEnum = zod_1.z.enum(Object.values(report_enums_1.RiskLevel));
 const FlowStatusEnum = zod_1.z.enum(Object.values(report_enums_1.WaterFlowStatus));
 exports.CreateReportSchema = zod_1.z.object({
-    territoryId: zod_1.z.string().uuid("Le territoire doit être un UUID valide"),
+    municipalityId: zod_1.z
+        .string({ error: 'La commune est requise pour créer un signalement' })
+        .uuid("La commune doit être un UUID valide"),
+    districtId: zod_1.z.string().uuid("L'arrondissement doit être un UUID valide").nullable().optional(),
     infrastructureId: zod_1.z.string().uuid("L'infrastructure doit être un UUID valide").nullable().optional(),
     mappedAreaId: zod_1.z.string().uuid("La zone cartographiée doit être un UUID valide").nullable().optional(),
     title: zod_1.z.string().min(1, 'Le titre est requis').max(255, 'Le titre ne doit pas dépasser 255 caractères'),

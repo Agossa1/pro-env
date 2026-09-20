@@ -52,17 +52,51 @@ class InterventionRepository {
                 params.push(query.status);
                 conditions.push(`i.status = $${params.length}`);
             }
-            if (query.territoryId) {
-                params.push(query.territoryId);
-                conditions.push(`m.territory_id = $${params.length}`);
+            // Filtres territoriaux : la table interventions ne stocke pas de territoire ;
+            // on filtre via la commune de la mission rattachée.
+            if (query.regionId) {
+                params.push(query.regionId);
+                conditions.push(`m.municipality_id IN (
+          SELECT mun.id FROM municipalities mun WHERE mun.region_id = $${params.length}
+        )`);
+            }
+            if (query.municipalityId) {
+                params.push(query.municipalityId);
+                conditions.push(`m.municipality_id = $${params.length}`);
+            }
+            if (query.districtId) {
+                params.push(query.districtId);
+                conditions.push(`m.municipality_id IN (
+          SELECT d.municipality_id FROM districts d WHERE d.id = $${params.length}
+        )`);
+            }
+            if (query.neighborhoodId) {
+                params.push(query.neighborhoodId);
+                conditions.push(`m.municipality_id IN (
+          SELECT d2.municipality_id
+          FROM neighborhoods nb
+          INNER JOIN districts d2 ON d2.id = nb.district_id
+          WHERE nb.id = $${params.length}
+        )`);
             }
             if (query.createdBy) {
                 params.push(query.createdBy);
                 // Pour les interventions, on limite à celles assignées au technicien
                 conditions.push(`i.assigned_to_user_id = $${params.length}`);
             }
+            // Scoping technicien : uniquement les interventions liées aux équipes dont il est membre actif
+            if (query.memberUserId) {
+                params.push(query.memberUserId);
+                conditions.push(`EXISTS (
+          SELECT 1 FROM field_team_members ftm
+          INNER JOIN missions ms ON ms.assigned_team_id = ftm.team_id
+          WHERE ms.id = i.mission_id
+            AND ftm.user_id = $${params.length}
+            AND ftm.is_active = TRUE
+        )`);
+            }
             const where = conditions.join(' AND ');
-            const key = `interventions:all:${page}:${limit}:${query.missionId ?? ''}:${query.teamId ?? ''}:${query.status ?? ''}:${query.territoryId ?? ''}:${query.createdBy ?? ''}`;
+            const key = `interventions:all:${page}:${limit}:${query.missionId ?? ''}:${query.teamId ?? ''}:${query.status ?? ''}:${query.regionId ?? ''}:${query.municipalityId ?? ''}:${query.districtId ?? ''}:${query.createdBy ?? ''}`;
             return await redis_service_1.redisCache.getOrSet(key, async () => {
                 const countRes = await this.db.query(`SELECT COUNT(*)::int AS total FROM interventions i 
            LEFT JOIN missions m ON i.mission_id = m.id

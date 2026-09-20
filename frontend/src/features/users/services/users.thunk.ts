@@ -1,7 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { isApiError } from '../../../libs/api-client';
-import { fetchUsers, createUser, toggleUserActive } from './users.api';
-import type { CreateUserDto } from './users.types';
+import { fetchUsers, createUser, toggleUserActive, updateUser, deleteUser } from './users.api';
+import type { CreateUserDto, UpdateUserDto } from './users.types';
 
 function extractMessage(error: unknown): string {
   if (isApiError(error)) return error.message;
@@ -42,3 +42,28 @@ export const toggleUserActiveThunk = createAsyncThunk(
     }
   },
 );
+
+export const updateUserThunk = createAsyncThunk(
+  'users/update',
+  async (dto: UpdateUserDto, { rejectWithValue }) => {
+    try {
+      await updateUser(dto);
+      return dto;
+    } catch (error) {
+      return rejectWithValue(extractMessage(error));
+    }
+  },
+);
+
+export const deleteUserThunk = createAsyncThunk(
+  'users/delete',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await deleteUser(id);
+      return { id };
+    } catch (error) {
+      return rejectWithValue(extractMessage(error));
+    }
+  },
+);
+

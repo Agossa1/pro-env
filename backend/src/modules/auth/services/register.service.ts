@@ -40,7 +40,7 @@ export class RegisterService {
     }
 
     // 3. Application des Règles Métier (RBAC & Héritage)
-    const { territoryId, organizationId } = this.applyCreationRules(dto, targetRole, creatorContext);
+    const { regionId, municipalityId, districtId, neighborhoodId, organizationId } = this.applyCreationRules(dto, targetRole, creatorContext);
 
     // 4. Hachage du mot de passe
     // Si aucun mot de passe n'est fourni, on pourrait en générer un aléatoirement.
@@ -54,7 +54,10 @@ export class RegisterService {
       phone: dto.phone,
       passwordHash,
       roleId: targetRole.id,
-      territoryId,
+      regionId,
+      municipalityId,
+      districtId,
+      neighborhoodId,
       organizationId,
       createdBy: creatorContext.userId
     };
@@ -109,21 +112,35 @@ export class RegisterService {
   /**
    * Vérifie les droits de création et applique l'héritage territorial / organisationnel.
    */
-  private applyCreationRules( dto: RegisterUserDTO, targetRole: any,  creatorContext: TokenPayload): { territoryId: string | null; organizationId: string | null } {
+  private applyCreationRules( dto: RegisterUserDTO, targetRole: any,  creatorContext: TokenPayload): { regionId: string | null; municipalityId: string | null; districtId: string | null; neighborhoodId: string | null; organizationId: string | null } {
     
+    const extractTerritories = (source: any) => ({
+      regionId: source.regionId || null,
+      municipalityId: source.municipalityId || null,
+      districtId: source.districtId || null,
+      neighborhoodId: source.neighborhoodId || null
+    });
+
     // Si le créateur est un Super Admin (Platform)
     if (creatorContext.roleTier === RoleTier.PLATFORM) {
-      // Il peut créer n'importe qui et assigner n'importe quel territoire/organisation
+      if (targetRole.tier === RoleTier.TERRITORIAL) {
+        if (['prefecture'].includes(targetRole.code) && !dto.regionId) {
+           throw new BadRequestError(`La région (département) est obligatoire pour le rôle ${targetRole.name}.`);
+        }
+        if (['admin_mairie', 'maire', 'dst'].includes(targetRole.code) && (!dto.regionId || !dto.municipalityId)) {
+           throw new BadRequestError(`La région et la commune sont obligatoires pour le rôle ${targetRole.name}.`);
+        }
+      }
       return {
-        territoryId: dto.territoryId || null,
+        ...extractTerritories(dto),
         organizationId: dto.organizationId || null
       };
     }
 
     // Si le créateur est un Administrateur Territorial (ex: Mairie)
     if (creatorContext.roleTier === RoleTier.TERRITORIAL) {
-      if (!creatorContext.territoryId) {
-        throw new ForbiddenError('Votre compte territorial est mal configuré (aucun territoire assigné).');
+      if (!creatorContext.regionId) {
+        throw new ForbiddenError('Votre compte territorial est mal configuré (aucune région assignée).');
       }
       
       // Un admin territorial ne peut pas créer un rôle 'platform'
@@ -135,15 +152,16 @@ export class RegisterService {
       if (targetRole.code === 'technicien') {
         if (dto.organizationId) {
           // Création d'un Technicien Prestataire
-          // Optionnel : Vérifier si l'organizationId fait partie du territoire de la mairie.
           return {
-            territoryId: null,
+            regionId: null, municipalityId: null, districtId: null, neighborhoodId: null,
             organizationId: dto.organizationId
           };
         } else {
-          // Création d'un Technicien Mairie (hérite du territoire du créateur)
+          // Création d'un Technicien Mairie (hérite du territoire du créateur + spécifications éventuelles)
           return {
-            territoryId: creatorContext.territoryId,
+            ...extractTerritories(creatorContext),
+            districtId: dto.districtId || creatorContext.districtId || null,
+            neighborhoodId: dto.neighborhoodId || creatorContext.neighborhoodId || null,
             organizationId: null
           };
         }
@@ -151,17 +169,17 @@ export class RegisterService {
       
       // Par défaut pour les autres rôles territoriaux créés par la mairie
       return {
-        territoryId: creatorContext.territoryId,
+        ...extractTerritories(creatorContext),
         organizationId: null
       };
     }
 
     // Auto-inscription publique (citoyen uniquement)
-    if (!creatorContext.userId && !creatorContext.organizationId && !creatorContext.territoryId) {
+    if (!creatorContext.userId && !creatorContext.organizationId && !creatorContext.regionId) {
       if (targetRole.code !== 'citoyen') {
         throw new ForbiddenError('Inscription publique limitée au rôle citoyen.');
       }
-      return { territoryId: null, organizationId: null };
+      return { regionId: null, municipalityId: null, districtId: null, neighborhoodId: null, organizationId: null };
     }
 
     // Si le créateur est un Prestataire (Field ou Territorial rattaché à une orga)
@@ -171,7 +189,7 @@ export class RegisterService {
       }
       // Hérite de l'organisation du créateur
       return {
-        territoryId: null,
+        regionId: null, municipalityId: null, districtId: null, neighborhoodId: null,
         organizationId: creatorContext.organizationId
       };
     }

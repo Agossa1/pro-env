@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { AppUser } from './users.types';
-import { loadUsers, createUserThunk, toggleUserActiveThunk } from './users.thunk';
+import { loadUsers, createUserThunk, toggleUserActiveThunk, updateUserThunk, deleteUserThunk } from './users.thunk';
 
 export interface UsersState {
   list: AppUser[];
@@ -86,8 +86,50 @@ const usersSlice = createSlice({
       .addCase(toggleUserActiveThunk.rejected, (state, action) => {
         state.error = action.payload as string;
       });
+
+    // updateUserThunk
+    builder
+      .addCase(updateUserThunk.pending, (state) => {
+        state.isMutating = true;
+        state.error = null;
+      })
+      .addCase(updateUserThunk.fulfilled, (state, action) => {
+        state.isMutating = false;
+        const idx = state.list.findIndex((u) => u.id === action.payload.id);
+        if (idx !== -1) {
+          const u = state.list[idx];
+          if (action.payload.fullName) u.fullName = action.payload.fullName;
+          if (action.payload.phone !== undefined) u.phone = action.payload.phone;
+          if (action.payload.roleId) u.roleId = action.payload.roleId;
+          if (action.payload.neighborhoodId !== undefined) u.neighborhoodId = action.payload.neighborhoodId;
+          if (action.payload.districtId !== undefined) u.districtId = action.payload.districtId;
+          if (action.payload.municipalityId !== undefined) u.municipalityId = action.payload.municipalityId;
+          if (action.payload.regionId !== undefined) u.regionId = action.payload.regionId;
+        }
+      })
+      .addCase(updateUserThunk.rejected, (state, action) => {
+        state.isMutating = false;
+        state.error = action.payload as string;
+      });
+
+    // deleteUserThunk
+    builder
+      .addCase(deleteUserThunk.pending, (state) => {
+        state.isMutating = true;
+        state.error = null;
+      })
+      .addCase(deleteUserThunk.fulfilled, (state, action) => {
+        state.isMutating = false;
+        state.list = state.list.filter((u) => u.id !== action.payload.id);
+        state.pagination.total -= 1;
+      })
+      .addCase(deleteUserThunk.rejected, (state, action) => {
+        state.isMutating = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
 export const { clearUsersError, resetMutating } = usersSlice.actions;
 export default usersSlice.reducer;
+

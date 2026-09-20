@@ -135,21 +135,21 @@ describe('Societe Controllers', () => {
         });
         it('doit retourner 201 en cas de succès', async () => {
             mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', contactEmail: 'test@example.com' };
-            mockReq.user = { userId: 'user-1', territoryId: 'mairie-uuid' };
+            mockReq.user = { userId: 'user-1', municipalityId: 'mairie-uuid' };
             const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
             service.createSociete.mockResolvedValueOnce(mockCreated);
             await controller.createSociete(mockReq, mockRes, mockNext);
-            expect(service.createSociete).toHaveBeenCalledWith(mockReq.body, expect.objectContaining({ userId: 'user-1', territoryId: 'mairie-uuid' }));
+            expect(service.createSociete).toHaveBeenCalledWith(mockReq.body, expect.objectContaining({ userId: 'user-1', municipalityId: 'mairie-uuid' }));
             expect(mockRes.status).toHaveBeenCalledWith(201);
             expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({ success: true, data: mockCreated }));
         });
-        it('doit passer le territoryId fourni par l\'admin dans le payload', async () => {
-            mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', territoryId: VALID_UUID, contactEmail: 'test@example.com' };
-            mockReq.user = { userId: 'admin-1', territoryId: null };
+        it('doit passer le municipalityId fourni par l\'admin dans le payload', async () => {
+            mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', municipalityId: VALID_UUID, contactEmail: 'test@example.com' };
+            mockReq.user = { userId: 'admin-1', municipalityId: null };
             const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
             service.createSociete.mockResolvedValueOnce(mockCreated);
             await controller.createSociete(mockReq, mockRes, mockNext);
-            expect(service.createSociete).toHaveBeenCalledWith(expect.objectContaining({ territoryId: VALID_UUID }), expect.objectContaining({ userId: 'admin-1', territoryId: null }));
+            expect(service.createSociete).toHaveBeenCalledWith(expect.objectContaining({ municipalityId: VALID_UUID }), expect.objectContaining({ userId: 'admin-1', municipalityId: null }));
         });
     });
     // ─────────────────────────────────────────────────────────────────────────
@@ -216,7 +216,7 @@ describe('Societe Controllers', () => {
         });
         it('doit retourner 200 avec les territoires', async () => {
             mockReq.params = { id: VALID_UUID };
-            const mockTerritories = [{ id: 'ot-1', societeId: VALID_UUID, territoryId: 'terr-1', isActive: true }];
+            const mockTerritories = [{ id: 'ot-1', societeId: VALID_UUID, municipalityId: 'terr-1', isActive: true }];
             service.getSocieteTerritories.mockResolvedValueOnce(mockTerritories);
             await controller.getSocieteTerritories(mockReq, mockRes, mockNext);
             expect(service.getSocieteTerritories).toHaveBeenCalledWith(VALID_UUID);

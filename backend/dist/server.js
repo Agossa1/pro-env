@@ -22,6 +22,8 @@ if (process.env.NODE_ENV === 'production' && !rawFrontendUrl) {
 }
 const createServer = async (db) => {
     const app = (0, express_1.default)();
+    // Requis pour les cookies Secure (SameSite=None) derrière le reverse proxy de Render (qui gère le HTTPS)
+    app.set('trust proxy', 1);
     /**
      * ============================
      * Rate Limiters

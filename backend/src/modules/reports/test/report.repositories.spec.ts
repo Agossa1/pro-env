@@ -29,7 +29,7 @@ describe('ReportRepository', () => {
 
   const mockReport = {
     id: 'report-1',
-    territoryId: 'terr-1',
+    municipalityId: 'terr-1',
     infrastructureId: null,
     mappedAreaId: null,
     title: 'Caniveau bouché',
@@ -94,13 +94,13 @@ describe('ReportRepository', () => {
         .mockResolvedValueOnce({ rows: [mockReport] });
 
       await reportRepository.getAllReports({
-        territoryId: 'terr-1',
+        municipalityId: 'terr-1',
         status: 'submitted',
         issueCategory: 'drainage',
       });
 
       expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('r.territory_id = $1'),
+        expect.stringContaining('r.municipality_id = $1'),
         expect.arrayContaining(['terr-1'])
       );
     });
@@ -128,7 +128,7 @@ describe('ReportRepository', () => {
 
   describe('createReport', () => {
     const payload = {
-      territoryId: 'terr-1',
+      municipalityId: 'terr-1',
       title: 'Caniveau bouché',
       issueCategory: 'drainage' as any,
       createdBy: 'user-1',

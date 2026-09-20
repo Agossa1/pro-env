@@ -23,7 +23,9 @@ class RedisCacheService {
      */
     async getOrSet(key, factory, ttl = DEFAULT_TTL) {
         try {
-            if (!redis_config_1.default.isOpen) {
+            // isReady (et non isOpen) : pendant une tentative de reconnexion Redis,
+            // la commande resterait en file d'attente et bloquerait la requête.
+            if (!redis_config_1.default.isReady) {
                 return factory();
             }
             const cached = await redis_config_1.default.get(key);
@@ -47,7 +49,7 @@ class RedisCacheService {
      */
     async invalidate(key) {
         try {
-            if (redis_config_1.default.isOpen) {
+            if (redis_config_1.default.isReady) {
                 await redis_config_1.default.del(key);
             }
         }
@@ -61,7 +63,7 @@ class RedisCacheService {
      */
     async invalidatePattern(pattern) {
         try {
-            if (!redis_config_1.default.isOpen)
+            if (!redis_config_1.default.isReady)
                 return;
             const keys = await redis_config_1.default.keys(pattern);
             if (keys.length > 0) {

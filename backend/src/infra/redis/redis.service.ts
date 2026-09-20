@@ -19,7 +19,9 @@ export class RedisCacheService {
      */
     async getOrSet<T>(key: string, factory: () => Promise<T>, ttl: number = DEFAULT_TTL): Promise<T> {
         try {
-            if (!client.isOpen) {
+            // isReady (et non isOpen) : pendant une tentative de reconnexion Redis,
+            // la commande resterait en file d'attente et bloquerait la requête.
+            if (!client.isReady) {
                 return factory();
             }
 
@@ -49,7 +51,7 @@ export class RedisCacheService {
      */
     async invalidate(key: string): Promise<void> {
         try {
-            if (client.isOpen) {
+            if (client.isReady) {
                 await client.del(key);
             }
         } catch (error) {
@@ -63,7 +65,7 @@ export class RedisCacheService {
      */
     async invalidatePattern(pattern: string): Promise<void> {
         try {
-            if (!client.isOpen) return;
+            if (!client.isReady) return;
             const keys = await client.keys(pattern);
             if (keys.length > 0) {
                 await client.del(keys);

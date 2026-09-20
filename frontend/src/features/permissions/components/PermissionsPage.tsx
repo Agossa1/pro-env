@@ -66,7 +66,7 @@ function PermissionsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-200 text-lg font-semibold text-gray-700">
+              <tr className="bg-gray-50/50 border-b border-gray-200 text-sm font-semibold text-gray-700">
                 <th className="px-6 py-4">Module</th>
                 <th className="px-6 py-4">Action</th>
                 <th className="px-6 py-4">Description</th>
@@ -95,18 +95,18 @@ function PermissionsPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                            <span className="text-lg font-medium text-gray-900 capitalize">
+                            <span className="text-sm font-medium text-gray-900 capitalize">
                               {perm.module}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-lg font-medium border ${actionColor}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium border ${actionColor}`}>
                             {perm.action}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-lg text-gray-600">
+                          <div className="text-sm text-gray-600">
                             {perm.description || '—'}
                           </div>
                         </td>

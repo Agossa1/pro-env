@@ -6,7 +6,7 @@
 
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { Territory, PaginatedTerritoriesResult } from './territory.types';
-import { loadTerritories, loadDepartmentsAndCommunes } from './territory.thunk';
+import { loadTerritories, loadDepartmentsAndCommunes, loadAllForLookup } from './territory.thunk';
 
 export type LoadingStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
@@ -70,6 +70,22 @@ const territorySlice = createSlice({
         state.list = [...existing, ...action.payload];
       })
       .addCase(loadDepartmentsAndCommunes.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error  = action.payload ?? 'Erreur lors du chargement des territoires.';
+      })
+      // ── loadAllForLookup (4 niveaux pour la résolution de noms) ────────────
+      .addCase(loadAllForLookup.pending, (state) => {
+        state.status = 'loading';
+        state.error  = null;
+      })
+      .addCase(loadAllForLookup.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // Fusionne avec la liste existante (évite les doublons par id)
+        const incomingIds = new Set(action.payload.map((t) => t.id));
+        const existing = state.list.filter((t) => !incomingIds.has(t.id));
+        state.list = [...existing, ...action.payload];
+      })
+      .addCase(loadAllForLookup.rejected, (state, action) => {
         state.status = 'failed';
         state.error  = action.payload ?? 'Erreur lors du chargement des territoires.';
       });

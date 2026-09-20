@@ -9,7 +9,7 @@ import type {
 
 
 export const structuresApi = {
-  getAll: async (params?: { page?: number; limit?: number; territoryId?: string; type?: string; status?: string; condition?: string; search?: string }): Promise<PaginatedResult<Structure>> => {
+  getAll: async (params?: { page?: number; limit?: number; regionId?: string; municipalityId?: string; districtId?: string; type?: string; status?: string; condition?: string; search?: string }): Promise<PaginatedResult<Structure>> => {
     const res = await apiClient.get<ApiResponse<any>>('/infrastructures', { params });
     const payload = res.data;
     if (Array.isArray(payload)) {

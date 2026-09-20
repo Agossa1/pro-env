@@ -2,7 +2,7 @@
 services:
   # Database PostgreSQL
   postgres:
-    image: postgis/postgis:15-3.4
+    image: postgis/postgis:16-3.4
     container_name: sigie_postgres
     platform: linux/amd64
     restart: always

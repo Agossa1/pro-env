@@ -6,9 +6,9 @@ class GetPriorityMissionsService {
         this.dashboardRepository = dashboardRepository;
         this.logger = logger;
     }
-    async getPriorityMissions(limit = 5) {
+    async getPriorityMissions(limit = 5, filters) {
         try {
-            return await this.dashboardRepository.getPriorityMissions(limit);
+            return await this.dashboardRepository.getPriorityMissions(limit, filters);
         }
         catch (error) {
             this.logger.error(`Erreur getPriorityMissions (service): ${error.message}`);

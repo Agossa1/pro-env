@@ -20,7 +20,7 @@ export class CreateInfrastructureService {
     payload: CreateInfrastructurePayload
   ): Promise<Infrastructure> {
     try {
-      if (!payload.territoryId || !payload.name || !payload.type) {
+      if (!payload.municipalityId || !payload.name || !payload.type) {
         throw new BadRequestError(
           'Le territoire, le nom et le type sont requis.'
         );
@@ -29,7 +29,7 @@ export class CreateInfrastructureService {
       const created = await this.infrastructureRepository.createInfrastructure(payload);
 
       this.logger.info(
-        `Infrastructure créée : ${created.name} (${created.type}) dans la territoire ${created.territoryId}`
+        `Infrastructure créée : ${created.name} (${created.type}) dans la territoire ${created.municipalityId}`
       );
       return created;
     } catch (error: any) {

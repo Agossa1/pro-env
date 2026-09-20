@@ -14,8 +14,12 @@ export interface GetAllInterventionsQuery extends PaginationQuery {
   missionId?: string;
   teamId?: string;
   status?: string;
-  territoryId?: string;
+  regionId?: string;
+  municipalityId?: string;
+  districtId?: string;
+  neighborhoodId?: string;
   createdBy?: string;
+  memberUserId?: string;
 }
 
 export class GetInterventionsService {

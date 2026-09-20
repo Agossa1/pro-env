@@ -11,12 +11,12 @@ class GetKpisService {
      * - "societe" : KPIs restreints à son organisation.
      * - autres     : KPIs globaux de la plateforme.
      */
-    async getKpis(userRole, organizationId) {
+    async getKpis(userRole, organizationId, filters) {
         try {
             if (userRole === 'societe' && organizationId) {
                 return this.getSocieteKpis(organizationId);
             }
-            return this.getPlatformKpis();
+            return this.getPlatformKpis(filters);
         }
         catch (error) {
             this.logger.error(`Erreur getKpis (service): ${error.message}`);
@@ -36,11 +36,11 @@ class GetKpisService {
             resolutionRateChange: 0,
         };
     }
-    async getPlatformKpis() {
+    async getPlatformKpis(filters) {
         const now = new Date();
         const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const stats = await this.dashboardRepository.getAdminKpis(thisMonth, lastMonth);
+        const stats = await this.dashboardRepository.getAdminKpis(thisMonth, lastMonth, filters);
         const { thisMonthReports, lastMonthReports, currentRate, pastRate } = stats;
         const reportsChangePercent = lastMonthReports === 0
             ? 0

@@ -141,7 +141,7 @@ describe('Mission Controllers', () => {
     });
 
     it('doit retourner 400 si validation Zod échoue', async () => {
-      mockReq.body = { territoryId: 'uuid-invalide', title: '', missionType: 'invalide' };
+      mockReq.body = { municipalityId: 'uuid-invalide', title: '', missionType: 'invalide' };
 
       await controller.createMission(mockReq as Request, mockRes as Response, mockNext);
 
@@ -150,7 +150,7 @@ describe('Mission Controllers', () => {
     });
 
     it('doit retourner 201 en cas de succès avec le créateur', async () => {
-      mockReq.body = { territoryId: VALID_UUID, title: 'Réparation', missionType: 'repair' };
+      mockReq.body = { municipalityId: VALID_UUID, title: 'Réparation', missionType: 'repair' };
       (mockReq as any).user = { userId: 'user-1' };
       const mockCreated = { id: 'new-uuid', title: 'Réparation', missionType: 'repair' };
       service.createMission.mockResolvedValueOnce(mockCreated as any);

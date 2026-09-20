@@ -9,6 +9,8 @@ import {
   fetchRecentReports,
   fetchMapReports,
 } from '../services/dashboard.api';
+import { useAuth } from '../../auth/hooks/useAuth';
+import { UserRoleCode } from '../../auth/services/auth.types';
 import type {
   DashboardKpis,
   ActivityPoint,
@@ -38,18 +40,34 @@ export function useDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { user } = useAuth();
+
+  const getRoleFilters = useCallback(() => {
+    if (!user) return {};
+    const filters: Record<string, string> = {};
+    if (user.role?.code === UserRoleCode.admin_mairie && user.municipalityId) {
+      filters.municipalityId = user.municipalityId;
+    } else if (user.role?.code === UserRoleCode.prefecture && user.regionId) {
+      filters.regionId = user.regionId;
+    } else if (user.role?.code === UserRoleCode.technicien) {
+      filters.createdBy = user.id;
+    }
+    return filters;
+  }, [user]);
+
   const loadAll = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    const filters = getRoleFilters();
     try {
       const [k, a, c, s, pm, ri, mr] = await Promise.all([
-        fetchKpis(),
-        fetchActivityChart(period),
-        fetchReportsByCategory(),
-        fetchReportsByStatus(),
-        fetchPriorityMissions(),
-        fetchRecentInterventions(),
-        fetchMapReports(200),
+        fetchKpis(filters),
+        fetchActivityChart(period, filters),
+        fetchReportsByCategory(filters),
+        fetchReportsByStatus(filters),
+        fetchPriorityMissions(5, filters),
+        fetchRecentInterventions(6, filters),
+        fetchMapReports(200, filters),
       ]);
       setKpis(k);
       setActivityData(a);
@@ -69,8 +87,9 @@ export function useDashboard() {
 
   // Recharge les signalements quand filtres/page changent
   useEffect(() => {
-    fetchRecentReports({ page: reportPage, search: reportSearch, status: reportStatus }).then(setRecentReports);
-  }, [reportPage, reportSearch, reportStatus]);
+    const filters = getRoleFilters();
+    fetchRecentReports({ page: reportPage, search: reportSearch, status: reportStatus, ...filters }).then(setRecentReports);
+  }, [reportPage, reportSearch, reportStatus, getRoleFilters]);
 
   return {
     kpis,

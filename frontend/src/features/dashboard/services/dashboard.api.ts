@@ -11,41 +11,43 @@ import type {
 
 const BASE = '/dashboard';
 
-export async function fetchKpis(): Promise<DashboardKpis> {
-  const res = await apiClient.get<{ success: boolean; data: DashboardKpis }>(`${BASE}/kpis`);
+export async function fetchKpis(filters?: Record<string, string>): Promise<DashboardKpis> {
+  const res = await apiClient.get<{ success: boolean; data: DashboardKpis }>(`${BASE}/kpis`, {
+    params: filters
+  });
   return res.data;
 }
 
-export async function fetchActivityChart(period: 'monthly' | 'quarterly' = 'monthly'): Promise<ActivityPoint[]> {
+export async function fetchActivityChart(period: 'monthly' | 'quarterly' = 'monthly', filters?: Record<string, string>): Promise<ActivityPoint[]> {
   const res = await apiClient.get<{ success: boolean; data: ActivityPoint[] }>(
     `${BASE}/activity-chart`,
-    { params: { period } }
+    { params: { period, ...filters } }
   );
   return res.data;
 }
 
-export async function fetchReportsByCategory(): Promise<CategoryCount[]> {
-  const res = await apiClient.get<{ success: boolean; data: CategoryCount[] }>(`${BASE}/reports-by-category`);
+export async function fetchReportsByCategory(filters?: Record<string, string>): Promise<CategoryCount[]> {
+  const res = await apiClient.get<{ success: boolean; data: CategoryCount[] }>(`${BASE}/reports-by-category`, { params: filters });
   return res.data;
 }
 
-export async function fetchReportsByStatus(): Promise<CategoryCount[]> {
-  const res = await apiClient.get<{ success: boolean; data: CategoryCount[] }>(`${BASE}/reports-by-status`);
+export async function fetchReportsByStatus(filters?: Record<string, string>): Promise<CategoryCount[]> {
+  const res = await apiClient.get<{ success: boolean; data: CategoryCount[] }>(`${BASE}/reports-by-status`, { params: filters });
   return res.data;
 }
 
-export async function fetchPriorityMissions(limit = 5): Promise<PriorityMission[]> {
+export async function fetchPriorityMissions(limit = 5, filters?: Record<string, string>): Promise<PriorityMission[]> {
   const res = await apiClient.get<{ success: boolean; data: PriorityMission[] }>(
     `${BASE}/priority-missions`,
-    { params: { limit } }
+    { params: { limit, ...filters } }
   );
   return res.data;
 }
 
-export async function fetchRecentInterventions(limit = 6): Promise<RecentIntervention[]> {
+export async function fetchRecentInterventions(limit = 6, filters?: Record<string, string>): Promise<RecentIntervention[]> {
   const res = await apiClient.get<{ success: boolean; data: RecentIntervention[] }>(
     `${BASE}/recent-interventions`,
-    { params: { limit } }
+    { params: { limit, ...filters } }
   );
   return res.data;
 }
@@ -55,6 +57,9 @@ export async function fetchRecentReports(params: {
   limit?: number;
   search?: string;
   status?: string;
+  municipalityId?: string;
+  regionId?: string;
+  createdBy?: string;
 }): Promise<RecentReportsPagination> {
   const res = await apiClient.get<{ success: boolean; data: RecentReportsPagination['data']; pagination: any }>(
     `${BASE}/recent-reports`,
@@ -69,10 +74,10 @@ export async function fetchRecentReports(params: {
   };
 }
 
-export async function fetchMapReports(limit = 100): Promise<ReportMapPoint[]> {
+export async function fetchMapReports(limit = 100, filters?: Record<string, string>): Promise<ReportMapPoint[]> {
   const res = await apiClient.get<{ success: boolean; data: any[]; pagination: any }>(
     '/reports',
-    { params: { limit } }
+    { params: { limit, ...filters } }
   );
   const rows = Array.isArray(res.data) ? res.data : (Array.isArray((res as any).data?.data) ? (res as any).data.data : []);
   return rows

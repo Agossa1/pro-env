@@ -30,9 +30,13 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
   const [roleCode, setRoleCode]             = useState('');
   const [departments, setDepartments]       = useState<TerritoryOption[]>([]);
   const [communes, setCommunes]             = useState<TerritoryOption[]>([]);
+  const [districts, setDistricts]           = useState<TerritoryOption[]>([]);
+  const [neighborhoods, setNeighborhoods]   = useState<TerritoryOption[]>([]);
   const [departmentId, setDepartmentId]     = useState('');
   const [communeId, setCommuneId]           = useState('');
-  const [deptTypeId, setDeptTypeId]         = useState('');
+  const [districtId, setDistrictId]         = useState('');
+  const [neighborhoodId, setNeighborhoodId] = useState('');
+
   const [isLoadingTerritories, setIsLoadingTerritories] = useState(false);
 
   // Charge les rôles à l'ouverture si pas encore fait
@@ -49,15 +53,17 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
       setRoleCode('');
       setDepartmentId('');
       setCommuneId('');
+      setDistrictId('');
+      setNeighborhoodId('');
       clearError();
     }
   }, [isOpen, clearError]);
 
   // ── Chargement hiérarchique des territoires ─────────────────────────────────
 
-  const fetchByTypeId = useCallback(async (territoryTypeId: string): Promise<TerritoryOption[]> => {
+  const fetchByTypeCode = useCallback(async (territoryTypeCode: string): Promise<TerritoryOption[]> => {
     const res = await apiClient.get<{ data: TerritoryOption[] }>('/territories', {
-      params: { territoryTypeId, limit: 200 },
+      params: { territoryTypeCode, limit: 200 },
     });
     return res.data ?? [];
   }, []);
@@ -69,35 +75,19 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
     return res.data ?? [];
   }, []);
 
-  // Résolution des types de territoires (DEPARTMENT, COMMUNE) au montage
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await apiClient.get<{ data: Array<{ id: string; code: string }> }>('/territories/types', {
-          params: { limit: 100 },
-        });
-        if (!active) return;
-        const types = res.data ?? [];
-        setDeptTypeId(types.find((t) => t.code === 'DEPARTMENT')?.id ?? '');
-      } catch {
-        // silencieux
-      }
-    })();
-    return () => { active = false; };
-  }, []);
 
-  // Chargement des départements une fois le typeId résolu
+
+  // Chargement des départements
   useEffect(() => {
-    if (!deptTypeId || !isOpen) return;
+    if (!isOpen) return;
     let active = true;
     setIsLoadingTerritories(true);
-    fetchByTypeId(deptTypeId)
+    fetchByTypeCode('DEPARTMENT')
       .then((list) => { if (active) setDepartments(list); })
       .catch(() => { if (active) setDepartments([]); })
       .finally(() => { if (active) setIsLoadingTerritories(false); });
     return () => { active = false; };
-  }, [deptTypeId, fetchByTypeId, isOpen]);
+  }, [fetchByTypeCode, isOpen]);
 
   // Chargement des communes quand on change de département
   useEffect(() => {
@@ -115,6 +105,38 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
     return () => { active = false; };
   }, [departmentId, fetchByParentId, isOpen]);
 
+  // Chargement des arrondissements (districts)
+  useEffect(() => {
+    setDistrictId('');
+    if (!communeId || !isOpen) {
+      setDistricts([]);
+      return;
+    }
+    let active = true;
+    setIsLoadingTerritories(true);
+    fetchByParentId(communeId)
+      .then((list) => { if (active) setDistricts(list); })
+      .catch(() => { if (active) setDistricts([]); })
+      .finally(() => { if (active) setIsLoadingTerritories(false); });
+    return () => { active = false; };
+  }, [communeId, fetchByParentId, isOpen]);
+
+  // Chargement des quartiers (neighborhoods)
+  useEffect(() => {
+    setNeighborhoodId('');
+    if (!districtId || !isOpen) {
+      setNeighborhoods([]);
+      return;
+    }
+    let active = true;
+    setIsLoadingTerritories(true);
+    fetchByParentId(districtId)
+      .then((list) => { if (active) setNeighborhoods(list); })
+      .catch(() => { if (active) setNeighborhoods([]); })
+      .finally(() => { if (active) setIsLoadingTerritories(false); });
+    return () => { active = false; };
+  }, [districtId, fetchByParentId, isOpen]);
+
   // ── Rôle sélectionné ────────────────────────────────────────────────────────
 
   const selectedRole = roles.find((r) => r.code === roleCode) ?? null;
@@ -122,14 +144,22 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
   // Règles de rattachement territorial basées sur le rôle
   const isPrefecture   = roleCode === 'prefecture';
   const isMairie       = roleCode === 'admin_mairie';
-  const needsDepartment = isPrefecture || isMairie;
-  const needsCommune    = isMairie;
+  const isDst          = roleCode === 'dst'; // Assumption that 'dst' is the code
+  const isTechnicien   = roleCode === 'technicien';
+  const isSociete      = roleCode === 'societe';
+
+  const needsDepartment = isPrefecture || isMairie || isDst || isTechnicien || isSociete;
+  const needsCommune    = isMairie || isDst || isTechnicien || isSociete;
+  const needsDistrict   = false;
+  const needsNeighborhood = false;
 
   // Reset territoire si le rôle change
   useEffect(() => {
     if (!needsDepartment) {
       setDepartmentId('');
       setCommuneId('');
+      setDistrictId('');
+      setNeighborhoodId('');
     }
   }, [needsDepartment]);
 
@@ -144,23 +174,27 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
       toast.error('Veuillez sélectionner le département de rattachement.');
       return;
     }
-    if (isMairie && !communeId) {
+    if ((isMairie || isDst || isSociete) && !communeId) {
       toast.error('Veuillez sélectionner la commune de rattachement.');
       return;
     }
-
-    const territoryId = isMairie
-      ? (communeId || departmentId || undefined)
-      : isPrefecture
-        ? (departmentId || undefined)
-        : undefined;
+    if (isTechnicien && (!departmentId || !communeId)) {
+      toast.error('Veuillez sélectionner le département et la commune pour le technicien.');
+      return;
+    }
 
     const dto: RegisterDto = {
       fullName,
       email,
       phone: phone || undefined,
       roleCode,
-      territoryId,
+      // regionId is required for ALL territorial roles (the department is always selected first)
+      regionId: (isPrefecture || isMairie || isDst || isSociete || isTechnicien) && departmentId
+        ? departmentId : undefined,
+      municipalityId: (isMairie || isDst || isSociete || isTechnicien) && communeId
+        ? communeId : undefined,
+      districtId: districtId ? districtId : undefined,
+      neighborhoodId: neighborhoodId ? neighborhoodId : undefined,
     };
 
     try {
@@ -172,6 +206,8 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
       setRoleCode('');
       setDepartmentId('');
       setCommuneId('');
+      setDistrictId('');
+      setNeighborhoodId('');
       onSuccess?.();
       onClose();
     } catch (err: any) {
@@ -363,6 +399,58 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
                           </option>
                           {communes.map((c) => (
                             <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {needsDistrict && (
+                      <div>
+                        <label htmlFor="reg-district" className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Arrondissement <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          id="reg-district"
+                          required
+                          value={districtId}
+                          onChange={(e) => setDistrictId(e.target.value)}
+                          disabled={isLoadingTerritories || !communeId}
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors disabled:opacity-60"
+                        >
+                          <option value="">
+                            {isLoadingTerritories ? 'Chargement...'
+                             : !communeId ? "Sélectionnez d'abord une commune"
+                             : districts.length === 0 ? 'Aucun arrondissement disponible'
+                             : '-- Sélectionner un arrondissement --'}
+                          </option>
+                          {districts.map((d) => (
+                            <option key={d.id} value={d.id}>{d.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {needsNeighborhood && (
+                      <div>
+                        <label htmlFor="reg-neighborhood" className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Quartier <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          id="reg-neighborhood"
+                          required
+                          value={neighborhoodId}
+                          onChange={(e) => setNeighborhoodId(e.target.value)}
+                          disabled={isLoadingTerritories || !districtId}
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors disabled:opacity-60"
+                        >
+                          <option value="">
+                            {isLoadingTerritories ? 'Chargement...'
+                             : !districtId ? "Sélectionnez d'abord un arrondissement"
+                             : neighborhoods.length === 0 ? 'Aucun quartier disponible'
+                             : '-- Sélectionner un quartier --'}
+                          </option>
+                          {neighborhoods.map((n) => (
+                            <option key={n.id} value={n.id}>{n.name}</option>
                           ))}
                         </select>
                       </div>

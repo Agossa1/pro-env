@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useStructures } from '../hooks/useStructures';
-import { useTerritory } from '../../territory/hooks/useTerritory';
 import {
   InfrastructureType,
   InfrastructureCondition,
@@ -8,6 +7,10 @@ import {
 } from '../services/structures.types';
 import { CreateStructureModal } from './CreateStructureModal';
 import { StructureDetailsModal } from './StructureDetailsModal';
+import { useAuth } from '../../auth/hooks/useAuth';
+import { UserRoleCode } from '../../auth/services/auth.types';
+import { structuresApi } from '../services/structures.api';
+import type { StructureMedia } from '../services/structures.types';
 
 export const TYPE_LABELS: Record<InfrastructureType, string> = {
   [InfrastructureType.DRAIN]: 'Caniveau',
@@ -58,7 +61,7 @@ export const STATUS_COLORS: Record<InfrastructureStatus, string> = {
 
 export const StructuresPage: React.FC = () => {
   const { list, isLoading, load } = useStructures();
-  const { territories, loadForForm } = useTerritory();
+  const { user } = useAuth();
 
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedStructureId, setSelectedStructureId] = useState<string | null>(null);
@@ -71,15 +74,39 @@ export const StructuresPage: React.FC = () => {
   const [filterCondition, setFilterCondition] = useState<string>('');
   const [search, setSearch] = useState<string>('');
 
-  useEffect(() => {
-    load({ limit: 100 });
-    loadForForm();
-  }, [load, loadForForm]);
+  // Photos : map structureId → première photo
+  const [photoMap, setPhotoMap] = useState<Record<string, StructureMedia | null>>({});
 
-  const territoryMap = territories.reduce((acc, curr) => {
-    acc[curr.id] = curr.name;
-    return acc;
-  }, {} as Record<string, string>);
+  useEffect(() => {
+    if (list.length === 0) return;
+    list.forEach((s) => {
+      if (photoMap[s.id] === undefined) {
+        setPhotoMap(prev => ({ ...prev, [s.id]: null })); // marque comme en cours
+        structuresApi.getPhotos(s.id).then((photos) => {
+          setPhotoMap(prev => ({ ...prev, [s.id]: photos[0] ?? null }));
+        }).catch(() => {
+          setPhotoMap(prev => ({ ...prev, [s.id]: null }));
+        });
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list]);
+
+  useEffect(() => {
+    const filters: Record<string, any> = { limit: 100 };
+    if (user) {
+      if (user.role?.code === UserRoleCode.admin_mairie && user.municipalityId) {
+        filters.municipalityId = user.municipalityId;
+      } else if (user.role?.code === UserRoleCode.prefecture && user.regionId) {
+        filters.regionId = user.regionId;
+      } else if (user.role?.code === UserRoleCode.technicien) {
+        filters.createdBy = user.id;
+      }
+    }
+    load(filters);
+  }, [load, user]);
+
+
 
   const filteredStructures = list.filter((s) => {
     const matchType = filterType === '' || s.type === filterType;
@@ -97,14 +124,14 @@ export const StructuresPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Structures</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Infrastructures</h1>
           <p className="text-sm text-gray-600">Équipements physiques urbains : caniveaux, routes, ponts, éclairage...</p>
         </div>
         <button
           onClick={() => setIsCreateOpen(true)}
           className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
         >
-          + Nouvelle structure
+          + Nouvelle infrastructure
         </button>
       </div>
 
@@ -188,13 +215,13 @@ export const StructuresPage: React.FC = () => {
 
               {isLoading && (
                 <tbody className="divide-y divide-gray-100">
-                  <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-500">Chargement des structures...</td></tr>
+                  <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-500">Chargement des infrastructures...</td></tr>
                 </tbody>
               )}
 
               {!isLoading && filteredStructures.length === 0 && (
                 <tbody className="divide-y divide-gray-100">
-                  <tr><td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">Aucune structure trouvée.</td></tr>
+                  <tr><td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">Aucune infrastructure trouvée.</td></tr>
                 </tbody>
               )}
 
@@ -203,12 +230,32 @@ export const StructuresPage: React.FC = () => {
                   {filteredStructures.map((s) => (
                     <tr key={s.id} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-6 py-4">
-                        <p className="font-medium text-gray-900 truncate max-w-[200px]">{s.name}</p>
-                        <p className="text-xs text-gray-400 font-mono">{s.id.substring(0, 8)}</p>
+                        <div className="flex items-center gap-3">
+                          {/* Miniature photo */}
+                          <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-gray-100 border border-gray-200">
+                            {photoMap[s.id]?.storagePath ? (
+                              <img
+                                src={photoMap[s.id]!.storagePath}
+                                alt={s.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 truncate max-w-[180px]">{s.name}</p>
+                            <p className="text-xs text-gray-400 font-mono">{s.id.substring(0, 8)}</p>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-gray-600 font-mono text-xs">{s.referenceCode || '—'}</td>
                       <td className="px-6 py-4 text-gray-600">{TYPE_LABELS[s.type] || s.type}</td>
-                      <td className="px-6 py-4 text-gray-600">{s.territoryName || territoryMap[s.territoryId] || '—'}</td>
+                      <td className="px-6 py-4 text-gray-600">{s.territoryName || '—'}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${CONDITION_COLORS[s.condition] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                           {CONDITION_LABELS[s.condition] || s.condition}
@@ -239,27 +286,45 @@ export const StructuresPage: React.FC = () => {
           {isLoading ? (
             <div className="col-span-full py-12 text-center text-lg text-gray-500">Chargement...</div>
           ) : filteredStructures.length === 0 ? (
-            <div className="col-span-full py-12 text-center text-lg text-gray-500">Aucune structure trouvée.</div>
+            <div className="col-span-full py-12 text-center text-lg text-gray-500">Aucune infrastructure trouvée.</div>
           ) : (
             filteredStructures.map((s) => (
-              <div key={s.id} className="bg-white p-5 rounded-xl border border-gray-200   hover:shadow-md transition-shadow flex flex-col cursor-pointer" onClick={() => setSelectedStructureId(s.id)}>
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[13px] font-bold bg-benin-green-light text-benin-green">
-                    {TYPE_LABELS[s.type] || s.type}
-                  </span>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${CONDITION_COLORS[s.condition] || 'bg-gray-100 border-gray-200 text-gray-700'}`}>
-                    {CONDITION_LABELS[s.condition] || s.condition}
-                  </span>
+              <div key={s.id} className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow flex flex-col cursor-pointer overflow-hidden" onClick={() => setSelectedStructureId(s.id)}>
+                {/* Cover image */}
+                <div className="w-full h-40 bg-gray-100 overflow-hidden">
+                  {photoMap[s.id]?.storagePath ? (
+                    <img
+                      src={photoMap[s.id]!.storagePath}
+                      alt={s.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-200">
+                      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-2">{s.name}</h3>
-                <p className="text-xs text-gray-400 font-mono mb-2">{s.referenceCode || ''}</p>
-                <p className="text-lg text-gray-500 flex-1 line-clamp-3 mb-4">{s.description || 'Aucune description fournie.'}</p>
-                <div className="pt-4 border-t border-gray-100 mt-auto">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">{s.territoryName || territoryMap[s.territoryId] || '—'}</span>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${STATUS_COLORS[s.status] || 'bg-gray-100 border-gray-200 text-gray-700'}`}>
-                      {STATUS_LABELS[s.status] || s.status}
+                <div className="p-5 flex flex-col flex-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[13px] font-bold bg-benin-green-light text-benin-green">
+                      {TYPE_LABELS[s.type] || s.type}
                     </span>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${CONDITION_COLORS[s.condition] || 'bg-gray-100 border-gray-200 text-gray-700'}`}>
+                      {CONDITION_LABELS[s.condition] || s.condition}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-2">{s.name}</h3>
+                  <p className="text-xs text-gray-400 font-mono mb-2">{s.referenceCode || ''}</p>
+                  <p className="text-sm text-gray-500 flex-1 line-clamp-3 mb-4">{s.description || 'Aucune description fournie.'}</p>
+                  <div className="pt-4 border-t border-gray-100 mt-auto">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">{s.territoryName || '—'}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${STATUS_COLORS[s.status] || 'bg-gray-100 border-gray-200 text-gray-700'}`}>
+                        {STATUS_LABELS[s.status] || s.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

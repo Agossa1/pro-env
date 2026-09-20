@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.42% </span>
+                <span class="strong">67.34% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>65/95</span>
+                <span class='fraction'>66/98</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">62.71% </span>
+                <span class="strong">62.29% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>37/59</span>
+                <span class='fraction'>38/61</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">69.23% </span>
+                <span class="strong">68.08% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>63/91</span>
+                <span class='fraction'>64/94</span>
             </div>
         
             
@@ -380,7 +380,21 @@
 <a name='L315'></a><a href='#L315'>315</a>
 <a name='L316'></a><a href='#L316'>316</a>
 <a name='L317'></a><a href='#L317'>317</a>
-<a name='L318'></a><a href='#L318'>318</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -440,6 +454,16 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -611,6 +635,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -741,7 +769,7 @@ export class TeamRepository {
 &nbsp;
   /** Récupère les équipes avec pagination + filtres (teamType, organizationId). */
   public async getAllTeams(
-    query: PaginationQuery &amp; { teamType?: string; organizationId?: string } = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
+    query: PaginationQuery &amp; { teamType?: string; organizationId?: string; memberUserId?: string } = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
   ): Promise&lt;PaginatedResult&lt;FieldTeam&gt;&gt; {
     try {
       const page = Math.max(1, query.page ?? <span class="branch-1 cbranch-no" title="branch not covered" >1);</span>
@@ -757,6 +785,16 @@ export class TeamRepository {
       <span class="missing-if-branch" title="if path not taken" >I</span>if (query.organizationId) {
 <span class="cstat-no" title="statement not covered" >        params.push(query.organizationId);</span>
 <span class="cstat-no" title="statement not covered" >        conditions.push(`t.organization_id = $${params.length}`);</span>
+      }
+      // Scoping technicien : uniquement les équipes dont il est membre actif
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (query.memberUserId) {
+<span class="cstat-no" title="statement not covered" >        params.push(query.memberUserId);</span>
+<span class="cstat-no" title="statement not covered" >        conditions.push(`EXISTS (</span>
+          SELECT 1 FROM field_team_members ftm
+          WHERE ftm.team_id = t.id
+            AND ftm.user_id = $${params.length}
+            AND ftm.is_active = TRUE
+        )`);
       }
       const where = conditions.join(' AND ');
 &nbsp;
@@ -929,17 +967,21 @@ export class TeamRepository {
     try {
       const res = await this.db.query(
         `SELECT
-           id,
-           team_id       AS "teamId",
-           user_id       AS "userId",
-           role_in_team  AS "roleInTeam",
-           is_active     AS "isActive",
-           joined_at     AS "joinedAt",
-           left_at       AS "leftAt"
-         FROM field_team_members
-         WHERE team_id = $1
-           AND is_active = TRUE
-         ORDER BY joined_at ASC`,
+           m.id,
+           m.team_id       AS "teamId",
+           m.user_id       AS "userId",
+           a.full_name     AS "userFullName",
+           a.email         AS "userEmail",
+           a.phone         AS "userPhone",
+           m.role_in_team  AS "roleInTeam",
+           m.is_active     AS "isActive",
+           m.joined_at     AS "joinedAt",
+           m.left_at       AS "leftAt"
+         FROM field_team_members m
+         LEFT JOIN auth a ON a.id = m.user_id
+         WHERE m.team_id = $1
+           AND m.is_active = TRUE
+         ORDER BY m.joined_at ASC`,
         [teamId]
       );
       return res.rows as FieldTeamMember[];
@@ -1021,7 +1063,7 @@ export class TeamRepository {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-19T10:27:17.660Z
+                at 2026-09-20T07:41:04.578Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

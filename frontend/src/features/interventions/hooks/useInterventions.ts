@@ -29,7 +29,7 @@ export function useInterventions() {
   const isLoading = status === 'loading';
 
   const load = useCallback(
-    (params?: { page?: number; limit?: number; status?: string; missionId?: string; teamId?: string }) => {
+    (params?: { page?: number; limit?: number; status?: string; missionId?: string; teamId?: string; regionId?: string; municipalityId?: string; districtId?: string; neighborhoodId?: string; createdBy?: string; assignedTo?: string; [key: string]: any }) => {
       return dispatch(loadInterventions(params));
     },
     [dispatch]

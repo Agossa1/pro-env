@@ -14,7 +14,7 @@ const MissionTypeEnum = zod_1.z.enum(Object.values(mission_enums_1.MissionType))
 const StatusEnum = zod_1.z.enum(Object.values(mission_enums_1.MissionStatus));
 const PriorityEnum = zod_1.z.enum(Object.values(mission_enums_1.PriorityLevel));
 exports.CreateMissionSchema = zod_1.z.object({
-    territoryId: zod_1.z.string().uuid("Le territoire doit être un UUID valide"),
+    municipalityId: zod_1.z.string().uuid("Le territoire doit être un UUID valide"),
     reportId: zod_1.z.string().uuid("Le rapport doit être un UUID valide").nullable().optional(),
     infrastructureId: zod_1.z.string().uuid("L'infrastructure doit être un UUID valide").nullable().optional(),
     missionType: MissionTypeEnum,

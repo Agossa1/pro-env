@@ -18,6 +18,8 @@ import { RefreshTokenService } from './services/refreshtoken.service';
 import { ResendCodeService } from './services/resend-code.service';
 import { GetUsersService } from './services/getUsers.service';
 import { ToggleUserActiveService } from './services/toggleUserActive.service';
+import { UpdateUserService } from './services/updateUser.service';
+import { DeleteUserService } from './services/deleteUser.service';
 import { ForgotPasswordService } from './services/forgot-password.service';
 import { ResetPasswordService } from './services/reset-password.service';
 
@@ -31,6 +33,8 @@ import { ResendCodeController } from './controller/resend-code.controller';
 import { MeController } from './controller/me.controller';
 import { GetUsersController } from './controller/getUsers.controller';
 import { ToggleUserActiveController } from './controller/toggleUserActive.controller';
+import { UpdateUserController } from './controller/updateUser.controller';
+import { DeleteUserController } from './controller/deleteUser.controller';
 import { ForgotPasswordController } from './controller/forgot-password.controller';
 import { ResetPasswordController } from './controller/reset-password.controller';
 
@@ -53,6 +57,8 @@ export const initAuthModule = (db: PostgresDatabase): Router => {
   const resendCodeService = new ResendCodeService(authRepository, logger, passwordServiceInstance);
   const getUsersService = new GetUsersService(authRepository, logger);
   const toggleUserActiveService = new ToggleUserActiveService(authRepository);
+  const updateUserService = new UpdateUserService(authRepository, logger);
+  const deleteUserService = new DeleteUserService(authRepository, logger);
   const forgotPasswordService = new ForgotPasswordService(authRepository, logger, passwordServiceInstance);
   const resetPasswordService = new ResetPasswordService(authRepository, logger, passwordServiceInstance);
 
@@ -66,6 +72,8 @@ export const initAuthModule = (db: PostgresDatabase): Router => {
   const meController = new MeController(authRepository);
   const getUsersController = new GetUsersController(getUsersService);
   const toggleUserActiveController = new ToggleUserActiveController(toggleUserActiveService);
+  const updateUserController = new UpdateUserController(updateUserService);
+  const deleteUserController = new DeleteUserController(deleteUserService);
   const forgotPasswordController = new ForgotPasswordController(forgotPasswordService);
   const resetPasswordController = new ResetPasswordController(resetPasswordService);
 
@@ -80,6 +88,8 @@ export const initAuthModule = (db: PostgresDatabase): Router => {
     meController,
     getUsersController,
     toggleUserActiveController,
+    updateUserController,
+    deleteUserController,
     forgotPasswordController,
     resetPasswordController
   );

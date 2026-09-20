@@ -16,7 +16,7 @@ import { MissionType, MissionStatus, PriorityLevel } from './mission.enums';
 
 export interface MissionRow {
   id: string;
-  territory_id: string;
+  municipality_id: string;
   report_id: string | null;
   infrastructure_id: string | null;
   mission_type: MissionType;
@@ -84,8 +84,8 @@ export interface MissionStatusHistoryRow {
 
 export interface Mission {
   id: string;
-  territoryId: string;
-  territoryName?: string;
+  municipalityId: string;
+  municipalityName?: string;
   reportId: string | null;
   infrastructureId: string | null;
   missionType: MissionType;
@@ -168,7 +168,7 @@ export interface PaginatedResult<T> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface CreateMissionPayload {
-  territoryId: string;
+  municipalityId: string;
   reportId?: string | null;
   infrastructureId?: string | null;
   missionType: MissionType;

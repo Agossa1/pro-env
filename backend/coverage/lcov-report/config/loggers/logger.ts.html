@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">29.41% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/10</span>
+                <span class='fraction'>5/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">7.14% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>1/14</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">55.55% </span>
+                <span class="strong">35.71% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/9</span>
+                <span class='fraction'>5/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -108,7 +108,18 @@
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">20x</span>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -118,8 +129,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -163,8 +185,19 @@ const {combine, timestamp, json, colorize, printf} = winston.format;
 &nbsp;
 const consoleFormat = printf(<span class="fstat-no" title="function not covered" >({</span>level, message, timestamp, ...metadata})=&gt;{
     let msg =<span class="cstat-no" title="statement not covered" >`${timestamp} [${level}] : ${message}`;</span>
-<span class="cstat-no" title="statement not covered" >    if (Object.keys(metadata).length&gt;0) {</span>
-<span class="cstat-no" title="statement not covered" >        msg += `${JSON.stringify(metadata)}`;</span>
+    
+    // Supprimer les informations sensibles en production
+<span class="cstat-no" title="statement not covered" >    if (appConfig.app.isProduction &amp;&amp; metadata) {</span>
+<span class="cstat-no" title="statement not covered" >        if (metadata.stack) <span class="cstat-no" title="statement not covered" >delete metadata.stack;</span></span>
+<span class="cstat-no" title="statement not covered" >        if (metadata.trace) <span class="cstat-no" title="statement not covered" >delete metadata.trace;</span></span>
+    }
+    
+<span class="cstat-no" title="statement not covered" >    if (Object.keys(metadata).length &gt; 0) {</span>
+        // Ne pas afficher un objet vide si on a juste supprimé la stack
+        const metadataStr = <span class="cstat-no" title="statement not covered" >JSON.stringify(metadata);</span>
+<span class="cstat-no" title="statement not covered" >        if (metadataStr !== '{}') {</span>
+<span class="cstat-no" title="statement not covered" >            msg += ` ${metadataStr}`;</span>
+        }
     }
 <span class="cstat-no" title="statement not covered" >    return msg</span>
 })
@@ -205,7 +238,7 @@ export const <span class="cstat-no" title="statement not covered" >logger = w</s
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-19T10:27:17.660Z
+                at 2026-09-20T07:41:04.578Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

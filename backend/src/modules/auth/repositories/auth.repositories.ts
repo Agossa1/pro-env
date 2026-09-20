@@ -63,15 +63,18 @@ export class AuthRepository {
 
       // 1. Création de l'entité Auth
       const authRes = await client.query(
-        `INSERT INTO auth (full_name, email, phone, role_id, territory_id, organization_id)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO auth (full_name, email, phone, role_id, region_id, municipality_id, district_id, neighborhood_id, organization_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING id, created_at, updated_at`,
         [
           payload.fullName,
           payload.email.toLowerCase(),
           payload.phone || null,
           payload.roleId,
-          payload.territoryId || null,
+          payload.regionId || null,
+          payload.municipalityId || null,
+          payload.districtId || null,
+          payload.neighborhoodId || null,
           payload.organizationId || null,
         ]
       );
@@ -108,7 +111,10 @@ export class AuthRepository {
         fullName: payload.fullName,
         email: payload.email,
         phone: payload.phone || null,
-        territoryId: payload.territoryId || null,
+        regionId: payload.regionId || null,
+        municipalityId: payload.municipalityId || null,
+        districtId: payload.districtId || null,
+        neighborhoodId: payload.neighborhoodId || null,
         organizationId: payload.organizationId || null,
         isActive: status.is_active,
         isVerified: status.is_verified,
@@ -273,7 +279,7 @@ export class AuthRepository {
     try {
       const res = await this.db.query(
         `SELECT 
-           a.id, a.full_name AS "fullName", a.email, a.territory_id AS "territoryId", a.organization_id AS "organizationId",
+           a.id, a.full_name AS "fullName", a.email, a.region_id AS "regionId", a.municipality_id AS "municipalityId", a.district_id AS "districtId", a.neighborhood_id AS "neighborhoodId", a.organization_id AS "organizationId",
            c.password_hash AS "passwordHash",
            s.is_active AS "isActive", s.is_verified AS "isVerified",
            r.code AS "roleCode", r.name AS "roleName", r.tier AS "roleTier"
@@ -298,7 +304,7 @@ export class AuthRepository {
     try {
       const res = await this.db.query(
         `SELECT 
-           a.id, a.full_name AS "fullName", a.email, a.territory_id AS "territoryId", a.organization_id AS "organizationId",
+           a.id, a.full_name AS "fullName", a.email, a.region_id AS "regionId", a.municipality_id AS "municipalityId", a.district_id AS "districtId", a.neighborhood_id AS "neighborhoodId", a.organization_id AS "organizationId",
            s.is_active AS "isActive", s.is_verified AS "isVerified",
            r.code AS "roleCode", r.name AS "roleName", r.tier AS "roleTier",
            a.created_at AS "createdAt", a.updated_at AS "updatedAt"
@@ -375,7 +381,7 @@ export class AuthRepository {
    * Récupère la liste paginée des utilisateurs avec leurs rôles, statuts
    * et territoires (pour l'administration des utilisateurs).
    */
-  public async getAllUsers(query: { page?: number; limit?: number } = {}): Promise<{
+  public async getAllUsers(query: { page?: number; limit?: number; filters?: { forcedRegionId?: string; forcedMunicipalityId?: string; forcedDistrictId?: string; forcedNeighborhoodId?: string; forcedCreatedBy?: string; forcedUserIdForTeamScopes?: string } } = {}): Promise<{
     data: any[];
     total: number;
     page: number;
@@ -387,15 +393,47 @@ export class AuthRepository {
       const limit = Math.min(100, Math.max(1, query.limit ?? 50));
       const offset = (page - 1) * limit;
 
-      const key = `auth:users:all:${page}:${limit}`;
+      const { filters } = query;
+      const key = `auth:users:all:${page}:${limit}:${JSON.stringify(filters || {})}`;
       return await redisCache.getOrSet(key, async () => {
+        let baseQuery = `FROM auth a`;
+        const conditions: string[] = ['1=1'];
+        const params: any[] = [];
+        let paramIndex = 1;
+        
+        if (filters?.forcedNeighborhoodId) {
+          conditions.push(`a.neighborhood_id = $${paramIndex}`);
+          params.push(filters.forcedNeighborhoodId);
+          paramIndex++;
+        } else if (filters?.forcedDistrictId) {
+          conditions.push(`a.district_id = $${paramIndex}`);
+          params.push(filters.forcedDistrictId);
+          paramIndex++;
+        } else if (filters?.forcedMunicipalityId) {
+          conditions.push(`a.municipality_id = $${paramIndex}`);
+          params.push(filters.forcedMunicipalityId);
+          paramIndex++;
+        } else if (filters?.forcedRegionId) {
+          conditions.push(`a.region_id = $${paramIndex}`);
+          params.push(filters.forcedRegionId);
+          paramIndex++;
+        }
+        
+        if (filters?.forcedCreatedBy) {
+           // Si l'utilisateur est restreint à lui-même
+           conditions.push(`a.id = $${paramIndex}`);
+           params.push(filters.forcedCreatedBy);
+           paramIndex++;
+        }
+
         const countRes = await this.db.query(
-          `SELECT COUNT(*)::int AS total FROM auth`
+          `SELECT COUNT(*)::int AS total ${baseQuery} WHERE ${conditions.join(' AND ')}`,
+          params
         );
         const total = countRes.rows[0].total as number;
 
-        const res = await this.db.query(
-          `SELECT
+         const dataQuery = `
+           SELECT
              a.id,
              a.full_name AS "fullName",
              a.email,
@@ -403,21 +441,24 @@ export class AuthRepository {
              a.role_id AS "roleId",
              r.name AS "roleName",
              r.code AS "roleCode",
-             a.territory_id AS "territoryId",
-             t.name AS "territoryName",
+             a.region_id AS "regionId",
+             a.municipality_id AS "municipalityId",
+             a.district_id AS "districtId",
+             a.neighborhood_id AS "neighborhoodId",
              a.organization_id AS "organizationId",
              s.is_active AS "isActive",
              s.is_verified AS "isVerified",
              a.created_at AS "createdAt",
              a.updated_at AS "updatedAt"
-           FROM auth a
+           ${baseQuery}
            INNER JOIN roles r ON a.role_id = r.id
            LEFT JOIN account_status s ON a.id = s.auth_id
-           LEFT JOIN territories t ON a.territory_id = t.id
+           WHERE ${conditions.join(' AND ')}
            ORDER BY a.created_at DESC
-           LIMIT $1 OFFSET $2`,
-          [limit, offset]
-        );
+           LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+         `;
+         params.push(limit, offset);
+         const res = await this.db.query(dataQuery, params);
 
         return {
           data: res.rows as any[],
@@ -479,6 +520,41 @@ export class AuthRepository {
       );
     } catch (error: any) {
       this.logger.error(`Erreur updateSession: ${error.message}`);
+      throw error;
+    }
+  }
+
+  public async updateUser(authId: string, payload: { fullName?: string; phone?: string; roleId?: string; regionId?: string | null; municipalityId?: string | null; districtId?: string | null; neighborhoodId?: string | null }): Promise<void> {
+    try {
+      const updates: string[] = [];
+      const values: any[] = [];
+      let i = 1;
+
+      if (payload.fullName !== undefined) { updates.push(`full_name = $${i++}`); values.push(payload.fullName); }
+      if (payload.phone !== undefined) { updates.push(`phone = $${i++}`); values.push(payload.phone); }
+      if (payload.roleId !== undefined) { updates.push(`role_id = $${i++}`); values.push(payload.roleId); }
+      if (payload.regionId !== undefined) { updates.push(`region_id = $${i++}`); values.push(payload.regionId); }
+      if (payload.municipalityId !== undefined) { updates.push(`municipality_id = $${i++}`); values.push(payload.municipalityId); }
+      if (payload.districtId !== undefined) { updates.push(`district_id = $${i++}`); values.push(payload.districtId); }
+      if (payload.neighborhoodId !== undefined) { updates.push(`neighborhood_id = $${i++}`); values.push(payload.neighborhoodId); }
+
+      if (updates.length === 0) return;
+
+      updates.push(`updated_at = NOW()`);
+      values.push(authId);
+
+      await this.db.query(`UPDATE auth SET ${updates.join(', ')} WHERE id = $${i}`, values);
+    } catch (error: any) {
+      this.logger.error(`Erreur updateUser: ${error.message}`);
+      throw error;
+    }
+  }
+
+  public async deleteUser(authId: string): Promise<void> {
+    try {
+      await this.db.query(`DELETE FROM auth WHERE id = $1`, [authId]);
+    } catch (error: any) {
+      this.logger.error(`Erreur deleteUser: ${error.message}`);
       throw error;
     }
   }

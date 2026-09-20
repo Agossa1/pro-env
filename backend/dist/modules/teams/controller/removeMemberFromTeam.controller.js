@@ -8,6 +8,14 @@ class RemoveMemberFromTeamController {
         this.removeMemberFromTeamService = removeMemberFromTeamService;
         this.removeMemberFromTeam = async (req, res, next) => {
             try {
+                const allowedRoles = ['societe', 'admin_mairie'];
+                if (!req.user || !allowedRoles.includes(req.user.roleCode)) {
+                    res.status(403).json({
+                        success: false,
+                        message: 'Action non autorisée. Seuls les entreprises (prestataires) et les DST (mairies) peuvent retirer des membres.',
+                    });
+                    return;
+                }
                 const { id } = team_validations_1.IdParamSchema.parse(req.params);
                 const { memberId } = team_validations_1.MemberIdParamSchema.parse(req.params);
                 await this.removeMemberFromTeamService.removeMemberFromTeam(id, memberId);

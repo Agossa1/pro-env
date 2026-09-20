@@ -4,6 +4,8 @@ import { InterventionStatus } from '../services/interventions.types';
 import { InterventionDetailsModal } from './InterventionDetailsModal';
 import { TYPE_LABELS } from '../../missions/components/MissionsPage';
 import { MissionType } from '../../missions/services/missions.types';
+import { useAuth } from '../../auth/hooks/useAuth';
+import { UserRoleCode } from '../../auth/services/auth.types';
 
 const STATUS_COLORS: Record<InterventionStatus, string> = {
   [InterventionStatus.NOT_STARTED]: 'text-gray-600 bg-gray-100',
@@ -35,12 +37,23 @@ const TAB_MAPPING: Record<TabId, InterventionStatus[]> = {
 
 export const InterventionsPage: React.FC = () => {
   const { list, isLoading, load } = useInterventions();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>('en_cours');
   const [selectedInterventionId, setSelectedInterventionId] = useState<string | null>(null);
 
   useEffect(() => {
-    load({ limit: 100 });
-  }, [load]);
+    const filters: Record<string, any> = { limit: 100 };
+    if (user) {
+      if (user.role?.code === UserRoleCode.admin_mairie && user.municipalityId) {
+        filters.municipalityId = user.municipalityId;
+      } else if (user.role?.code === UserRoleCode.prefecture && user.regionId) {
+        filters.regionId = user.regionId;
+      } else if (user.role?.code === UserRoleCode.technicien) {
+        filters.assignedTo = user.id; // Usually a technicien is assigned to an intervention or a team
+      }
+    }
+    load(filters);
+  }, [load, user]);
 
   const filteredList = list.filter(i => TAB_MAPPING[activeTab].includes(i.status));
 

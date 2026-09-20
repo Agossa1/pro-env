@@ -23,7 +23,7 @@ class ReportRepository {
         this.reportSelect = `
     SELECT
       r.id,
-      r.territory_id          AS "territoryId",
+      r.municipality_id AS "municipalityId", r.district_id AS "districtId",
       r.infrastructure_id     AS "infrastructureId",
       r.mapped_area_id        AS "mappedAreaId",
       r.title,
@@ -44,12 +44,15 @@ class ReportRepository {
       r.deleted_at            AS "deletedAt",
       a.full_name             AS "createdByName",
       rol.name                AS "createdByRole",
-      t.name                  AS "territoryName"
+      COALESCE(d_join.name || ', ' || m_join.name, m_join.name) AS "territoryName",
+      m_join.name AS "municipalityName", d_join.name AS "districtName",
+      COALESCE(d_join.name, m_join.name) AS "territoryName"
   `;
         this.reportJoins = `
     LEFT JOIN auth a ON a.id = r.created_by
     LEFT JOIN roles rol ON rol.id = a.role_id
-    LEFT JOIN territories t ON t.id = r.territory_id
+    LEFT JOIN municipalities m_join ON m_join.id = r.municipality_id
+    LEFT JOIN districts d_join ON d_join.id = r.district_id
   `;
     }
     /**
@@ -63,9 +66,20 @@ class ReportRepository {
             const offset = (page - 1) * limit;
             const conditions = [`r.deleted_at IS NULL`];
             const params = [];
-            if (query.territoryId) {
-                params.push(query.territoryId);
-                conditions.push(`r.territory_id = $${params.length}`);
+            // Track if we need the municipality JOIN for filtering
+            let needsMunicipalityJoin = false;
+            if (query.regionId) {
+                params.push(query.regionId);
+                conditions.push(`m_join.region_id = $${params.length}`);
+                needsMunicipalityJoin = true;
+            }
+            if (query.municipalityId) {
+                params.push(query.municipalityId);
+                conditions.push(`r.municipality_id = $${params.length}`);
+            }
+            if (query.districtId) {
+                params.push(query.districtId);
+                conditions.push(`r.district_id = $${params.length}`);
             }
             if (query.createdBy) {
                 params.push(query.createdBy);
@@ -80,9 +94,13 @@ class ReportRepository {
                 conditions.push(`r.issue_category = $${params.length}`);
             }
             const where = conditions.join(' AND ');
-            const key = `reports:all:${page}:${limit}:${query.territoryId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.issueCategory ?? ''}`;
+            // Include municipality JOIN in COUNT only when filtering by regionId
+            const countJoin = needsMunicipalityJoin
+                ? `LEFT JOIN municipalities m_join ON m_join.id = r.municipality_id`
+                : ``;
+            const key = `reports:all:${page}:${limit}:${query.regionId ?? ''}:${query.municipalityId ?? ''}:${query.districtId ?? ''}:${query.createdBy ?? ''}:${query.status ?? ''}:${query.issueCategory ?? ''}`;
             return await redis_service_1.redisCache.getOrSet(key, async () => {
-                const countRes = await this.db.query(`SELECT COUNT(*)::int AS total FROM reports r WHERE ${where}`, params);
+                const countRes = await this.db.query(`SELECT COUNT(*)::int AS total FROM reports r ${countJoin} WHERE ${where}`, params);
                 const total = countRes.rows[0].total;
                 params.push(limit, offset);
                 const res = await this.db.query(`${this.reportSelect}
@@ -128,14 +146,14 @@ class ReportRepository {
      * Vérifie si un signalement similaire existe déjà (même titre, catégorie et territoire)
      * pour éviter les doublons.
      */
-    async checkDuplicateReport(title, category, territoryId) {
+    async checkDuplicateReport(title, category, municipalityId, districtId) {
         try {
             const res = await this.db.query(`SELECT 1 FROM reports
          WHERE LOWER(title) = LOWER($1)
            AND issue_category = $2
-           AND territory_id = $3
+           AND municipality_id = $3 AND (district_id = $4 OR ($4 IS NULL AND district_id IS NULL))
            AND deleted_at IS NULL
-         LIMIT 1`, [title, category, territoryId]);
+         LIMIT 1`, [title, category, municipalityId, districtId ?? null]);
             return (res.rowCount ?? 0) > 0;
         }
         catch (error) {
@@ -153,13 +171,13 @@ class ReportRepository {
         try {
             await client.query('BEGIN');
             const res = await client.query(`INSERT INTO reports (
-           territory_id, infrastructure_id, mapped_area_id,
+           municipality_id, district_id, infrastructure_id, mapped_area_id,
            title, description, issue_category, priority, risk_level,
            status, latitude, longitude, created_by, sla_hours
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
          RETURNING
-           id, territory_id AS "territoryId",
+           id, municipality_id AS "municipalityId", district_id AS "districtId",
            infrastructure_id AS "infrastructureId",
            mapped_area_id AS "mappedAreaId",
            title, description,
@@ -174,7 +192,8 @@ class ReportRepository {
            created_at AS "createdAt",
            updated_at AS "updatedAt",
            deleted_at AS "deletedAt"`, [
-                payload.territoryId,
+                payload.municipalityId,
+                payload.districtId ?? null,
                 payload.infrastructureId ?? null,
                 payload.mappedAreaId ?? null,
                 payload.title,
@@ -228,7 +247,7 @@ class ReportRepository {
          WHERE id = $11
            AND deleted_at IS NULL
          RETURNING
-           id, territory_id AS "territoryId",
+           id, municipality_id AS "municipalityId", district_id AS "districtId",
            infrastructure_id AS "infrastructureId",
            mapped_area_id AS "mappedAreaId",
            title, description,

@@ -18,14 +18,14 @@ function extractMessage(error: unknown): string {
 /** Charge la liste paginée des territoires (avec filtres optionnels). */
 export const loadTerritories = createAsyncThunk<
   PaginatedTerritoriesResult,
-  { page?: number; limit?: number; territoryTypeId?: string; territoryTypeCode?: string } | undefined,
+  { page?: number; limit?: number; territoryTypeId?: string; territoryTypeCode?: string; search?: string } | undefined,
   { rejectValue: string }
 >(
   'territory/loadAll',
   async (params = {}, { rejectWithValue }) => {
     try {
-      const { page = 1, limit = 200, territoryTypeId, territoryTypeCode } = params;
-      return await fetchTerritories(page, limit, territoryTypeId, territoryTypeCode);
+      const { page = 1, limit = 200, territoryTypeId, territoryTypeCode, search } = params;
+      return await fetchTerritories(page, limit, territoryTypeId, territoryTypeCode, search);
     } catch (error) {
       return rejectWithValue(extractMessage(error));
     }
@@ -49,6 +49,37 @@ export const loadDepartmentsAndCommunes = createAsyncThunk<
         fetchTerritories(1, 100, undefined, 'COMMUNE'),
       ]);
       return [...depts.data, ...communes.data];
+    } catch (error) {
+      return rejectWithValue(extractMessage(error));
+    }
+  },
+);
+
+/**
+ * Charge en parallèle les 4 niveaux de découpage (12 depts, 77 communes,
+ * ~546 arrondissements, ~5500+ quartiers).
+ * À utiliser pour les lookups de noms dans les tableaux (ReportsPage, MissionsPage, etc.)
+ */
+export const loadAllForLookup = createAsyncThunk<
+  Territory[],
+  void,
+  { rejectValue: string }
+>(
+  'territory/loadAllForLookup',
+  async (_, { rejectWithValue }) => {
+    try {
+      const [depts, communes, districts, neighborhoods] = await Promise.all([
+        fetchTerritories(1, 20,   undefined, 'DEPARTMENT'),
+        fetchTerritories(1, 100,  undefined, 'COMMUNE'),
+        fetchTerritories(1, 700,  undefined, 'ARRONDISSEMENT'),
+        fetchTerritories(1, 6000, undefined, 'QUARTIER'),
+      ]);
+      return [
+        ...depts.data,
+        ...communes.data,
+        ...districts.data,
+        ...neighborhoods.data,
+      ];
     } catch (error) {
       return rejectWithValue(extractMessage(error));
     }

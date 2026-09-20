@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { GetAllTerritoriesService, GetAllTerritoriesQuery } from '../services/getAllTerritories.service';
+import { getScopeFilters } from '../../../shared/helpers/scopeFilters.helper';
 
 export class GetAllTerritoriesController {
   constructor(
@@ -12,12 +13,15 @@ export class GetAllTerritoriesController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      const { forcedRegionId, forcedMunicipalityId, forcedDistrictId, forcedNeighborhoodId } = getScopeFilters(req);
       const query: GetAllTerritoriesQuery = {
         page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
         territoryTypeId: req.query.territoryTypeId as string | undefined,
         territoryTypeCode: req.query.territoryTypeCode as string | undefined,
         parentTerritoryId: req.query.parentTerritoryId as string | undefined,
+        search: req.query.search as string | undefined,
+        filters: { forcedRegionId, forcedMunicipalityId, forcedDistrictId, forcedNeighborhoodId },
       };
 
       const result = await this.getAllTerritoriesService.getAllTerritories(query);

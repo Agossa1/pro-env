@@ -4,7 +4,9 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useStructures } from '../hooks/useStructures';
-import { useTerritory } from '../../territory/hooks/useTerritory';
+import { useAuth } from '../../auth/hooks/useAuth';
+import { UserRoleCode } from '../../auth/services/auth.types';
+import { apiClient, type ApiResponse } from '../../../libs/api-client';
 import {
   InfrastructureType,
   InfrastructureCondition,
@@ -17,10 +19,18 @@ interface Props {
   onClose: () => void;
 }
 
+interface TerritoryItem {
+  id: string;
+  name: string;
+  territoryTypeCode?: string;
+  parentTerritoryId?: string | null;
+}
+
 const inputClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green";
+const selectClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-benin-green/20 focus:border-benin-green disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
 const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
 
-// Icône Leaflet par défaut corrigée pour les bundlers (fichiers dist introuvables)
+// Icône Leaflet par défaut corrigée pour les bundlers
 const defaultIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -30,7 +40,6 @@ const defaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = defaultIcon;
 
-// Composant interne : écoute les clics sur la carte et remonte lat/lng
 interface ClickHandlerProps {
   onPick: (lat: number, lng: number) => void;
 }
@@ -44,21 +53,131 @@ const ClickHandler: React.FC<ClickHandlerProps> = ({ onPick }) => {
   return null;
 };
 
-// ─── Prévisualisation d'une photo sélectionnée ───────────────────────────────
 interface PhotoPreview {
   file: File;
   previewUrl: string;
 }
 
+/** Récupère les territoires depuis l'API par ID de type parent */
+async function fetchByParent(parentId: string): Promise<TerritoryItem[]> {
+  try {
+    const res = await apiClient.get<ApiResponse<any>>('/territories', {
+      params: { parentTerritoryId: parentId, limit: 500 },
+    });
+    const items = Array.isArray(res.data) ? res.data : [];
+    return items.sort((a: TerritoryItem, b: TerritoryItem) =>
+      (a.name || '').localeCompare(b.name || '')
+    );
+  } catch (err) {
+    console.error('fetchByParent Error:', err);
+    return [];
+  }
+}
+
+/** Récupère les territoires de type DEPARTMENT */
+async function fetchDepartments(): Promise<TerritoryItem[]> {
+  try {
+    const res = await apiClient.get<ApiResponse<any>>('/territories', {
+      params: { limit: 100, territoryTypeCode: 'DEPARTMENT' },
+    });
+    const departments = Array.isArray(res.data) ? res.data : [];
+    return departments.sort((a: TerritoryItem, b: TerritoryItem) =>
+      (a.name || '').localeCompare(b.name || '')
+    );
+  } catch (err) {
+    console.error('fetchDepartments Error:', err);
+    return [];
+  }
+}
+
 export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
   const { create } = useStructures();
-  const { territories, loadForForm } = useTerritory();
+  const { user } = useAuth();
 
-  // Hiérarchie territoriale
-  const [departmentId, setDepartmentId] = useState('');
-  const [communeId, setCommuneId] = useState('');
+  const isTechnicien = user?.role?.code === UserRoleCode.technicien;
+  const isPrefecture = user?.role?.code === UserRoleCode.prefecture;
+  const isMairie = user?.role?.code === UserRoleCode.admin_mairie;
 
-  // Coordonnées GPS (carte cliquable)
+  const shouldLockDept = isTechnicien || isPrefecture || isMairie;
+  const shouldLockCommune = isTechnicien || isMairie;
+
+  // Listes de territoires par niveau
+  const [departements, setDepartements] = useState<TerritoryItem[]>([]);
+  const [communes, setCommunes] = useState<TerritoryItem[]>([]);
+  const [arrondissements, setArrondissements] = useState<TerritoryItem[]>([]);
+  const [quartiers, setQuartiers] = useState<TerritoryItem[]>([]);
+
+  // Chargements par niveau
+  const [loadingDepts, setLoadingDepts] = useState(true);
+  const [loadingCommunes, setLoadingCommunes] = useState(false);
+  const [loadingArr, setLoadingArr] = useState(false);
+  const [loadingQuartiers, setLoadingQuartiers] = useState(false);
+
+  // Sélections
+  const [selectedDept, setSelectedDept] = useState('');
+  const [selectedCommune, setSelectedCommune] = useState('');
+  const [selectedArr, setSelectedArr] = useState('');
+  const [selectedQuartier, setSelectedQuartier] = useState('');
+
+  // Initialisation pour les rôles territoriaux
+  useEffect(() => {
+    if (user) {
+      if (shouldLockDept && user.regionId) {
+        setSelectedDept(user.regionId);
+      }
+      if (shouldLockCommune && user.municipalityId) {
+        setSelectedCommune(user.municipalityId);
+      }
+    }
+  }, [shouldLockDept, shouldLockCommune, user]);
+
+  // Chargement initial des départements
+  useEffect(() => {
+    setLoadingDepts(true);
+    fetchDepartments()
+      .then(setDepartements)
+      .finally(() => setLoadingDepts(false));
+  }, []);
+
+  // Chargement des communes quand un département est sélectionné
+  useEffect(() => {
+    if (!selectedDept) { setCommunes([]); return; }
+    setLoadingCommunes(true);
+    if (!shouldLockCommune) {
+      setSelectedCommune('');
+      setArrondissements([]);
+      setSelectedArr('');
+      setQuartiers([]);
+      setSelectedQuartier('');
+    }
+    fetchByParent(selectedDept)
+      .then(setCommunes)
+      .finally(() => setLoadingCommunes(false));
+  }, [selectedDept, shouldLockCommune]);
+
+  // Chargement des arrondissements
+  useEffect(() => {
+    if (!selectedCommune) { setArrondissements([]); return; }
+    setLoadingArr(true);
+    setSelectedArr('');
+    setQuartiers([]);
+    setSelectedQuartier('');
+    fetchByParent(selectedCommune)
+      .then(setArrondissements)
+      .finally(() => setLoadingArr(false));
+  }, [selectedCommune]);
+
+  // Chargement des quartiers
+  useEffect(() => {
+    if (!selectedArr) { setQuartiers([]); return; }
+    setLoadingQuartiers(true);
+    setSelectedQuartier('');
+    fetchByParent(selectedArr)
+      .then(setQuartiers)
+      .finally(() => setLoadingQuartiers(false));
+  }, [selectedArr]);
+
+  // Coordonnées GPS
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
 
@@ -79,32 +198,15 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadForForm();
-  }, [loadForForm]);
-
-  // Nettoyage des object URLs à la destruction du composant
-  useEffect(() => {
     return () => {
       photoPreviews.forEach((p) => URL.revokeObjectURL(p.previewUrl));
     };
   }, [photoPreviews]);
 
-  // Départements et communes déduits de la hiérarchie seedée
-  const departments = territories.filter((t) => t.territoryTypeCode === 'DEPARTMENT');
-  const communes = territories.filter((t) => t.territoryTypeCode === 'COMMUNE');
-  const filteredCommunes = communes.filter((c) => c.parentTerritoryId === departmentId);
-
-  const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDepartmentId(e.target.value);
-    setCommuneId(''); // réinitialise la commune quand le département change
-  };
-
   const handlePickLocation = (lat: number, lng: number) => {
     setLatitude(Number(lat.toFixed(6)));
     setLongitude(Number(lng.toFixed(6)));
   };
-
-  // ── Gestion des photos ────────────────────────────────────────────────────
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const imageFiles = Array.from(files).filter((f) => f.type.startsWith('image/'));
@@ -126,7 +228,6 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
     if (e.target.files && e.target.files.length > 0) {
       addFiles(e.target.files);
     }
-    // Réinitialise l'input pour permettre re-sélection du même fichier
     e.target.value = '';
   };
 
@@ -145,11 +246,9 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
     }
   };
 
-  // ── Soumission ────────────────────────────────────────────────────────────
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!communeId || !name) {
+    if (!selectedCommune || !name) {
       setError("Le département, la commune et le nom sont requis.");
       return;
     }
@@ -158,7 +257,9 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
     setError(null);
     try {
       const payload: CreateStructurePayload = {
-        territoryId: communeId,
+        municipalityId: selectedCommune,
+        districtId: selectedArr || undefined,
+        neighborhoodId: selectedQuartier || undefined,
         name,
         referenceCode: referenceCode || null,
         type,
@@ -170,7 +271,7 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
       };
       const result = await create(payload).unwrap();
 
-      // Upload des photos une par une
+      // Upload des photos
       if (photoPreviews.length > 0) {
         const structureId = (result as any)?.id ?? (result as any)?.data?.id;
         if (structureId) {
@@ -185,7 +286,7 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
         }
       }
 
-      toast.success('Structure créée avec succès !');
+      toast.success('Infrastructure créée avec succès !');
       onClose();
     } catch (err: any) {
       const msg = err?.message || "Une erreur est survenue lors de la création.";
@@ -202,10 +303,9 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-full">
-        {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Nouvelle structure</h2>
+            <h2 className="text-lg font-bold text-gray-900">Nouvelle infrastructure</h2>
             <p className="text-sm text-gray-500">Enregistrer un équipement physique urbain</p>
           </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600 rounded-full transition-colors">
@@ -213,7 +313,6 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
           </button>
         </div>
 
-        {/* Body */}
         <form onSubmit={handleSubmit} className="overflow-y-auto flex-1">
           <div className="p-6 space-y-6">
 
@@ -228,7 +327,7 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
               <p className="text-xs font-medium text-gray-500 mb-3">Identification</p>
               <div className="space-y-4">
                 <div>
-                  <label className={labelClass}>Nom de la structure *</label>
+                  <label className={labelClass}>Nom de l'infrastructure *</label>
                   <input
                     type="text"
                     required
@@ -267,45 +366,81 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
 
             {/* Localisation territoriale hiérarchisée */}
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-3">Territoire</p>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Département *</label>
-                    <select
-                      value={departmentId}
-                      onChange={handleDepartmentChange}
-                      className={inputClass}
-                      required
-                    >
-                      <option value="">Sélectionner un département...</option>
-                      {departments.map((d) => (
-                        <option key={d.id} value={d.id}>{d.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Commune *</label>
-                    <select
-                      value={communeId}
-                      onChange={(e) => setCommuneId(e.target.value)}
-                      className={inputClass}
-                      required
-                      disabled={!departmentId}
-                    >
-                      <option value="">
-                        {departmentId ? 'Sélectionner une commune...' : 'Choisir d\'abord un département'}
-                      </option>
-                      {filteredCommunes.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
+              <p className="text-sm font-semibold text-gray-700 mb-3">
+                Localisation territoriale <span className="text-red-500">*</span>
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Département */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Département <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    className={selectClass}
+                    value={selectedDept}
+                    onChange={(e) => setSelectedDept(e.target.value)}
+                    disabled={loadingDepts || shouldLockDept}
+                    required
+                  >
+                    <option value="">— Sélectionner ({departements.length}) —</option>
+                    {departements.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+
+                {/* Commune */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Commune <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    className={selectClass}
+                    value={selectedCommune}
+                    onChange={(e) => setSelectedCommune(e.target.value)}
+                    disabled={!selectedDept || loadingCommunes || shouldLockCommune}
+                    required
+                  >
+                    <option value="">— Sélectionner ({communes.length}) —</option>
+                    {communes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+
+                {/* Arrondissement */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block" htmlFor="arrondissement">
+                    Arrondissement {loadingArr && <span className="text-gray-400">(chargement...)</span>}
+                  </label>
+                  <select
+                    id="arrondissement"
+                    value={selectedArr}
+                    disabled={!selectedCommune || loadingArr}
+                    onChange={e => setSelectedArr(e.target.value)}
+                    className={selectClass}
+                  >
+                    <option value="">— Sélectionner ({arrondissements.length}) —</option>
+                    {arrondissements.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+
+                {/* Quartier */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block" htmlFor="quartier">
+                    Quartier / Village {loadingQuartiers && <span className="text-gray-400">(chargement...)</span>}
+                  </label>
+                  <select
+                    id="quartier"
+                    value={selectedQuartier}
+                    disabled={!selectedArr || loadingQuartiers}
+                    onChange={e => setSelectedQuartier(e.target.value)}
+                    className={selectClass}
+                  >
+                    <option value="">— Sélectionner ({quartiers.length}) —</option>
+                    {quartiers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
                 </div>
               </div>
             </div>
 
-            {/* Coordonnées GPS — carte cliquable */}
+            {/* Coordonnées GPS */}
             <div>
               <p className="text-xs font-medium text-gray-500 mb-3">Localisation GPS (cliquez sur la carte)</p>
               <div className="space-y-3">
@@ -395,11 +530,10 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
               </div>
             </div>
 
-            {/* ── Photos ──────────────────────────────────────────────────────── */}
+            {/* Photos */}
             <div>
               <p className="text-xs font-medium text-gray-500 mb-3">Photos (Optionnel)</p>
 
-              {/* Zone drag & drop */}
               <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -423,7 +557,6 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
                   className="hidden"
                   onChange={handleFileInputChange}
                 />
-                {/* Icône caméra */}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isDragging ? 'bg-benin-green/10' : 'bg-gray-200'}`}>
                   <svg className={`w-5 h-5 transition-colors ${isDragging ? 'text-benin-green' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -438,7 +571,6 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
                 </div>
               </div>
 
-              {/* Grille des prévisualisations */}
               {photoPreviews.length > 0 && (
                 <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {photoPreviews.map((preview, idx) => (
@@ -448,7 +580,6 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
                         alt={`Photo ${idx + 1}`}
                         className="w-full h-full object-cover"
                       />
-                      {/* Bouton suppression */}
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); removePhoto(idx); }}
@@ -459,7 +590,6 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
-                      {/* Indicateur de nom */}
                       <div className="absolute bottom-0 inset-x-0 bg-black/50 px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="text-white text-[9px] truncate">{preview.file.name}</p>
                       </div>
@@ -477,7 +607,6 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
 
           </div>
 
-          {/* Footer */}
           <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
             <button
               type="button"
@@ -500,7 +629,7 @@ export const CreateStructureModal: React.FC<Props> = ({ onClose }) => {
                   {uploadProgress ?? 'Création…'}
                 </>
               ) : (
-                'Créer la structure'
+                'Créer l\'infrastructure'
               )}
             </button>
           </div>

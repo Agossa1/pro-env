@@ -68,7 +68,7 @@ function SidebarContent({ items, userName, userRole, onLogout, onClose }: Omit<S
         {sections.map((section, i) => (
           <div key={i} className="mb-4 last:mb-0">
             {section.title && (
-              <div className="text-sm text-gray-500 tracking-wide px-5 pb-2">
+              <div className="text-xs font-semibold text-gray-500 tracking-widest uppercase px-5 pb-2 pt-1">
                 {section.title}
               </div>
             )}
@@ -79,7 +79,7 @@ function SidebarContent({ items, userName, userRole, onLogout, onClose }: Omit<S
                 end={item.to === '/'}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-5 py-2.5 text-lg  transition-colors border-l-2 ${
+                  `flex items-center gap-3 px-5 py-2.5 text-sm transition-colors border-l-2 ${
                     isActive
                       ? 'text-white bg-benin-green/20 border-benin-green font-medium'
                       : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
@@ -107,8 +107,8 @@ function SidebarContent({ items, userName, userRole, onLogout, onClose }: Omit<S
             </div>
             {userName && (
               <div className="flex-1 min-w-0">
-                <div className="text-xl font-medium text-white truncate">{userName}</div>
-                {userRole && <div className="text-base text-gray-400 truncate">{userRole}</div>}
+                <div className="text-sm font-medium text-white truncate">{userName}</div>
+                {userRole && <div className="text-xs text-gray-400 truncate">{userRole}</div>}
               </div>
             )}
             {onLogout && (

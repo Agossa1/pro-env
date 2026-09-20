@@ -9,9 +9,9 @@ import {
   selectUsersError,
   selectUsersLoading,
 } from '../services/users.selectors';
-import { loadUsers, createUserThunk, toggleUserActiveThunk } from '../services/users.thunk';
+import { loadUsers, createUserThunk, toggleUserActiveThunk, updateUserThunk, deleteUserThunk } from '../services/users.thunk';
 import { clearUsersError, resetMutating } from '../services/users.slices';
-import type { CreateUserDto } from '../services/users.types';
+import type { CreateUserDto, UpdateUserDto } from '../services/users.types';
 
 export function useUsers() {
   const dispatch = useDispatch<AppDispatch>();
@@ -51,6 +51,20 @@ export function useUsers() {
     [dispatch]
   );
 
+  const update = useCallback(
+    async (dto: UpdateUserDto) => {
+      return await dispatch(updateUserThunk(dto)).unwrap();
+    },
+    [dispatch]
+  );
+
+  const deleteUser = useCallback(
+    async (id: string) => {
+      return await dispatch(deleteUserThunk(id)).unwrap();
+    },
+    [dispatch]
+  );
+
   const clearError = useCallback(() => {
     dispatch(clearUsersError());
   }, [dispatch]);
@@ -70,7 +84,10 @@ export function useUsers() {
     reload,
     create,
     toggleActive,
+    update,
+    deleteUser,
     clearError,
     resetMutation,
   };
 }
+

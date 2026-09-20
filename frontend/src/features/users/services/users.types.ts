@@ -12,7 +12,10 @@ export interface AppUser {
   roleId: string;
   roleName: string;
   roleCode: string;
-  territoryId?: string | null;
+  regionId?: string | null;
+  municipalityId?: string | null;
+  districtId?: string | null;
+  neighborhoodId?: string | null;
   territoryName?: string | null;
   isActive: boolean;
   isVerified: boolean;
@@ -32,6 +35,20 @@ export interface CreateUserDto {
   email: string;
   phone?: string;
   roleCode: string;
-  territoryId?: string;
+  regionId?: string;
+  municipalityId?: string;
+  districtId?: string;
+  neighborhoodId?: string;
   organizationId?: string;
+}
+
+export interface UpdateUserDto {
+  id: string;
+  fullName?: string;
+  phone?: string;
+  roleId?: string;
+  regionId?: string | null;
+  municipalityId?: string | null;
+  districtId?: string | null;
+  neighborhoodId?: string | null;
 }

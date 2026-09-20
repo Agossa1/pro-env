@@ -29,7 +29,7 @@ export interface AppSociete {
 export interface SocieteTerritory {
   id: string;
   societeId: string;
-  territoryId: string;
+  municipalityId: string | null;
   isActive: boolean;
 }
 
@@ -51,7 +51,8 @@ export interface CreateSocietePayload {
   registrationNumber?: string | null;
   contactEmail: string;
   contactPhone?: string | null;
-  territoryId?: string | null;
+  /** Commune (zone de compétence) à associer à la société */
+  municipalityId?: string | null;
 }
 
 export interface UpdateSocietePayload {

@@ -33,10 +33,12 @@ const start = async () => {
             logger.error('⚠️  Seed territoires échoué (non bloquant) :', seedError);
         }
 
-        // Check if client is already open before connecting
-        if (!client.isOpen) {
-            await client.connect();
+        // Redis est optionnel : on ne bloque JAMAIS le démarrage du serveur si le
+        // cache est indisponible (la connexion est gérée par redis.config.ts).
+        if (client.isReady) {
             logger.info('✅ Redis connected');
+        } else {
+            logger.warn('⚠️  Redis indisponible — le serveur démarre sans cache');
         }
 
         const app = await createServer(database)
@@ -62,7 +64,7 @@ const start = async () => {
 
             // Vérification Redis
             try {
-                if (client.isOpen) {
+                if (client.isReady) {
                     await client.ping();
                     health.redis = 'connected';
                 } else {

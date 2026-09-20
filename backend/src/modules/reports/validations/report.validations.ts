@@ -22,7 +22,10 @@ const RiskEnum = z.enum(Object.values(RiskLevel) as [string, ...string[]]);
 const FlowStatusEnum = z.enum(Object.values(WaterFlowStatus) as [string, ...string[]]);
 
 export const CreateReportSchema = z.object({
-  territoryId: z.string().uuid("Le territoire doit être un UUID valide"),
+  municipalityId: z
+    .string({ error: 'La commune est requise pour créer un signalement' })
+    .uuid("La commune doit être un UUID valide"),
+  districtId: z.string().uuid("L'arrondissement doit être un UUID valide").nullable().optional(),
   infrastructureId: z.string().uuid("L'infrastructure doit être un UUID valide").nullable().optional(),
   mappedAreaId: z.string().uuid("La zone cartographiée doit être un UUID valide").nullable().optional(),
   title: z.string().min(1, 'Le titre est requis').max(255, 'Le titre ne doit pas dépasser 255 caractères'),

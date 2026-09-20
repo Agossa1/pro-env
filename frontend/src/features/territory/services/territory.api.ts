@@ -15,6 +15,7 @@ export async function fetchTerritories(
   limit = 200,
   territoryTypeId?: string,
   territoryTypeCode?: string,
+  search?: string
 ): Promise<PaginatedTerritoriesResult> {
   const res = await apiClient.get<ApiResponse<any>>('/territories', {
     params: {
@@ -22,6 +23,7 @@ export async function fetchTerritories(
       limit,
       ...(territoryTypeId   ? { territoryTypeId }   : {}),
       ...(territoryTypeCode ? { territoryTypeCode } : {}),
+      ...(search            ? { search }            : {}),
     },
   });
 

@@ -3,6 +3,8 @@ import toast from 'react-hot-toast';
 import { useReports } from '../hooks/useReports';
 import { reportsApi } from '../services/reports.api';
 import { apiClient, type ApiResponse } from '../../../libs/api-client';
+import { useAuth } from '../../auth/hooks/useAuth';
+import { UserRoleCode } from '../../auth/services/auth.types';
 import { MapPicker } from '../../../components/forms';
 import {
   IssueCategory,
@@ -101,7 +103,15 @@ const selectClass = "w-full px-4 py-2.5 rounded-lg border border-gray-300 text-s
 
 export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
   const { addReport } = useReports();
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
+
+  const isTechnicien = user?.role?.code === UserRoleCode.technicien;
+  const isPrefecture = user?.role?.code === UserRoleCode.prefecture;
+  const isMairie = user?.role?.code === UserRoleCode.admin_mairie;
+
+  const shouldLockDept = isTechnicien || isPrefecture || isMairie;
+  const shouldLockCommune = isTechnicien || isMairie;
 
   // Listes de territoires par niveau
   const [departements, setDepartements] = useState<TerritoryItem[]>([]);
@@ -121,8 +131,20 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
   const [selectedArr, setSelectedArr] = useState('');
   const [selectedQuartier, setSelectedQuartier] = useState('');
 
+  // Initialisation pour les rôles territoriaux
+  useEffect(() => {
+    if (user) {
+      if (shouldLockDept && user.regionId) {
+        setSelectedDept(user.regionId);
+      }
+      if (shouldLockCommune && user.municipalityId) {
+        setSelectedCommune(user.municipalityId);
+      }
+    }
+  }, [shouldLockDept, shouldLockCommune, user]);
+
   // Formulaire
-  const [form, setForm] = useState<Omit<CreateReportPayload, 'territoryId'>>({
+  const [form, setForm] = useState<Omit<CreateReportPayload, 'regionId' | 'municipalityId' | 'districtId' | 'neighborhoodId'>>({
     title: '',
     description: '',
     issueCategory: IssueCategory.OTHER,
@@ -145,14 +167,18 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
   useEffect(() => {
     if (!resolvedTerritoryId) { setStructures([]); return; }
     setLoadingStructures(true);
-    apiClient.get<ApiResponse<any>>('/infrastructures', {
-      params: { territoryId: resolvedTerritoryId, limit: 200 },
-    }).then(res => {
-      const items = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
-      setStructures(items);
-    }).catch(() => setStructures([]))
+    // Le backend filtre par municipalityId ou districtId (pas par un territoryId générique)
+    const params: Record<string, any> = { limit: 200 };
+    if (selectedCommune)    params.municipalityId = selectedCommune;
+    else if (selectedArr)   params.districtId     = selectedArr;
+    else if (selectedDept)  params.regionId       = selectedDept;
+    apiClient.get<ApiResponse<any>>('/infrastructures', { params })
+      .then(res => {
+        const items = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+        setStructures(items);
+      }).catch(() => setStructures([]))
       .finally(() => setLoadingStructures(false));
-  }, [resolvedTerritoryId]);
+  }, [resolvedTerritoryId, selectedCommune, selectedArr, selectedDept]);
 
 
   // Médias (pièces jointes)
@@ -173,15 +199,18 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
   useEffect(() => {
     if (!selectedDept) { setCommunes([]); return; }
     setLoadingCommunes(true);
-    setSelectedCommune('');
-    setArrondissements([]);
-    setSelectedArr('');
-    setQuartiers([]);
-    setSelectedQuartier('');
+    // Ne pas réinitialiser la commune si elle est verrouillée par le rôle
+    if (!shouldLockCommune) {
+      setSelectedCommune('');
+      setArrondissements([]);
+      setSelectedArr('');
+      setQuartiers([]);
+      setSelectedQuartier('');
+    }
     fetchByParent(selectedDept)
       .then(setCommunes)
       .finally(() => setLoadingCommunes(false));
-  }, [selectedDept]);
+  }, [selectedDept, shouldLockCommune]);
 
   // Chargement des arrondissements quand une commune est sélectionnée
   useEffect(() => {
@@ -259,6 +288,11 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
       setError('Veuillez sélectionner au minimum un département.');
       return;
     }
+    // La commune est obligatoire côté backend (reports.municipality_id)
+    if (!selectedCommune) {
+      setError('Veuillez sélectionner une commune : elle est obligatoire pour le signalement.');
+      return;
+    }
     if (!form.title?.toString().trim()) {
       setError('Le titre du signalement est obligatoire.');
       return;
@@ -269,7 +303,10 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
       const created = await addReport({
         ...form,
         title: form.title!.toString().trim(),
-        territoryId: resolvedTerritoryId,
+        regionId: selectedDept || undefined,
+        municipalityId: selectedCommune || undefined,
+        districtId: selectedArr || undefined,
+        neighborhoodId: selectedQuartier || undefined,
         details: buildDetailsPayload(),
       });
 
@@ -331,34 +368,32 @@ export const CreateReportModal: React.FC<Props> = ({ onClose }) => {
 
                 {/* Département */}
                 <div>
-                  <label className="text-xs font-medium text-gray-500 mb-1.5 block" htmlFor="dept">
-                    Département {loadingDepts && <span className="text-gray-400">(chargement...)</span>}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Département <span className="text-red-500">*</span>
                   </label>
                   <select
-                    id="dept"
-                    value={selectedDept}
-                    disabled={loadingDepts}
-                    onChange={e => setSelectedDept(e.target.value)}
                     className={selectClass}
-                  >
-                    <option value="">— Sélectionner ({departements.length}) —</option>
+                    value={selectedDept}
+                    onChange={(e) => setSelectedDept(e.target.value)}
+                    disabled={loadingDepts || shouldLockDept}
+                    required
+                  >  <option value="">— Sélectionner ({departements.length}) —</option>
                     {departements.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
 
                 {/* Commune */}
                 <div>
-                  <label className="text-xs font-medium text-gray-500 mb-1.5 block" htmlFor="commune">
-                    Commune {loadingCommunes && <span className="text-gray-400">(chargement...)</span>}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Commune <span className="text-red-500">*</span>
                   </label>
                   <select
-                    id="commune"
-                    value={selectedCommune}
-                    disabled={!selectedDept || loadingCommunes}
-                    onChange={e => setSelectedCommune(e.target.value)}
                     className={selectClass}
-                  >
-                    <option value="">— Sélectionner ({communes.length}) —</option>
+                    value={selectedCommune}
+                    onChange={(e) => setSelectedCommune(e.target.value)}
+                    disabled={!selectedDept || loadingCommunes || shouldLockCommune}
+                    required
+                  >  <option value="">— Sélectionner ({communes.length}) —</option>
                     {communes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>

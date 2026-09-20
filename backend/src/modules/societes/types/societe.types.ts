@@ -32,7 +32,7 @@ export interface SocieteRow {
 export interface SocieteTerritoryRow {
   id: string;
   organization_id: string;
-  territory_id: string;
+  municipality_id: string | null;
   is_active: boolean;
   created_at: Date;
 }
@@ -56,7 +56,7 @@ export interface AppSociete {
 export interface SocieteTerritory {
   id: string;
   societeId: string;
-  territoryId: string;
+  municipalityId: string | null;
   isActive: boolean;
 }
 
@@ -89,12 +89,11 @@ export interface CreateSocietePayload {
   contactPhone?: string | null;
   isActive?: boolean;
   /**
-   * Territoire (mairie/commune ou ministère/niveau supérieur) auquel la
-   * société est associée.
+   * Commune (zone de compétence) à laquelle associer la société.
    * - Admin : fourni dans le body (association libre)
-   * - Mairie/Ministere : omis, on utilise le territoire de l'utilisateur connecté
+   * - Mairie/Ministere : omis, on utilise la commune de l'utilisateur connecté
    */
-  territoryId?: string | null;
+  municipalityId?: string | null;
 }
 
 export interface UpdateSocietePayload {

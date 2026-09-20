@@ -50,7 +50,10 @@ export type WaterFlowStatus = typeof WaterFlowStatus[keyof typeof WaterFlowStatu
 
 export interface Report {
   id: string;
-  territoryId: string;
+  /** Commune du signalement (découpage administratif 4 niveaux) */
+  municipalityId: string | null;
+  /** Arrondissement du signalement (optionnel) */
+  districtId: string | null;
   infrastructureId: string | null;
   mappedAreaId: string | null;
   title: string;
@@ -73,7 +76,11 @@ export interface Report {
   createdByName?: string | null;
   /** Nom du rôle du créateur (JOIN roles) */
   createdByRole?: string | null;
-  /** Nom du territoire (JOIN territories) */
+  /** Nom de la commune (JOIN municipalities) */
+  municipalityName?: string | null;
+  /** Nom de l'arrondissement (JOIN districts) */
+  districtName?: string | null;
+  /** Libellé du territoire (arrondissement sinon commune) */
   territoryName?: string | null;
 }
 
@@ -102,7 +109,10 @@ export interface ReportDetailsPayload {
 }
 
 export interface CreateReportPayload {
-  territoryId: string;
+  regionId?: string;
+  municipalityId?: string;
+  districtId?: string;
+  neighborhoodId?: string;
   infrastructureId?: string | null;
   mappedAreaId?: string | null;
   title: string;

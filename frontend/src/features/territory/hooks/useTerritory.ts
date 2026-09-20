@@ -7,7 +7,7 @@
 import { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../../core/store';
-import { loadTerritories, loadDepartmentsAndCommunes, loadMapTerritories } from '../services/territory.thunk';
+import { loadTerritories, loadDepartmentsAndCommunes, loadAllForLookup, loadMapTerritories } from '../services/territory.thunk';
 import {
   selectTerritoryList,
   selectTerritoryStatus,
@@ -15,7 +15,7 @@ import {
   selectTerritoryPagination,
 } from '../services/territory.selectors';
 
-export function useTerritory(params?: { territoryTypeId?: string; territoryTypeCode?: string }) {
+export function useTerritory(params?: { territoryTypeId?: string; territoryTypeCode?: string; search?: string }) {
   const dispatch = useDispatch<AppDispatch>();
 
   const territories = useSelector(selectTerritoryList);
@@ -27,11 +27,11 @@ export function useTerritory(params?: { territoryTypeId?: string; territoryTypeC
 
   const load = useCallback((page = 1, limit = 200) => {
     dispatch(loadTerritories({ page, limit, ...params }));
-  }, [dispatch, params?.territoryTypeId, params?.territoryTypeCode]);
+  }, [dispatch, params?.territoryTypeId, params?.territoryTypeCode, params?.search]);
 
   const reload = useCallback(() => {
     dispatch(loadTerritories({ page: 1, limit: 200, ...params }));
-  }, [dispatch, params?.territoryTypeId, params?.territoryTypeCode]);
+  }, [dispatch, params?.territoryTypeId, params?.territoryTypeCode, params?.search]);
 
   /** Charge tous les départements + communes en 2 appels parallèles filtrés.
    *  À utiliser dans les formulaires (CreateSocieteModal, etc.) */
@@ -39,10 +39,15 @@ export function useTerritory(params?: { territoryTypeId?: string; territoryTypeC
     dispatch(loadDepartmentsAndCommunes());
   }, [dispatch]);
 
+  /** Charge les 4 niveaux de territoire pour la résolution de noms dans les tableaux */
+  const loadForLookup = useCallback(() => {
+    dispatch(loadAllForLookup());
+  }, [dispatch]);
+
   /** Charge tous les territoires pour la carte */
   const loadForMap = useCallback(() => {
     dispatch(loadMapTerritories());
   }, [dispatch]);
 
-  return { territories, isLoading, error, pagination, status, load, reload, loadForForm, loadForMap };
+  return { territories, isLoading, error, pagination, status, load, reload, loadForForm, loadForLookup, loadForMap };
 }

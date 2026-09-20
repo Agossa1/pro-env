@@ -14,6 +14,15 @@ export class RemoveMemberFromTeamController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      const allowedRoles = ['societe', 'admin_mairie'];
+      if (!req.user || !allowedRoles.includes(req.user.roleCode)) {
+        res.status(403).json({
+          success: false,
+          message: 'Action non autorisée. Seuls les entreprises (prestataires) et les DST (mairies) peuvent retirer des membres.',
+        });
+        return;
+      }
+
       const { id } = IdParamSchema.parse(req.params);
       const { memberId } = MemberIdParamSchema.parse(req.params);
 

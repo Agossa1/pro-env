@@ -32,7 +32,7 @@ export class CreateMissionService {
     creator?: CreateMissionContext
   ): Promise<Mission> {
     try {
-      if (!payload.territoryId || !payload.title || !payload.missionType) {
+      if (!payload.municipalityId || !payload.title || !payload.missionType) {
         throw new BadRequestError(
           'Le territoire, le titre et le type de la mission sont requis.'
         );

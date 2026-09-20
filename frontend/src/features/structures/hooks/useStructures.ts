@@ -27,7 +27,7 @@ export function useStructures() {
   const isLoading = status === 'loading';
 
   const load = useCallback(
-    (params?: { page?: number; limit?: number; territoryId?: string; type?: string; status?: string; condition?: string; search?: string }) => {
+    (params?: { page?: number; limit?: number; regionId?: string; municipalityId?: string; districtId?: string; type?: string; status?: string; condition?: string; search?: string }) => {
       return dispatch(loadStructures(params));
     },
     [dispatch]

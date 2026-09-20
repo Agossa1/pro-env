@@ -44,6 +44,16 @@ class TeamRepository {
                 params.push(query.organizationId);
                 conditions.push(`t.organization_id = $${params.length}`);
             }
+            // Scoping technicien : uniquement les équipes dont il est membre actif
+            if (query.memberUserId) {
+                params.push(query.memberUserId);
+                conditions.push(`EXISTS (
+          SELECT 1 FROM field_team_members ftm
+          WHERE ftm.team_id = t.id
+            AND ftm.user_id = $${params.length}
+            AND ftm.is_active = TRUE
+        )`);
+            }
             const where = conditions.join(' AND ');
             const key = `teams:all:${page}:${limit}:${query.teamType ?? ''}:${query.organizationId ?? ''}`;
             return await redis_service_1.redisCache.getOrSet(key, async () => {

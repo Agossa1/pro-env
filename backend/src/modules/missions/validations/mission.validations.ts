@@ -14,7 +14,7 @@ const StatusEnum = z.enum(Object.values(MissionStatus) as [string, ...string[]])
 const PriorityEnum = z.enum(Object.values(PriorityLevel) as [string, ...string[]]);
 
 export const CreateMissionSchema = z.object({
-  territoryId: z.string().uuid("Le territoire doit être un UUID valide"),
+  municipalityId: z.string().uuid("Le territoire doit être un UUID valide"),
   reportId: z.string().uuid("Le rapport doit être un UUID valide").nullable().optional(),
   infrastructureId: z.string().uuid("L'infrastructure doit être un UUID valide").nullable().optional(),
   missionType: MissionTypeEnum,

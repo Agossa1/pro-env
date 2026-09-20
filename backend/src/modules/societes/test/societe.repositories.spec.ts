@@ -144,7 +144,7 @@ describe('SocieteRepository', () => {
 
       const result = await societeRepository.createSociete({
         ...payload,
-        territoryId: 'territory-uuid',
+        municipalityId: 'territory-uuid',
       });
 
       expect(mockClient.query).toHaveBeenCalledWith(
@@ -214,7 +214,7 @@ describe('SocieteRepository', () => {
   describe('getSocieteTerritories', () => {
     it('doit retourner les territoires de compétence', async () => {
       const mockTerritories = [
-        { id: 'ot-1', societeId: 'soc-1', territoryId: 'terr-1', isActive: true },
+        { id: 'ot-1', societeId: 'soc-1', municipalityId: 'terr-1', isActive: true },
       ];
       (redisCache.getOrSet as jest.Mock).mockImplementation(async (_key, factory) => factory());
       mockDb.query.mockResolvedValueOnce({ rows: mockTerritories });

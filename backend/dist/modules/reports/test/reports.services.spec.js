@@ -78,11 +78,11 @@ describe('Report Services', () => {
             service = new createReport_service_1.CreateReportService(reportRepository, mockLogger);
         });
         it('doit lever BadRequestError si champs requis absents', async () => {
-            await expect(service.createReport({ territoryId: '', title: '', issueCategory: '' }))
+            await expect(service.createReport({ municipalityId: '', title: '', issueCategory: '' }))
                 .rejects.toThrow(appErrors_1.BadRequestError);
         });
         it('doit créer le rapport avec le créateur injecté', async () => {
-            const payload = { territoryId: 'terr-1', title: 'Caniveau bouché', issueCategory: 'drainage' };
+            const payload = { municipalityId: 'terr-1', title: 'Caniveau bouché', issueCategory: 'drainage' };
             const mockCreated = { id: 'new-uuid', title: 'Caniveau bouché' };
             reportRepository.createReport.mockResolvedValueOnce(mockCreated);
             const result = await service.createReport(payload, { userId: 'user-1' });

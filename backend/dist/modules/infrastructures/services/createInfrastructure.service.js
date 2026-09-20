@@ -15,11 +15,11 @@ class CreateInfrastructureService {
     /** Crée une nouvelle infrastructure (équipement physique urbain). */
     async createInfrastructure(payload) {
         try {
-            if (!payload.territoryId || !payload.name || !payload.type) {
+            if (!payload.municipalityId || !payload.name || !payload.type) {
                 throw new appErrors_1.BadRequestError('Le territoire, le nom et le type sont requis.');
             }
             const created = await this.infrastructureRepository.createInfrastructure(payload);
-            this.logger.info(`Infrastructure créée : ${created.name} (${created.type}) dans la territoire ${created.territoryId}`);
+            this.logger.info(`Infrastructure créée : ${created.name} (${created.type}) dans la territoire ${created.municipalityId}`);
             return created;
         }
         catch (error) {

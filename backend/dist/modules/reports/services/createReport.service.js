@@ -22,11 +22,11 @@ class CreateReportService {
      */
     async createReport(payload, creator) {
         try {
-            if (!payload.territoryId || !payload.title || !payload.issueCategory) {
+            if (!payload.municipalityId || !payload.title || !payload.issueCategory) {
                 throw new appErrors_1.BadRequestError('Le territoire, le titre et la catégorie du rapport sont requis.');
             }
             // Vérification de l'unicité du signalement
-            const isDuplicate = await this.reportRepository.checkDuplicateReport(payload.title.trim(), payload.issueCategory, payload.territoryId);
+            const isDuplicate = await this.reportRepository.checkDuplicateReport(payload.title.trim(), payload.issueCategory, payload.municipalityId, payload.districtId);
             if (isDuplicate) {
                 throw new appErrors_1.BadRequestError('Un signalement similaire (même titre et catégorie dans ce territoire) existe déjà.');
             }

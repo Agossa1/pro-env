@@ -7,6 +7,8 @@ import { ReportStatus, IssueCategory, PriorityLevel, RiskLevel } from '../servic
 import type { Report } from '../services/reports.types';
 import { CreateReportModal } from './CreateReportModal';
 import { ReportDetailsModal } from './ReportDetailsModal';
+import { useAuth } from '../../auth/hooks/useAuth';
+import { UserRoleCode } from '../../auth/services/auth.types';
 
 const GridIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>;
 const ListIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>;
@@ -82,6 +84,7 @@ const NoPhoto: React.FC<{ className?: string }> = ({ className = '' }) => (
 export const ReportsPage: React.FC = () => {
   const { reports, isLoading, error, load } = useReports();
   const { territories, loadForForm } = useTerritory();
+  const { user } = useAuth();
 
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -96,9 +99,19 @@ export const ReportsPage: React.FC = () => {
   const [mediaMap, setMediaMap] = useState<Record<string, ReportMedia[]>>({});
 
   useEffect(() => {
-    load();
+    const filters: Record<string, string> = {};
+    if (user) {
+      if (user.role?.code === UserRoleCode.admin_mairie && user.municipalityId) {
+        filters.municipalityId = user.municipalityId;
+      } else if (user.role?.code === UserRoleCode.prefecture && user.regionId) {
+        filters.regionId = user.regionId;
+      } else if (user.role?.code === UserRoleCode.technicien) {
+        filters.createdBy = user.id;
+      }
+    }
+    load(filters);
     loadForForm();
-  }, [load, loadForForm]);
+  }, [load, loadForForm, user]);
 
   // Charge les médias de chaque signalement une seule fois
   useEffect(() => {
@@ -256,7 +269,11 @@ export const ReportsPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-5 py-3 text-sm text-gray-600 max-w-[140px] truncate">
-                          {report.territoryName || territoryMap[report.territoryId] || '—'}
+                          {report.territoryName
+                            || report.districtName
+                            || report.municipalityName
+                            || (report.municipalityId ? territoryMap[report.municipalityId] : '')
+                            || '—'}
                         </td>
                         <td className="px-5 py-3">
                           <p className="text-sm text-gray-800">{report.createdByName || '—'}</p>

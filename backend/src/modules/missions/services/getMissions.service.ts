@@ -11,8 +11,12 @@ import { MissionRepository } from '../repositories/mission.repositories';
 import type { Mission, PaginationQuery, PaginatedResult } from '../types/mission.types';
 
 export interface GetAllMissionsQuery extends PaginationQuery {
-  territoryId?: string;
+  regionId?: string;
+  municipalityId?: string;
+  districtId?: string;
+  neighborhoodId?: string;
   createdBy?: string;
+  memberUserId?: string;
   status?: string;
   missionType?: string;
   organizationId?: string;

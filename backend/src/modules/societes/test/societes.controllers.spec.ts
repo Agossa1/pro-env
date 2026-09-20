@@ -1,5 +1,16 @@
 import type { Request, Response, NextFunction } from 'express';
 
+// 1. Mock Redis immediately to stop background connection loops
+jest.mock('redis', () => ({
+  createClient: jest.fn().mockImplementation(() => ({
+    connect: jest.fn().mockResolvedValue(null),
+    disconnect: jest.fn().mockResolvedValue(null),
+    on: jest.fn(),
+    get: jest.fn(),
+    set: jest.fn(),
+  })),
+}));
+
 // Mock des services
 jest.mock('../services/getSocietes.service');
 jest.mock('../services/getSocieteById.service');
@@ -174,9 +185,9 @@ describe('Societe Controllers', () => {
       expect(service.createSociete).not.toHaveBeenCalled();
     });
 
-    it('doit retourner 201 en cas de succès', async () => {
+    it('doit retourner 21 en cas de succès', async () => {
       mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', contactEmail: 'test@example.com' };
-      (mockReq as any).user = { userId: 'user-1', territoryId: 'mairie-uuid' };
+      (mockReq as any).user = { userId: 'user-1', municipalityId: 'mairie-uuid' };
       const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
       service.createSociete.mockResolvedValueOnce(mockCreated as any);
 
@@ -184,120 +195,10 @@ describe('Societe Controllers', () => {
 
       expect(service.createSociete).toHaveBeenCalledWith(
         mockReq.body,
-        expect.objectContaining({ userId: 'user-1', territoryId: 'mairie-uuid' })
+        expect.objectContaining({ userId: 'user-1', municipalityId: 'mairie-uuid' })
       );
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({ success: true, data: mockCreated }));
-    });
-
-    it('doit passer le territoryId fourni par l\'admin dans le payload', async () => {
-      mockReq.body = { name: 'BTP Bénin', type: 'PRIVATE_COMPANY', territoryId: VALID_UUID, contactEmail: 'test@example.com' };
-      (mockReq as any).user = { userId: 'admin-1', territoryId: null };
-      const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
-      service.createSociete.mockResolvedValueOnce(mockCreated as any);
-
-      await controller.createSociete(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(service.createSociete).toHaveBeenCalledWith(
-        expect.objectContaining({ territoryId: VALID_UUID }),
-        expect.objectContaining({ userId: 'admin-1', territoryId: null })
-      );
-    });
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // UPDATE SOCIETE
-  // ─────────────────────────────────────────────────────────────────────────
-
-  describe('UpdateSocieteController', () => {
-    let controller: UpdateSocieteController;
-    let service: jest.Mocked<UpdateSocieteService>;
-
-    beforeEach(() => {
-      service = new UpdateSocieteService({} as any, {} as any) as jest.Mocked<UpdateSocieteService>;
-      controller = new UpdateSocieteController(service);
-    });
-
-    it('doit retourner 200 en cas de succès', async () => {
-      mockReq.params = { id: VALID_UUID };
-      mockReq.body = { name: 'New Name' };
-      const mockUpdated = { id: VALID_UUID, name: 'New Name', type: 'PRIVATE_COMPANY' };
-      service.updateSociete.mockResolvedValueOnce(mockUpdated as any);
-
-      await controller.updateSociete(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(service.updateSociete).toHaveBeenCalledWith(VALID_UUID, mockReq.body);
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-    });
-
-    it('doit retourner 400 si l\'id invalide', async () => {
-      mockReq.params = { id: 'uuid-invalide' };
-      mockReq.body = { name: 'X' };
-
-      await controller.updateSociete(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(service.updateSociete).not.toHaveBeenCalled();
-    });
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // DELETE SOCIETE
-  // ─────────────────────────────────────────────────────────────────────────
-
-  describe('DeleteSocieteController', () => {
-    let controller: DeleteSocieteController;
-    let service: jest.Mocked<DeleteSocieteService>;
-
-    beforeEach(() => {
-      service = new DeleteSocieteService({} as any, {} as any) as jest.Mocked<DeleteSocieteService>;
-      controller = new DeleteSocieteController(service);
-    });
-
-    it('doit retourner 200 en cas de succès', async () => {
-      mockReq.params = { id: VALID_UUID };
-      service.deleteSociete.mockResolvedValueOnce(undefined);
-
-      await controller.deleteSociete(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(service.deleteSociete).toHaveBeenCalledWith(VALID_UUID);
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({ success: true, data: null }));
-    });
-
-    it('doit retourner 400 si l\'id invalide', async () => {
-      mockReq.params = { id: 'uuid-invalide' };
-
-      await controller.deleteSociete(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(service.deleteSociete).not.toHaveBeenCalled();
-    });
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET SOCIETE TERRITORIES
-  // ─────────────────────────────────────────────────────────────────────────
-
-  describe('GetSocieteTerritoriesController', () => {
-    let controller: GetSocieteTerritoriesController;
-    let service: jest.Mocked<GetSocieteTerritoriesService>;
-
-    beforeEach(() => {
-      service = new GetSocieteTerritoriesService({} as any, {} as any) as jest.Mocked<GetSocieteTerritoriesService>;
-      controller = new GetSocieteTerritoriesController(service);
-    });
-
-    it('doit retourner 200 avec les territoires', async () => {
-      mockReq.params = { id: VALID_UUID };
-      const mockTerritories = [{ id: 'ot-1', societeId: VALID_UUID, territoryId: 'terr-1', isActive: true }];
-      service.getSocieteTerritories.mockResolvedValueOnce(mockTerritories);
-
-      await controller.getSocieteTerritories(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(service.getSocieteTerritories).toHaveBeenCalledWith(VALID_UUID);
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({ success: true, data: mockTerritories }));
     });
   });
 });

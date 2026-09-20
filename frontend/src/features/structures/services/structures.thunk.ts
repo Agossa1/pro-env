@@ -4,7 +4,7 @@ import type { CreateStructurePayload, UpdateStructurePayload } from './structure
 
 export const loadStructures = createAsyncThunk(
   'structures/loadAll',
-  async (params: { page?: number; limit?: number; territoryId?: string; type?: string; status?: string; condition?: string; search?: string } | undefined, { rejectWithValue }) => {
+  async (params: { page?: number; limit?: number; regionId?: string; municipalityId?: string; districtId?: string; type?: string; status?: string; condition?: string; search?: string } | undefined, { rejectWithValue }) => {
     try {
       return await structuresApi.getAll(params);
     } catch (err: any) {

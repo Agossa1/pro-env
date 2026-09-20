@@ -28,7 +28,7 @@ export class GetUsersService {
    * Récupère la liste paginée des utilisateurs.
    * @param query Paramètres de pagination (page, limit)
    */
-  public async getUsers(query: { page?: number; limit?: number } = {}): Promise<PaginatedUsersResult> {
+  public async getUsers(query: { page?: number; limit?: number; filters?: any } = {}): Promise<PaginatedUsersResult> {
     try {
       const result = await this.authRepository.getAllUsers(query);
       this.logger.info(

@@ -6,10 +6,10 @@ class GetRecentReportsService {
         this.dashboardRepository = dashboardRepository;
         this.logger = logger;
     }
-    async getRecentReports(page = 1, limit = 10, search = '', status = '') {
+    async getRecentReports(page = 1, limit = 10, search = '', status = '', filters) {
         try {
             const offset = (page - 1) * limit;
-            const { data, total } = await this.dashboardRepository.getRecentReports(offset, limit, search, status);
+            const { data, total } = await this.dashboardRepository.getRecentReports(offset, limit, search, status, filters);
             return {
                 data,
                 total,

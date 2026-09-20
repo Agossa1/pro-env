@@ -28,10 +28,10 @@ export const SocieteDetailsModal: React.FC<Props> = ({ societe, onClose }) => {
       .then((res) => {
         const items = Array.isArray(res.data) ? res.data : [];
         const names = items
-          .filter((t) => t.isActive)
+          .filter((t) => t.isActive && t.municipalityId)
           .map((t) => {
-            const terr = territories.find((x) => x.id === t.territoryId);
-            return { id: t.territoryId, name: terr?.name ?? t.territoryId };
+            const terr = territories.find((x) => x.id === t.municipalityId);
+            return { id: t.municipalityId ?? '', name: terr?.name ?? 'Commune inconnue' };
           });
         if (!cancelled) setTerritoryOptions(names);
       })

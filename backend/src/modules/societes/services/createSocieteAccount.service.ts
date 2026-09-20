@@ -60,7 +60,7 @@ export class CreateSocieteAccountService {
         phone: undefined,
         passwordHash,
         roleId: societeRole.id,
-        territoryId: null,
+        regionId: null, municipalityId: null, districtId: null, neighborhoodId: null,
         organizationId: params.organizationId,
         createdBy: params.createdBy,
       });

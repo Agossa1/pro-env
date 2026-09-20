@@ -41,8 +41,12 @@ export type PriorityLevel = typeof PriorityLevel[keyof typeof PriorityLevel];
 
 export interface Mission {
   id: string;
-  territoryId: string;
-  territoryName?: string;
+  /** Commune d'intervention (découpage administratif 4 niveaux) */
+  municipalityId: string | null;
+  /** Nom de la commune (JOIN municipalities) */
+  municipalityName?: string | null;
+  /** Libellé du territoire d'intervention */
+  territoryName?: string | null;
   reportId: string | null;
   infrastructureId: string | null;
   missionType: MissionType;
@@ -107,7 +111,7 @@ export interface PaginatedResult<T> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface CreateMissionPayload {
-  territoryId: string;
+  municipalityId: string;
   reportId?: string | null;
   infrastructureId?: string | null;
   missionType: MissionType;

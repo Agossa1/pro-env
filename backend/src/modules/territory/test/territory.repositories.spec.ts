@@ -47,32 +47,17 @@ describe('TerritoryRepository', () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   describe('getAllTerritoryTypes', () => {
-    it('doit retourner une liste paginée avec total et totalPages', async () => {
-      (redisCache.getOrSet as jest.Mock).mockImplementation(async (_key, factory) => factory());
-
-      mockDb.query
-        .mockResolvedValueOnce({ rows: [{ total: 25 }] }) // count
-        .mockResolvedValueOnce({ rows: [{ id: '1', code: 'DEP', name: 'Department', hierarchyLevel: 1 }] });
-
+    it('doit retourner une liste vide (deprecated)', async () => {
       const result = await territoryRepository.getAllTerritoryTypes({ page: 1, limit: 10 });
-
-      expect(result.total).toBe(25);
-      expect(result.page).toBe(1);
-      expect(result.limit).toBe(10);
-      expect(result.totalPages).toBe(3);
-      expect(result.data).toHaveLength(1);
+      expect(result.total).toBe(0);
+      expect(result.data).toHaveLength(0);
     });
   });
 
   describe('getTerritoryTypeByCode', () => {
-    it('doit retourner le type si trouvé', async () => {
-      const mockType = { id: '1', code: 'DEPARTMENT', name: 'Department', hierarchyLevel: 1 };
-      (redisCache.getOrSet as jest.Mock).mockImplementation(async (_key, factory) => factory());
-      mockDb.query.mockResolvedValueOnce({ rowCount: 1, rows: [mockType] });
-
+    it('doit retourner null (deprecated)', async () => {
       const result = await territoryRepository.getTerritoryTypeByCode('DEPARTMENT');
-
-      expect(result).toEqual(mockType);
+      expect(result).toBeNull();
     });
 
     it('doit retourner null si non trouvé', async () => {
@@ -86,14 +71,9 @@ describe('TerritoryRepository', () => {
   });
 
   describe('getTerritoryTypeById', () => {
-    it('doit retourner le type si trouvé', async () => {
-      const mockType = { id: 'uuid-1', code: 'DEPARTMENT', name: 'Department', hierarchyLevel: 1 };
-      (redisCache.getOrSet as jest.Mock).mockImplementation(async (_key, factory) => factory());
-      mockDb.query.mockResolvedValueOnce({ rowCount: 1, rows: [mockType] });
-
+    it('doit retourner null (deprecated)', async () => {
       const result = await territoryRepository.getTerritoryTypeById('uuid-1');
-
-      expect(result).toEqual(mockType);
+      expect(result).toBeNull();
     });
 
     it('doit retourner null si non trouvé', async () => {
@@ -109,76 +89,20 @@ describe('TerritoryRepository', () => {
   describe('createTerritoryType', () => {
     const payload = { code: 'PROVINCE', name: 'Province', hierarchyLevel: 2 };
 
-    it('doit créer un type dans une transaction et invalider le cache', async () => {
-      const mockCreated = { id: 'new-uuid', code: 'PROVINCE', name: 'Province', hierarchyLevel: 2 };
-      mockClient.query
-        .mockResolvedValueOnce(undefined) // BEGIN
-        .mockResolvedValueOnce({ rows: [mockCreated] }) // INSERT
-        .mockResolvedValueOnce(undefined); // COMMIT
-
-      const result = await territoryRepository.createTerritoryType(payload);
-
-      expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO territory_types'), expect.any(Array));
-      expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
-      expect(redisCache.invalidatePattern).toHaveBeenCalledWith('territory:types:all:*');
-      expect(mockClient.release).toHaveBeenCalled();
-      expect(result).toEqual(mockCreated);
-    });
-
-    it('doit faire ROLLBACK et lever BadRequestError si code dupliqué', async () => {
-      const duplicateError = { code: '23505', constraint: 'territory_types_code_key', message: 'duplicate' };
-      mockClient.query
-        .mockResolvedValueOnce(undefined) // BEGIN
-        .mockRejectedValueOnce(duplicateError); // INSERT fails
-
+    it('doit lever BadRequestError car non supporté (4-tier model)', async () => {
       await expect(territoryRepository.createTerritoryType(payload)).rejects.toThrow(BadRequestError);
-      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
   describe('updateTerritoryType', () => {
-    it('doit mettre à jour et invalider les caches', async () => {
-      const mockUpdated = { id: 'uuid-1', code: 'DEP', name: 'New Name', hierarchyLevel: 2 };
-      mockDb.query.mockResolvedValueOnce({ rowCount: 1, rows: [mockUpdated] });
-
-      const result = await territoryRepository.updateTerritoryType('uuid-1', { name: 'New Name' });
-
-      expect(result).toEqual(mockUpdated);
-      expect(redisCache.invalidatePattern).toHaveBeenCalledWith('territory:types:all:*');
-      expect(redisCache.invalidate).toHaveBeenCalledWith('territory:type:id:uuid-1');
-    });
-
-    it('doit lever NotFoundError si ligne non trouvée', async () => {
-      mockDb.query.mockResolvedValueOnce({ rowCount: 0, rows: [] });
-
-      await expect(territoryRepository.updateTerritoryType('uuid-inexistant', { name: 'X' }))
-        .rejects.toThrow(NotFoundError);
+    it('doit lever BadRequestError car non supporté (4-tier model)', async () => {
+      await expect(territoryRepository.updateTerritoryType('uuid-1', { name: 'New Name' }))
+        .rejects.toThrow(BadRequestError);
     });
   });
 
   describe('deleteTerritoryType', () => {
-    it('doit supprimer et invalider les caches', async () => {
-      mockDb.query.mockResolvedValueOnce({ rowCount: 1 });
-
-      await territoryRepository.deleteTerritoryType('uuid-1');
-
-      expect(redisCache.invalidatePattern).toHaveBeenCalledWith('territory:types:all:*');
-      expect(redisCache.invalidate).toHaveBeenCalledWith('territory:type:id:uuid-1');
-    });
-
-    it('doit lever NotFoundError si ligne non trouvée', async () => {
-      mockDb.query.mockResolvedValueOnce({ rowCount: 0, rows: [] });
-
-      await expect(territoryRepository.deleteTerritoryType('uuid-inexistant'))
-        .rejects.toThrow(NotFoundError);
-    });
-
-    it('doit lever BadRequestError si FK violation (23503)', async () => {
-      const fkError = { code: '23503', message: 'fk violation' };
-      mockDb.query.mockRejectedValueOnce(fkError);
-
+    it('doit lever BadRequestError car non supporté (4-tier model)', async () => {
       await expect(territoryRepository.deleteTerritoryType('uuid-1'))
         .rejects.toThrow(BadRequestError);
     });
@@ -282,44 +206,8 @@ describe('TerritoryRepository', () => {
       status: 'ACTIVE' as any,
     };
 
-    it('doit créer un territoire dans une transaction complète', async () => {
-      const mockTerritory = { id: 'new-uuid', name: 'Test Territory', code: 'BJ-TEST' };
-      mockClient.query
-        .mockResolvedValueOnce(undefined) // BEGIN
-        .mockResolvedValueOnce({ rows: [mockTerritory] }) // INSERT territories
-        .mockResolvedValueOnce({ rowCount: 0 }) // INSERT territory_sectors (no sector)
-        .mockResolvedValueOnce({ rowCount: 0 }) // INSERT organization_territories (no org)
-        .mockResolvedValueOnce(undefined); // COMMIT
-
-      const result = await territoryRepository.createTerritory(payload);
-
-      expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO territories'), expect.any(Array));
-      expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
-      expect(redisCache.invalidatePattern).toHaveBeenCalledWith('territory:all:*');
-      expect(mockClient.release).toHaveBeenCalled();
-      expect(result).toEqual(mockTerritory);
-    });
-
-    it('doit faire ROLLBACK et lever BadRequestError si code dupliqué', async () => {
-      const duplicateError = { code: '23505', constraint: 'territories_code_key', message: 'duplicate' };
-      mockClient.query
-        .mockResolvedValueOnce(undefined) // BEGIN
-        .mockRejectedValueOnce(duplicateError);
-
+    it('doit lever BadRequestError car non supporté (4-tier model)', async () => {
       await expect(territoryRepository.createTerritory(payload)).rejects.toThrow(BadRequestError);
-      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-      expect(mockClient.release).toHaveBeenCalled();
-    });
-
-    it('doit faire ROLLBACK et lever BadRequestError si FK violation', async () => {
-      const fkError = { code: '23503', message: 'fk violation' };
-      mockClient.query
-        .mockResolvedValueOnce(undefined) // BEGIN
-        .mockRejectedValueOnce(fkError);
-
-      await expect(territoryRepository.createTerritory(payload)).rejects.toThrow(BadRequestError);
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 });

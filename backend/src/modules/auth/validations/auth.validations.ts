@@ -6,7 +6,10 @@ export const RegisterSchema = z.object({
   phone: z.string().optional(),
   password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères").optional(),
   roleCode: z.string().min(1, "Le code du rôle est requis"),
-  territoryId: z.string().uuid("L'identifiant du territoire doit être un UUID valide").optional(),
+  regionId: z.string().uuid("L'identifiant de la région doit être un UUID valide").optional(),
+  municipalityId: z.string().uuid("L'identifiant de la commune doit être un UUID valide").optional(),
+  districtId: z.string().uuid("L'identifiant de l'arrondissement doit être un UUID valide").optional(),
+  neighborhoodId: z.string().uuid("L'identifiant du quartier doit être un UUID valide").optional(),
   organizationId: z.string().uuid("L'identifiant de l'organisation doit être un UUID valide").optional(),
 });
 

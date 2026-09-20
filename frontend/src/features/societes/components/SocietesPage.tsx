@@ -47,11 +47,11 @@ export const SocietesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Sociétés</h1>
-          <p className="text-lg text-gray-700">Prestataires et concessionnaires exécutant les missions terrain</p>
+          <p className="text-sm text-gray-700">Prestataires et concessionnaires exécutant les missions terrain</p>
         </div>
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-lg text-lg font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
+          className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-benin-green hover:bg-benin-green-dark transition-colors"
         >
           + Nouvelle société
         </button>
@@ -102,7 +102,7 @@ export const SocietesPage: React.FC = () => {
       {viewMode === 'table' ? (
         <div className="bg-white rounded-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-lg whitespace-nowrap">
+            <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-6 py-4 font-semibold text-gray-700">Nom</th>
@@ -134,7 +134,7 @@ export const SocietesPage: React.FC = () => {
                         <p className="font-medium text-gray-900 truncate max-w-[200px]">{s.name}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-base font-medium border ${TYPE_COLORS[s.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium border ${TYPE_COLORS[s.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                           {TYPE_LABELS[s.type] || s.type}
                         </span>
                       </td>
@@ -166,7 +166,7 @@ export const SocietesPage: React.FC = () => {
             filteredSocietes.map((s) => (
               <div key={s.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col cursor-pointer" onClick={() => setSelectedSocieteId(s.id)}>
                 <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${TYPE_COLORS[s.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-sm font-bold border ${TYPE_COLORS[s.type] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                     {TYPE_LABELS[s.type] || s.type}
                   </span>
                   {s.isActive ? (
@@ -175,7 +175,7 @@ export const SocietesPage: React.FC = () => {
                     <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-gray-100 text-gray-500 border-gray-200">Inactif</span>
                   )}
                 </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-2">{s.name}</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2">{s.name}</h3>
                 <p className="text-xs text-gray-400 font-mono mb-2">{s.registrationNumber || ''}</p>
                 <p className="text-sm text-gray-500 flex-1 line-clamp-2 mb-4">{s.contactEmail || 'Aucun email'}</p>
                 <div className="pt-4 border-t border-gray-100 mt-auto">

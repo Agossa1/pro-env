@@ -8,6 +8,14 @@ class AddMemberToTeamController {
         this.addMemberToTeamService = addMemberToTeamService;
         this.addMemberToTeam = async (req, res, next) => {
             try {
+                const allowedRoles = ['societe', 'admin_mairie'];
+                if (!req.user || !allowedRoles.includes(req.user.roleCode)) {
+                    res.status(403).json({
+                        success: false,
+                        message: 'Action non autorisée. Seuls les entreprises (prestataires) et les DST (mairies) peuvent ajouter des membres.',
+                    });
+                    return;
+                }
                 const { id } = team_validations_1.IdParamSchema.parse(req.params);
                 const { fullName, email, phone, role, organizationId } = team_validations_1.AddMemberSchema.parse(req.body);
                 const member = await this.addMemberToTeamService.addMemberToTeam(id, {

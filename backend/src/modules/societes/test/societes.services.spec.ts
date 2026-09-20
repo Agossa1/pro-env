@@ -159,33 +159,33 @@ describe('Societe Services', () => {
       expect(mockLogger.info).toHaveBeenCalled();
     });
 
-    it('doit associer la société au territoire du créateur (mairie/ministère)', async () => {
+    it('NE DOIT PAS associer la société au territoire du créateur (mairie/ministère)', async () => {
       societeRepository.getSocieteByRegistrationNumber.mockResolvedValueOnce(null);
       const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
       societeRepository.createSociete.mockResolvedValueOnce(mockCreated as any);
 
       await service.createSociete(
         { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any, contactEmail: 'contact@btpbenin.bj' },
-        { userId: 'user-1', territoryId: 'mairie-uuid' }
+        { userId: 'user-1', municipalityId: 'mairie-uuid' }
       );
 
       expect(societeRepository.createSociete).toHaveBeenCalledWith(
-        expect.objectContaining({ territoryId: 'mairie-uuid' })
+        expect.objectContaining({ municipalityId: null })
       );
     });
 
-    it('doit utiliser le territoryId fourni par l\'admin (association libre)', async () => {
+    it('doit utiliser le municipalityId fourni par l\'admin (association libre)', async () => {
       societeRepository.getSocieteByRegistrationNumber.mockResolvedValueOnce(null);
       const mockCreated = { id: 'new-uuid', name: 'BTP Bénin', type: 'PRIVATE_COMPANY' };
       societeRepository.createSociete.mockResolvedValueOnce(mockCreated as any);
 
       await service.createSociete(
-        { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any, contactEmail: 'contact@btpbenin.bj', territoryId: 'ministere-uuid' },
-        { userId: 'admin-1', territoryId: null }
+        { name: 'BTP Bénin', type: 'PRIVATE_COMPANY' as any, contactEmail: 'contact@btpbenin.bj', municipalityId: 'ministere-uuid' },
+        { userId: 'admin-1', municipalityId: null }
       );
 
       expect(societeRepository.createSociete).toHaveBeenCalledWith(
-        expect.objectContaining({ territoryId: 'ministere-uuid' })
+        expect.objectContaining({ municipalityId: 'ministere-uuid' })
       );
     });
   });
@@ -258,7 +258,7 @@ describe('Societe Services', () => {
     });
 
     it('doit retourner les territoires de compétence', async () => {
-      const mockTerritories = [{ id: 'ot-1', societeId: '1', territoryId: 'terr-1', isActive: true }];
+      const mockTerritories = [{ id: 'ot-1', societeId: '1', municipalityId: 'terr-1', isActive: true }];
       societeRepository.getSocieteTerritories.mockResolvedValueOnce(mockTerritories);
 
       const result = await service.getSocieteTerritories('1');
