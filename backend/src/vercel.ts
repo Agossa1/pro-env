@@ -13,19 +13,18 @@ export default async function handler(req: Request, res: Response) {
             const database = new PostgresDatabase();
             await database.connect();
             
-            await runMigrations();
+            // On Vercel serverless, we DO NOT run migrations and seeds on every cold start
+            // as it causes 10-second timeouts. They should be run via CLI or separate script.
             
-            try {
-                await seedTerritories();
-            } catch (seedError) {
-                logger.error('⚠️  Seed territoires échoué :', seedError);
-            }
-
             app = await createServer(database);
             logger.info('✅ Serverless Express App Initialized');
-        } catch (error) {
+        } catch (error: any) {
             logger.error('❌ Error initializing serverless app', error);
-            return res.status(500).json({ error: 'Internal Server Error' });
+            
+            // Add basic CORS headers so the frontend can actually read the 500 error instead of a CORS error
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+            return res.status(500).json({ error: 'Internal Server Error (Init)', details: error?.message });
         }
     }
     
